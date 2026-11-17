@@ -108,13 +108,14 @@ function drawNPC(g,n,t,mark,faceDir){
     g.restore();return;
   }
   // veggie-bodied NPCs
-  const map={chief:'guardian',coach:'fighter',shop:'gunner',monk:'priest',aunt:'mage',daily:'archer',duel:'warrior',sage:'rogue',moon:'mage',att:'priest',cash:'rogue',scroll:'gunner'};
+  const map={chief:'guardian',coach:'fighter',shop:'gunner',monk:'priest',aunt:'mage',daily:'archer',duel:'warrior',sage:'rogue',moon:'mage',att:'priest',cash:'rogue',scroll:'gunner',zgate:'guardian'};
   const job=JOB[map[n.look]],eq={};
   if(n.look==='coach'){eq.hat='hat_helm';eq.outfit='out_dobok'}
   if(n.look==='shop'){eq.outfit='out_tank';eq.hat='hat_flower'}
   if(n.look==='monk'){eq.outfit='out_hanbok'}
   if(n.look==='aunt'){eq.outfit='out_vest';eq.hat='hat_flower'}
   if(n.look==='chief'){eq.hat='hat_gat';eq.outfit='out_dobok'}
+  if(n.look==='zgate'){eq.hat='hat_horns';eq.outfit='out_gold';eq.cape='cape_red'}
   if(n.look==='att'){eq.hat='hat_flower';eq.outfit='out_hanbok';eq.face='face_heart'}
   if(n.look==='cash'){eq.hat='cs_hat_cat';eq.outfit='cs_out_rainbow';eq.cape='cs_cape_wing'}
   if(n.look==='scroll'){eq.hat='hat_ninja';eq.face='face_patch'}
