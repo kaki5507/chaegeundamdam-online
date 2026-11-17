@@ -3,6 +3,7 @@ process.env.ADMIN_NAMES = 'admin1';
 process.env.DB_FILE = require('os').tmpdir() + '/cgdd-test-' + Date.now() + '.json';
 const app = require('./server'); const assert = require('assert');
 const srv = app.listen(0, async () => {
+  app.attachPresence(srv);
   const base = 'http://127.0.0.1:' + srv.address().port;
   const j = async (m, p, body, tok) => { const r = await fetch(base + p, { method: m, headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) }, body: body ? JSON.stringify(body) : undefined }); return [r.status, await r.json()]; };
   try {
@@ -41,6 +42,15 @@ const srv = app.listen(0, async () => {
     [s, o] = await j('POST', '/api/hello', {}, at); assert.equal(o.rank, 1);
     [s, o] = await j('GET', '/api/poll?since=0&map=x'); assert.ok(o.msgs.some(m => m.kind === 'rank' && m.rank === 1));
     [s, o] = await j('POST', '/api/hello', {}, tok); assert.equal(o.rank, 2);
+    // 실시간 접속
+    const WS = require('ws'), url = base.replace('http', 'ws') + '/ws';
+    const a = new WS(url), b = new WS(url); await Promise.all([a, b].map(w => new Promise(r => w.on('open', r))));
+    a.send(JSON.stringify({ t: 'hello', token: tok })); await new Promise(r => setTimeout(r, 200));
+    a.send(JSON.stringify({ t: 'st', map: 'town', x: 100, y: 470, f: 1, s: 'run', j: 'mage', lv: 7 }));
+    b.send(JSON.stringify({ t: 'st', map: 'town', x: 300, y: 470, f: -1, s: 'idle', j: 'rogue', lv: 3 }));
+    const got = await new Promise(r => b.on('message', d => { const o = JSON.parse(d); if (o.peers.length) r(o); }));
+    assert.equal(got.peers[0].name, '근육맨'); assert.equal(got.peers[0].j, 'mage'); assert.equal(got.online, 2);
+    a.close(); b.close();
     console.log('SERVER TESTS OK');
   } catch (e) { console.error('FAIL', e); process.exitCode = 1; } finally { srv.close(); setTimeout(() => process.exit(), 100); }
 });

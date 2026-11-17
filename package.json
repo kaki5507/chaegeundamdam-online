@@ -8,6 +8,12 @@
     "build": "bash build.sh",
     "test:server": "node server/test.js"
   },
-  "engines": { "node": ">=18" },
-  "dependencies": { "express": "^4.19.2", "pg": "^8.12.0" }
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.12.0",
+    "ws": "^8.23.0"
+  }
 }

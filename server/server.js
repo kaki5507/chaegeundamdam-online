@@ -97,7 +97,7 @@ const greeted = new Map();
 app.post('/api/hello', auth, limit('auth', 20), async (req, res) => {
   try {
     RANK.at = 0; const list = await rankList(), i = list.findIndex(r => r.key === req.user), rank = i >= 0 ? i + 1 : null;
-    if (rank && rank <= 3 && Date.now() - (greeted.get(req.user) || 0) > 10 * 60000) {
+    if (rank && rank <= 3 && list[i].lvl >= 10 && Date.now() - (greeted.get(req.user) || 0) > 10 * 60000) {
       greeted.set(req.user, Date.now());
       pushMsg({ kind: 'rank', rank, name: list[i].name, text: '랭킹 ' + rank + '위 ' + list[i].name + ' 님이 접속했습니다! 모두 환영해 주세요!', ch: 'all' });
     }
@@ -155,6 +155,39 @@ db.init().then(kind => {
   DBKIND = kind; console.log('[db]', kind);
   db.getKV('event').then(e => { if (e && e.until > Date.now()) EVENT = e; }).catch(() => {});
   if (kind === 'file' && process.env.RENDER) console.error('[경고] DATABASE_URL 이 없어 임시 파일 DB를 사용합니다. 재배포/재시작 시 계정이 사라집니다! Render > Environment 에 Neon 연결 문자열을 넣으세요.');
-  if (require.main === module) app.listen(PORT, () => console.log('listening on', PORT));
+  if (require.main === module) { const srv = app.listen(PORT, () => console.log('listening on', PORT)); attachPresence(srv); }
 }).catch(e => { console.error('db init failed', e); process.exit(1); });
+/* ---------- 실시간 접속 (WebSocket) : 같은 맵의 유저끼리 서로 보인다 ---------- */
+function attachPresence(server) {
+  const { WebSocketServer } = require('ws');
+  const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096 });
+  let seq = 0;
+  const num = (v, a, b) => Math.max(a, Math.min(b, Number(v) || 0));
+  wss.on('connection', ws => {
+    ws.id = 'u' + (++seq); ws.alive = true; ws.st = null; ws.name = '손님' + (1000 + (seq % 9000));
+    ws.on('pong', () => { ws.alive = true; });
+    ws.on('message', raw => {
+      let m; try { m = JSON.parse(raw); } catch { return; }
+      if (m.t === 'hello') { const n = verify(m.token); if (n) db.getUser(n).then(u => { if (u) { ws.name = u.display; ws.user = n; } }).catch(() => {}); return; }
+      if (m.t === 'st') {
+        ws.st = { id: ws.id, name: ws.name, map: String(m.map || '').slice(0, 20), x: num(m.x, -500, 20000), y: num(m.y, -2000, 5000), f: m.f < 0 ? -1 : 1,
+          s: String(m.s || 'idle').slice(0, 8), j: String(m.j || 'warrior').slice(0, 10), ti: num(m.ti, 0, 3) | 0, fi: num(m.fi, 0, 99) | 0, lv: num(m.lv, 1, 100) | 0,
+          eq: m.eq && typeof m.eq === 'object' ? Object.fromEntries(Object.entries(m.eq).slice(0, 5).map(([k, v]) => [String(k).slice(0, 8), String(v).slice(0, 20)])) : {}, at: Date.now() };
+      }
+    });
+  });
+  // 10Hz 로 같은 맵 사람들 위치 전송
+  setInterval(() => {
+    const byMap = new Map(); let online = 0;
+    for (const c of wss.clients) { if (c.readyState !== 1) continue; online++; if (c.st && Date.now() - c.st.at < 10000) { const a = byMap.get(c.st.map) || []; a.push(c.st); byMap.set(c.st.map, a); } }
+    for (const c of wss.clients) {
+      if (c.readyState !== 1 || !c.st) continue;
+      const peers = (byMap.get(c.st.map) || []).filter(p => p.id !== c.id).slice(0, 30);
+      c.send(JSON.stringify({ t: 'peers', online, peers }));
+    }
+  }, 100).unref();
+  setInterval(() => { for (const c of wss.clients) { if (!c.alive) { c.terminate(); continue; } c.alive = false; try { c.ping(); } catch {} } }, 30000).unref();
+  return wss;
+}
 module.exports = app;
+module.exports.attachPresence = attachPresence;
