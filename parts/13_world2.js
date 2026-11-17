@@ -24,12 +24,12 @@ function presenceStep(dt){
   WSK.send(JSON.stringify({t:'st',map:S.id,x:Math.round(p.x),y:Math.round(p.y),f:p.face,s:stateOf(p),j:SAVE.job,ti:SAVE.tier,fi:SAVE.fid|0,lv:SAVE.lvl,eq:p.eq}));
 }
 const myName=()=>ACCT?ACCT.name:'나';
-function nameTag(g,x,y,s,col,bg){g.font=F(11);const w=g.measureText(s).width+10;g.fillStyle=bg||'rgba(20,14,40,.72)';g.beginPath();g.roundRect(x-w/2,y,w,15,4);g.fill();txt(g,s,x,y+11.5,11,col||'#fff','center',0)}
+function nameTag(g,x,y,s,col,bg){g.font=F(11);const w=g.measureText(s).width+10;g.fillStyle=bg||'rgba(90,60,150,.75)';g.beginPath();g.roundRect(x-w/2,y,w,15,7);g.fill();txt(g,s,x,y+11.5,11,col||'#fff','center',0)}
 function speech(g,x,y,text){
   g.font=F(12);const lines=wrap(g,text,150,12).slice(0,3),w=Math.min(170,Math.max(...lines.map(l=>g.measureText(l).width))+18),h=lines.length*15+10;
-  g.fillStyle='rgba(255,255,255,.95)';g.strokeStyle='#5a4a7a';g.lineWidth=1.6;g.beginPath();g.roundRect(x-w/2,y-h,w,h,8);g.fill();g.stroke();
+  g.fillStyle='rgba(255,250,254,.96)';g.strokeStyle='#f0a8e0';g.lineWidth=1.6;g.beginPath();g.roundRect(x-w/2,y-h,w,h,8);g.fill();g.stroke();
   g.beginPath();g.moveTo(x-5,y);g.lineTo(x,y+7);g.lineTo(x+5,y);g.closePath();g.fill();
-  lines.forEach((l,i)=>txt(g,l,x,y-h+17+i*15,12,'#2a2040','center',0));
+  lines.forEach((l,i)=>txt(g,l,x,y-h+17+i*15,12,'#6a3a9a','center',0));
 }
 function lastSay(name){for(let i=CHAT.length-1;i>=0;i--){const m=CHAT[i];if(G.t-m.at>5)return null;if(m.kind==='map'&&m.name===name)return m.text}return null}
 function drawPeers(g,t){

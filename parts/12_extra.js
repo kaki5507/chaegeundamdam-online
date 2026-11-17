@@ -41,9 +41,9 @@ function drawFace(g,fid,ec,t,hurt,st){
 const fidOf=s=>{let h=7;for(const ch of String(s))h=(h*31+ch.charCodeAt(0))>>>0;return h%FACES.length};
 
 /* ---------- 시작 섬 : 새싹 항구 (튜토리얼 · Lv.1~5) ---------- */
-Object.assign(THEMES,{harbor:{sun:1,sky:['#5ac8ff','#9ae0ff','#d8f4ff','#fff8e0'],moon:{x:.2,y:.2,r:44,c:'#fffbe0',glow:'rgba(255,250,210,'},
-  layers:[{k:'clouds',col:'#ffffff',base:.42,f:.04},{k:'ridge',col:'#9ad8f0',amp:40,base:.68,f:.08,cyc:[2,5,9]},{k:'clouds',col:'#f4fbff',base:.86,f:.2}],
-  grass:'#8ae070',grass2:'#4ab05a',dirt:'#e8d0a0',dirt2:'#c8a878',stone:'#c0b8b0',plank:'#d8a868',plank2:'#8a6038',fly:'#ffffff'}});
+Object.assign(THEMES,{harbor:{sun:1,sky:['#7aa0f0','#b8c0ff','#ffd8ec','#fff2e0'],moon:{x:.2,y:.2,r:44,c:'#fffbe0',glow:'rgba(255,250,210,'},
+  layers:[{k:'clouds',col:'#ffffff',base:.42,f:.04},{k:'ridge',col:'#b8b8f0',amp:40,base:.68,f:.08,cyc:[2,5,9]},{k:'clouds',col:'#f4fbff',base:.86,f:.2}],
+  grass:'#b8f0c8',grass2:'#78c8a8',dirt:'#f0d8d0',dirt2:'#c8a8b0',stone:'#c0b8b0',plank:'#d8a868',plank2:'#8a6038',fly:'#ffffff'}});
 Object.assign(NPC_LOOK_X,{
   captain:{job:'guardian',eq:{hat:'hat_gat',outfit:'out_vest',cape:'cape_blue'},n:'선장 감자수염',fid:1},
   fisher:{job:'archer',eq:{hat:'hat_flower',outfit:'out_tank'},n:'어부 미역이',fid:6},
@@ -85,7 +85,7 @@ function buildHarbor(){
 MAPS.harbor=buildHarbor;
 function drawHarborDecor(g,L,t,cam){
   // 바다
-  const y0=488;g.fillStyle='#4ab8f0';g.fillRect(1760,y0,L.w-1700,200);
+  const y0=488;g.fillStyle='#8ab0f0';g.fillRect(1760,y0,L.w-1700,200);
   g.fillStyle='rgba(255,255,255,.6)';for(let x=1760;x<L.w;x+=60){const yy=y0+8+Math.sin(t*2+x*.05)*3;g.fillRect(x,yy,30,3)}
   // 부두 기둥
   for(let x=1770;x<L.w;x+=110){g.fillStyle='#8a6038';g.fillRect(x,470,12,60);g.strokeStyle=O_;g.lineWidth=2;g.strokeRect(x,470,12,60)}

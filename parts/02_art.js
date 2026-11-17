@@ -1,7 +1,7 @@
 /* ============================================================
    ART : backgrounds, platforms, characters (all procedural)
    ============================================================ */
-const O_='#1c1018';
+const O_='#4a3360';
 function mk(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}
 function circ(g,x,y,r,fill,stroke,lw){g.beginPath();g.arc(x,y,r,0,6.2832);if(fill){g.fillStyle=fill;g.fill()}if(stroke){g.lineWidth=lw||2;g.strokeStyle=stroke;g.stroke()}}
 function ell(g,x,y,rx,ry,fill,stroke,lw,rot=0){g.beginPath();g.ellipse(x,y,rx,ry,rot,0,6.2832);if(fill){g.fillStyle=fill;g.fill()}if(stroke){g.lineWidth=lw||2;g.strokeStyle=stroke;g.stroke()}}
@@ -11,16 +11,16 @@ function poly(g,pts,fill,stroke,lw){g.beginPath();g.moveTo(pts[0],pts[1]);for(le
 
 /* ---------------- themes / backgrounds ---------------- */
 const THEMES={
-  forest:{sun:1,sky:['#4ab4ff','#8fd4ff','#d0f0ff','#fff4d0'],moon:{x:.78,y:.2,r:46,c:'#fffbe0',glow:'rgba(255,250,200,'},
-    layers:[{k:'clouds',col:'#ffffff',base:.42,f:.04},{k:'ridge',col:'#8fd08a',amp:70,base:.62,f:.08,cyc:[2,5,9]},{k:'ridge',col:'#6abf6e',amp:60,base:.74,f:.16,cyc:[3,7,11]},
-            {k:'pines',col:'#4aa55a',base:.86,f:.3,hh:[90,170],n:26},{k:'pines',col:'#2f8a48',base:.98,f:.55,hh:[130,240],n:15}],
-    grass:'#6fd060',grass2:'#3a9a45',dirt:'#9a6a40',dirt2:'#6f4a2c',stone:'#b0a8a0',plank:'#c08a50',plank2:'#7a5430',fly:'#ffffff'},
-  sky:{sun:1,sky:['#3aa8ff','#7ccaff','#c4ecff','#fff0f6'],moon:{x:.2,y:.24,r:52,c:'#fffbe0',glow:'rgba(255,240,200,'},
-    layers:[{k:'clouds',col:'#ffffff',base:.5,f:.05},{k:'islands',col:'#9ad890',base:.64,f:.1},{k:'clouds',col:'#e8f6ff',base:.84,f:.24},{k:'clouds',col:'#ffffff',base:1.02,f:.42}],
-    grass:'#a8f0b0',grass2:'#5ab880',dirt:'#b8b0e0',dirt2:'#8a82c0',stone:'#c0c0e8',plank:'#d8d8f8',plank2:'#9a98d0',fly:'#ffffff'},
-  night:{sky:['#4a3aa0','#8a6ad0','#f0a0c0','#ffd8a8'],moon:{x:.5,y:.26,r:70,c:'#fff0d0',glow:'rgba(255,220,180,'},
-    layers:[{k:'ridge',col:'#6a5ab8',amp:80,base:.64,f:.06,cyc:[2,4,7]},{k:'pines',col:'#4a3a90',base:.86,f:.28,hh:[80,150],n:24},{k:'gates',col:'#a03a5a',base:.98,f:.5}],
-    grass:'#b8a0ff',grass2:'#7a60c8',dirt:'#5a4890',dirt2:'#3e3270',stone:'#8a80c0',plank:'#b08ad0',plank2:'#6a4a90',fly:'#fff0a0'},
+  forest:{sun:1,sky:['#8a7ae8','#c8a8f4','#ffd0ec','#fff0e0'],moon:{x:.78,y:.2,r:46,c:'#fff6fc',glow:'rgba(255,220,250,'},
+    layers:[{k:'clouds',col:'#fff4fd',base:.42,f:.04},{k:'ridge',col:'#b8a8ec',amp:70,base:.62,f:.08,cyc:[2,5,9]},{k:'ridge',col:'#9ad0d8',amp:60,base:.74,f:.16,cyc:[3,7,11]},
+            {k:'pines',col:'#78bcb8',base:.86,f:.3,hh:[90,170],n:26},{k:'pines',col:'#589a9e',base:.98,f:.55,hh:[130,240],n:15}],
+    grass:'#a8f0c8',grass2:'#6ac4a4',dirt:'#c09ab8',dirt2:'#9a7498',stone:'#c8b8d8',plank:'#e0b8c8',plank2:'#a07898',fly:'#fff6c8'},
+  sky:{sun:1,sky:['#6a8af0','#a8b8ff','#ffd0f0','#fff4ea'],moon:{x:.2,y:.24,r:52,c:'#fffaff',glow:'rgba(255,230,255,'},
+    layers:[{k:'clouds',col:'#ffffff',base:.5,f:.05},{k:'islands',col:'#c0b0f0',base:.64,f:.1},{k:'clouds',col:'#ffe8f8',base:.84,f:.24},{k:'clouds',col:'#ffffff',base:1.02,f:.42}],
+    grass:'#c8f4e8',grass2:'#88d0c0',dirt:'#c8b8f0',dirt2:'#9a88d0',stone:'#d8d0f8',plank:'#e8e0ff',plank2:'#a8a0e0',fly:'#ffffff'},
+  night:{sky:['#1a1050','#4a2a98','#a85ab8','#f0a0c0'],moon:{x:.5,y:.26,r:70,c:'#ffeefa',glow:'rgba(255,200,250,'},
+    layers:[{k:'ridge',col:'#4a3a98',amp:80,base:.64,f:.06,cyc:[2,4,7]},{k:'pines',col:'#33287a',base:.86,f:.28,hh:[80,150],n:24},{k:'gates',col:'#7a3a8a',base:.98,f:.5}],
+    grass:'#c0a8ff',grass2:'#7a60c8',dirt:'#4a3a80',dirt2:'#32285e',stone:'#8a80c0',plank:'#b08ad0',plank2:'#6a4a90',fly:'#ffe8ff'},
   lava:{sky:['#3a0a10','#7a1a14','#d04a1a','#ffb060'],moon:{x:.62,y:.86,r:120,c:'#ff9a4a',glow:'rgba(255,120,40,'},
     layers:[{k:'ridge',col:'#5a1a14',amp:120,base:.5,f:.06,cyc:[2,3,8]},{k:'ridge',col:'#3a0e0a',amp:90,base:.7,f:.16,cyc:[3,5,13]},{k:'gates',col:'#6a1408',base:.96,f:.45}],
     grass:'#ff8a3a',grass2:'#b8401a',dirt:'#5a2c20',dirt2:'#3a1a14',stone:'#7a4a40',plank:'#9a5a38',plank2:'#5a2c18',fly:'#ffd080'},

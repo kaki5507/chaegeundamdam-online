@@ -372,8 +372,7 @@ function drawWorld(g){
   // interact hint
   if(S.near&&S.near.k!=='stele'&&G.state==='play'&&!G.ui){const n=S.near;const x=n.k==='npc'?n.n.x:n.k==='altar'?L.altar.x:n.po.x,y=(n.k==='npc'?n.n.gy:n.k==='altar'?L.altar.y:n.po.y)+44;txt(g,'↑ '+(n.k==='npc'?'대화':n.k==='altar'?'귀안 바치기 (보유 '+(SAVE.inv.gwi||0)+')':'입장'),x,y,15,'#ffe04a','center',4)}
   g.restore();
-  // vignette
-  const vg=g.createRadialGradient(W/2,H/2,H*.45,W/2,H/2,H*.95);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(10,0,20,.45)');g.fillStyle=vg;g.fillRect(0,0,W,H);
+  drawDreamFX(g,G.t,!!(S.boss&&!S.boss.dead));
 }
 function render(){
   const g=ctx;g.setTransform(SC,0,0,SC,0,0);g.imageSmoothingQuality='high';g.clearRect(0,0,W,H);

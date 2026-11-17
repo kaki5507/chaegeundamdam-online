@@ -1,17 +1,17 @@
 /* ============================================================
    QUESTS / DIALOG / SHOP / WARDROBE / HUD / MENUS
    ============================================================ */
-const FONT='"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR","Nanum Gothic",sans-serif';
-const F=(s,w='bold')=>`${w} ${s}px ${FONT}`;
+const FONT='"Jua","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR","Nanum Gothic",sans-serif';
+const F=(s,w='normal')=>`${w} ${s}px ${FONT}`;
 function txt(g,s,x,y,size=16,col='#fff',al='left',o=3){
   g.font=F(size);g.textAlign=al;g.textBaseline='alphabetic';
-  if(o){g.lineWidth=o;g.strokeStyle='rgba(12,6,20,.95)';g.lineJoin='round';g.strokeText(s,x,y)}
+  if(o){g.lineWidth=o;g.strokeStyle='rgba(58,32,86,.95)';g.lineJoin='round';g.strokeText(s,x,y)}
   g.fillStyle=col;g.fillText(s,x,y);
 }
 function panel(g,x,y,w,h,a=.82){
-  g.save();g.beginPath();g.roundRect(x,y,w,h,12);g.fillStyle=`rgba(18,10,34,${a})`;g.fill();
-  g.lineWidth=2.5;g.strokeStyle='rgba(255,220,150,.75)';g.stroke();
-  g.beginPath();g.roundRect(x+4,y+4,w-8,h-8,9);g.lineWidth=1;g.strokeStyle='rgba(255,255,255,.12)';g.stroke();g.restore();
+  g.save();g.beginPath();g.roundRect(x,y,w,h,16);const bg=g.createLinearGradient(0,y,0,y+h);bg.addColorStop(0,`rgba(74,52,140,${a})`);bg.addColorStop(1,`rgba(46,30,96,${a})`);g.fillStyle=bg;g.fill();
+  const st=g.createLinearGradient(x,0,x+w,0);st.addColorStop(0,'rgba(255,190,235,.9)');st.addColorStop(.5,'rgba(200,220,255,.9)');st.addColorStop(1,'rgba(255,230,180,.9)');g.lineWidth=2.5;g.strokeStyle=st;g.stroke();
+  g.beginPath();g.roundRect(x+4,y+4,w-8,h-8,12);g.lineWidth=1;g.strokeStyle='rgba(255,255,255,.18)';g.stroke();g.restore();
 }
 function wrap(g,s,maxW,size){
   g.font=F(size);const out=[];

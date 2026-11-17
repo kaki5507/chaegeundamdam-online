@@ -159,7 +159,8 @@ function updateBoss(dt){
 }
 function drawBoss(g,b,t){
   if(b.dead)return;
-  if(b.hue){g.save();g.filter='hue-rotate('+b.hue+'deg) saturate(1.2)'}
+  drawCreepBack(g,b,t);
+  g.save();g.filter=(b.hue?'hue-rotate('+b.hue+'deg) ':'')+'saturate(.85) contrast(1.15)';
   if(b.id==='guimok')drawGuimok(g,b,t);
   else if(b.id==='dokkaebi')drawDokkaebi(g,b,t);
   else if(b.id==='fox'){
@@ -168,7 +169,8 @@ function drawBoss(g,b,t){
     if(b.orbPos)for(const o of b.orbPos){const gl=g.createRadialGradient(o.x,o.y,2,o.x,o.y,26);gl.addColorStop(0,'rgba(255,160,230,.95)');gl.addColorStop(1,'rgba(255,100,200,0)');g.fillStyle=gl;g.fillRect(o.x-28,o.y-28,56,56);circ(g,o.x,o.y,7,'#fff0fa')}
   }else drawEggKing(g,b,t);
   if(b.stun>0){g.fillStyle='#ffe04a';g.font='bold 22px sans-serif';g.textAlign='center';for(let i=0;i<3;i++){const a=t*5+i*2.1;g.fillText('★',b.x+Math.cos(a)*40,b.y-b.h-8+Math.sin(a)*8)}}
-  if(b.hue)g.restore();
+  g.restore();
+  drawCreepFront(g,b,t);
 }
 
 /* ---------------- 도깨비 대왕 ---------------- */

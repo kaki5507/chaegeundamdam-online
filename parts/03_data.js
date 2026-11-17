@@ -268,8 +268,8 @@ async function autoLogin(){
 function openAuth(onDone){
   if(document.getElementById('auth'))return;
   const d=document.createElement('div');d.id='auth';
-  d.innerHTML=`<div class="box"><h2>🥦 계정</h2>
-   <p class="sub">${ACCT?'로그인됨: <b>'+ACCT.name+'</b>':'이름과 비밀번호만으로 어디서든 이어서 플레이! (서버에 저장)'}</p>
+  d.innerHTML=`<div class="box"><h2>☁ 채근담담에 어서 와요</h2>
+   <p class="sub">${ACCT?'로그인됨: <b>'+ACCT.name+'</b>':'이름과 비밀번호만 있으면 어디서든 이어서 놀 수 있어요'}</p>
    ${ACCT?'':'<input id="a_n" placeholder="이름 (한글/영문/숫자 2~12자)" maxlength="12" autocomplete="username"><input id="a_p" type="password" placeholder="비밀번호 (4자 이상)" maxlength="64" autocomplete="current-password">'}
    <div class="msg" id="a_m"></div>
    <div class="row">${ACCT?'<button id="a_out">로그아웃</button>':'<button id="a_in">로그인</button><button id="a_up">회원가입</button>'}<button id="a_x" class="g">${ACCT?'닫기':'게스트로 계속'}</button></div></div>`;

@@ -151,13 +151,13 @@ function drawSocial(g,t){
   const open=G.chatOpen,list=CHAT.filter(m=>open||G.t-m.at<14).slice(open?-10:-6);
   if(list.length){
     const lh=17,y0=H-(open?62:22)-list.length*lh;
-    if(open){g.fillStyle='rgba(10,4,20,.6)';g.fillRect(6,y0-16,560,list.length*lh+8)}
+    if(open||list.length){g.save();g.fillStyle=open?'rgba(255,245,252,.88)':'rgba(255,245,252,.55)';g.beginPath();g.roundRect(6,y0-17,open?566:318,list.length*lh+10,14);g.fill();g.strokeStyle='rgba(240,180,230,.9)';g.lineWidth=2;g.stroke();g.restore()}
     list.forEach((m,i)=>{
       const a=open?1:clamp((14-(G.t-m.at))/2,0,1);g.globalAlpha=a;
       const pre=m.kind==='rank'?'[명예의 전당] ':m.kind==='sys'?'[알림] ':m.kind==='event'?'[운영자] ':m.kind==='mega'?'[확성기] '+m.name+' : ':m.kind==='hmega'?'[고확성기] '+m.name+' : ':m.name+' : ';
-      const col=m.kind==='rank'?'#ffd34a':m.kind==='sys'?'#9be8ff':m.kind==='event'?'#ff8ae0':m.kind==='mega'?'#ffb0e0':m.kind==='hmega'?'#ffe04a':'#fff';
+      const col=m.kind==='rank'?'#c07a00':m.kind==='sys'?'#3a8ac0':m.kind==='event'?'#d03a9a':m.kind==='mega'?'#c04aa0':m.kind==='hmega'?'#b06a00':'#5a3a8a';
       g.font=F(12);let s=pre+m.text;while(g.measureText(s).width>(open?545:300)&&s.length>4)s=s.slice(0,-2);if(s!==pre+m.text)s+='…';
-      txt(g,s,12,y0+i*lh,12,col,'left',3);
+      txt(g,s,14,y0+i*lh,12,col,'left',0);
     });g.globalAlpha=1;
   }
   // 고확성기 상단 알림
