@@ -1,6 +1,6 @@
 'use strict';
 /* ============================================================
-   야채부락리 온라인 : 귀혼의 숲  —  single-file canvas platformer
+   야채부락리 온라인 : 야채 무기 대모험  —  single-file canvas platformer
    ============================================================ */
 const W=960,H=540,GRAV=1900;
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
