@@ -33,7 +33,7 @@ async def main():
           return [G.state,S.boss&&S.boss.hp,S.mobs.filter(m=>m.type==='arm').length, G.clear&&G.clear.lines.join(' | ')]}"""))
         await pg.screenshot(path='/tmp/guimok_end.png')
         print(await pg.evaluate("""()=>{PARTY[0].kind='p1';SAVE.ginv.g_gm_ring=1;openInv(0);G.inv.sel=0;return invRows().map(r=>r.label+':'+(r.id||'-')).join(' ')}"""))
-        print(await pg.evaluate("""()=>{const a0=PARTY[0].atkBase;gearPick('acc');G.dlg.opts[0].fn();return [SAVE.gear.acc,Math.round(a0),Math.round(PARTY[0].atkBase)]}"""))
+        print(await pg.evaluate("""()=>{const a0=PARTY[0].atkBase;gearPick('acc1');G.dlg.opts.find(o=>o.t.includes('반지')).fn();return [SAVE.gear.acc1,Math.round(a0),Math.round(PARTY[0].atkBase)]}"""))
         await pg.wait_for_timeout(200); await pg.screenshot(path='docs/img/16-equipment.png')
         print(errs or 'NO ERRORS'); await b.close()
 asyncio.run(main())

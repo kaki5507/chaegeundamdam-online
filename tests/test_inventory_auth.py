@@ -35,7 +35,7 @@ async def main():
             await pg.evaluate("""(()=>{const g=__game;g.continueGame();SAVE.scrolls={atk60:2,hp100:3,white:1};SAVE.inv.vegbit=7;SAVE.ec=9;SAVE.enh={atk:4,hp:2,used:3};PARTY[0].eq={hat:'cs_hat_cat',outfit:'cs_out_rainbow'};recalc(PARTY[0]);G.banner.t=9;openInv(0)})()""")
             await pg.wait_for_timeout(400); await pg.screenshot(path='/tmp/inv0.png')
             await pg.evaluate("(()=>{G.inv.tab=1;G.inv.sel=3})()"); await pg.wait_for_timeout(200); await pg.screenshot(path='/tmp/inv1.png')
-            r=await pg.evaluate("""(()=>{const s0=SAVE.scrolls.hp100;G.inv.sel=6;__game.press('Enter');__game.step(1/60);return [s0,SAVE.scrolls.hp100,SAVE.enh.used]})()""")
+            r=await pg.evaluate("""(()=>{const s0=SAVE.scrolls.hp100;G.inv.sel=invRows().findIndex(r=>r.id==='hp100');__game.press('Enter');__game.step(1/60);return [s0,SAVE.scrolls.hp100,SAVE.enh.used]})()""")
             print('use scroll via inv',r)
             await pg.evaluate("(()=>{G.inv.tab=2;G.inv.sel=1})()"); await pg.wait_for_timeout(200); await pg.screenshot(path='/tmp/inv2.png')
             print(errs or 'NO ERRORS'); await b.close()
