@@ -217,6 +217,9 @@ const THEMES={
   night:{sky:['#03030f','#0e1245','#2a2878','#6b4aa0'],moon:{x:.5,y:.27,r:92,c:'#ff7a72',glow:'rgba(255,60,70,'},
     layers:[{k:'ridge',col:'#1d1b52',amp:80,base:.64,f:.06,cyc:[2,4,7]},{k:'pines',col:'#100d33',base:.86,f:.28,hh:[80,150],n:24},{k:'gates',col:'#3a0a18',base:.98,f:.5}],
     grass:'#7e68c4',grass2:'#40337a',dirt:'#2a2250',dirt2:'#1a1538',stone:'#5a5090',plank:'#7a5aa0',plank2:'#3a2a5a',fly:'#9fd0ff'},
+  lava:{sky:['#0a0204','#2a0608','#6a120c','#d0401a'],moon:{x:.62,y:.86,r:120,c:'#ff8a3a',glow:'rgba(255,90,20,'},
+    layers:[{k:'ridge',col:'#2a0a0e',amp:120,base:.5,f:.06,cyc:[2,3,8]},{k:'ridge',col:'#1a0608',amp:90,base:.7,f:.16,cyc:[3,5,13]},{k:'gates',col:'#3a0806',base:.96,f:.45}],
+    grass:'#ff7a2a',grass2:'#a8320e',dirt:'#3a1c18',dirt2:'#241010',stone:'#5a3a38',plank:'#7a4a30',plank2:'#3a2014',fly:'#ffb060'},
 };
 const LW=1200,LHT=330;
 const BGCACHE={};
@@ -738,7 +741,7 @@ const expMul=l=>need(l)/(14*interpA(KILL_A,l));      // 달걀귀신(기본 14ex
 const dailyPct=l=>l<10?.08:l<30?.05:l<50?.03:l<70?.02:.005;
 const tierOfLv=l=>l>=ADV_LV[3]?3:l>=ADV_LV[2]?2:l>=ADV_LV[1]?1:0;
 const bossPct=l=>l<50?1:l<70?.6:.2;
-const GIVER_NAME={chief:'촌장님',board:'게시판',coach:'전직 교관',miko:'귀혼 무녀',adv2:'숲의 스승',adv3:'달빛 대현자',daily:'일일 의뢰인'};
+const GIVER_NAME={zgate:'귀문 수문장',chief:'촌장님',board:'게시판',coach:'전직 교관',miko:'귀혼 무녀',adv2:'숲의 스승',adv3:'달빛 대현자',daily:'일일 의뢰인'};
 const jline=(j,t)=>t<=0?'수련생 '+j.veg:j.line[t-1];
 const SK_KEYS=['sk1','sk2','sk3','sk4','sk5'];   // X C V B N
 const SK_LABEL=['X','C','V','B','N'];
@@ -813,6 +816,28 @@ const ITEMS={
 };
 const SHOP_ITEMS=['hat_flower','hat_gat','hat_helm','hat_ninja','face_sun','face_heart','face_patch','out_vest','out_dobok','out_tank','cape_red','cape_blue','aura_petal','hat_fox','out_hanbok','aura_flame','aura_thunder','face_mask'];
 const RARITY=['일반','희귀','영웅','전설','캐시'],RCOL=['#cfd4e2','#7ad0ff','#c88aff','#ffcf3a','#ff8ae0'];
+/* ---------------- 장비 (능력치 %) : 등급이 높을수록 드랍률↓ · 퀘스트 전용은 더 높은 등급/성능 ---------------- */
+const GRADE=['일반','희귀','영웅','전설','신화'],GCOL=['#cfd4e2','#7ad0ff','#c88aff','#ffcf3a','#ff5a6a'];
+const GSLOTS=[['weapon','무기'],['armor','방어구'],['acc','장신구']];
+const GEAR={
+ g_stick:{slot:'weapon',n:'수련용 나무막대',gr:0,atk:3},
+ g_bat:{slot:'weapon',n:'도깨비 방망이',gr:1,atk:7},
+ g_eggshell:{slot:'armor',n:'달걀 껍질 갑옷',gr:1,hp:10},
+ g_foxbead:{slot:'acc',n:'여우 구슬 목걸이',gr:2,atk:6,mp:12},
+ g_gm_club:{slot:'weapon',n:'귀목 몽둥이',gr:2,atk:13},
+ g_gm_bark:{slot:'armor',n:'귀목 껍질 갑옷',gr:2,hp:18,atk:3},
+ g_gm_ring:{slot:'acc',n:'귀목 뿌리 반지',gr:3,atk:10,hp:10},
+ g_gm_heart:{slot:'weapon',n:'천년 귀목의 심장검',gr:3,atk:22},
+ // 퀘스트로만 획득 (드랍 없음)
+ q_bracelet:{slot:'acc',n:'귀문 수련자의 팔찌',gr:3,atk:9,hp:9,spd:3,quest:1},
+ q_helm:{slot:'armor',n:'천년 귀목 투구',gr:4,atk:16,hp:32,mp:15,spd:5,quest:1},
+};
+// 보스별 드랍 테이블 [장비, 확률]
+const GEAR_DROP={dokkaebi:[['g_stick',.25],['g_bat',.10]],fox:[['g_foxbead',.07]],eggking:[['g_eggshell',.15]],
+  guimok:[['g_gm_club',.10],['g_gm_bark',.10],['g_gm_ring',.025],['g_gm_heart',.01]]};
+const gearStat=(id,k)=>(GEAR[id]&&GEAR[id][k])||0;
+const gearDesc=id=>{const d=GEAR[id];return['atk','hp','mp','spd'].filter(k=>d[k]).map(k=>({atk:'공격력',hp:'체력',mp:'MP',spd:'이동속도'})[k]+' +'+d[k]+'%').join(' · ')};
+const ETC_NAME={vegbit:'야채 조각',gtooth:'도깨비 금이빨',essence:'귀목의 정수',gwi:'귀안(鬼眼)'};
 const CASH_ITEMS=Object.keys(ITEMS).filter(k=>ITEMS[k].cash);
 // 출석 : 연속 7일 사이클. 7일째에 캐시 치장템 지급 · 누적 출석 보너스
 const ATT_DAY=[3,3,5,5,8,8,20];
@@ -835,6 +860,7 @@ const POTION={hp:{n:'야채 즙(HP)',price:60,heal:.4},mp:{n:'맑은 물(MP)',pr
 const MOBS={
  egg:{n:'달걀귀신',hp:30,dmg:12,exp:14,coin:[3,9],w:30,h:34},
  wisp:{n:'도깨비불',hp:22,dmg:10,exp:10,coin:[2,7],w:26,h:30},
+ arm:{n:'귀목의 팔',hp:900,dmg:0,exp:120,coin:[0,0],w:150,h:56},
  baby:{n:'아기 달걀귀신',hp:14,dmg:8,exp:4,coin:[1,3],w:22,h:24},
 };
 
@@ -862,6 +888,13 @@ const QUESTS={
    objs:[{t:'boss',id:'dokkaebi',label:'도깨비 대왕 처치 (시련)'},{t:'collect',item:'vegbit',n:15,label:'야채 조각 수집'}],rew:{pct:.5,coin:800},adv:2},
  j3:{name:'3차 전직의 시험',giver:'adv3',min:ADV_LV[3],pre:['j2'],desc:'하늘길 끝 달빛 신당의 대현자가 내리는 마지막 시련. 시련 모드의 구미호(체력 1.6배)를 쓰러뜨리고 야채 조각 30개를 바쳐라.',
    objs:[{t:'boss',id:'fox',label:'구미호 처치 (시련)'},{t:'collect',item:'vegbit',n:30,label:'야채 조각 수집'}],rew:{pct:.4,coin:2000},adv:3},
+ // ---- 파티던전 : 귀문 동굴 → 귀목의 제단 (자쿰식) ----
+ z1:{name:'[귀문] 1단계 · 숨겨진 길',giver:'zgate',min:40,desc:'귀문 동굴의 용암 점프맵을 끝까지 돌파하라. 떨어지면 용암에 데인다! 끝에 귀목의 제단 입구가 있다.',
+   objs:[{t:'reach',map:'cave',label:'귀문 동굴 끝(제단 입구) 도달'}],rew:{pct:.3,coin:1500,gear:'q_bracelet'}},
+ z2:{name:'[귀문] 2단계 · 귀안 만들기 (반복)',giver:'zgate',min:40,pre:['z1'],rep:1,desc:'귀목을 깨우려면 귀안(鬼眼)이 필요하다. 귀문 동굴 몬스터가 드물게(20%) 떨어뜨리는 도깨비 금이빨 8개를 모아오면 귀안 1개를 만들어 주마. 귀안은 이 퀘스트로만 얻을 수 있다.',
+   objs:[{t:'collect',item:'gtooth',n:8,label:'도깨비 금이빨 (동굴 몬스터 20%)'}],rew:{pct:.05,coin:300,give:{gwi:1}}},
+ z3:{name:'[귀문] 3단계 · 귀목 토벌대',giver:'zgate',min:40,pre:['z1'],desc:'천년 귀목을 세 번 쓰러뜨리고, 귀목이 드물게(40%) 남기는 귀목의 정수 3개를 가져와라. 그 정수로 최고의 투구를 만들어 주지.',
+   objs:[{t:'boss',id:'guimok',n:3,label:'천년 귀목 처치'},{t:'collect',item:'essence',n:3,label:'귀목의 정수 (보스 40%)'}],rew:{pct:.5,coin:5000,gear:'q_helm'}},
  // ---- 일일 퀘스트 (매일 초기화 · 경험치는 레벨당 필요량의 일정 %) ----
  d1:{daily:1,name:'[일일] 달걀귀신 사냥',giver:'daily',min:1,desc:'오늘도 달걀귀신이 설친다. 20마리를 잡아라.',objs:[{t:'kill',mob:'egg',n:20,label:'달걀귀신 처치'}],rew:{pct:'d'}},
  d2:{daily:1,name:'[일일] 도깨비불 끄기',giver:'daily',min:1,desc:'도깨비불 10마리를 꺼뜨려라.',objs:[{t:'kill',mob:'wisp',n:10,label:'도깨비불 처치'}],rew:{pct:'d'}},
@@ -885,13 +918,14 @@ const NPCS=[
  {id:'closet',name:'옷장 요정',x:900,look:'closet',tag:'치장 · 옷장'},
  {id:'adv2',name:'숲의 스승 가지',x:0,look:'sage',tag:'2차 전직 (Lv.30)',map:'forest'},
  {id:'adv3',name:'달빛 대현자',x:0,look:'moon',tag:'3차 전직 (Lv.70)',map:'sky'},
+ {id:'zgate',name:'귀문 수문장 해태',x:0,look:'zgate',tag:'귀목 원정대 (Lv.40)',maps:['cave','altar']},
  {id:'miko',name:'귀혼 무녀',x:110,look:'miko',tag:'???',hidden:true},
 ];
 
 /* ---------------- save ---------------- */
 const SAVEKEY='yachae_buraki_v3',OLDKEY='yachae_buraki_v2';
 function defaultSave(jobId){
-  return {job:jobId,lvl:1,exp:0,coins:200,tier:0,inv:{},eq:{},potions:{hp:3,mp:2},q:{},flags:{},cnt:{},talked:{},cleared:{},pq:0,name:'부락리',dayKey:'',dbonus:false,duel:{w:0,l:0},ec:0,att:{last:-1,streak:0,total:0,weeks:0},enh:{atk:0,hp:0,used:0},scrolls:{}};
+  return {job:jobId,lvl:1,exp:0,coins:200,tier:0,inv:{},eq:{},potions:{hp:3,mp:2},q:{},flags:{},cnt:{},talked:{},cleared:{},pq:0,name:'부락리',dayKey:'',dbonus:false,duel:{w:0,l:0},ec:0,att:{last:-1,streak:0,total:0,weeks:0},enh:{atk:0,hp:0,used:0},scrolls:{},gear:{},ginv:{}};
 }
 let SAVE=null;
 /* ---------------- 계정 / 클라우드 저장 (서버가 없으면 게스트 로컬 저장) ---------------- */
@@ -1079,13 +1113,14 @@ function drawNPC(g,n,t,mark,faceDir){
     g.restore();return;
   }
   // veggie-bodied NPCs
-  const map={chief:'guardian',coach:'fighter',shop:'gunner',monk:'priest',aunt:'mage',daily:'archer',duel:'warrior',sage:'rogue',moon:'mage',att:'priest',cash:'rogue',scroll:'gunner'};
+  const map={chief:'guardian',coach:'fighter',shop:'gunner',monk:'priest',aunt:'mage',daily:'archer',duel:'warrior',sage:'rogue',moon:'mage',att:'priest',cash:'rogue',scroll:'gunner',zgate:'guardian'};
   const job=JOB[map[n.look]],eq={};
   if(n.look==='coach'){eq.hat='hat_helm';eq.outfit='out_dobok'}
   if(n.look==='shop'){eq.outfit='out_tank';eq.hat='hat_flower'}
   if(n.look==='monk'){eq.outfit='out_hanbok'}
   if(n.look==='aunt'){eq.outfit='out_vest';eq.hat='hat_flower'}
   if(n.look==='chief'){eq.hat='hat_gat';eq.outfit='out_dobok'}
+  if(n.look==='zgate'){eq.hat='hat_horns';eq.outfit='out_gold';eq.cape='cape_red'}
   if(n.look==='att'){eq.hat='hat_flower';eq.outfit='out_hanbok';eq.face='face_heart'}
   if(n.look==='cash'){eq.hat='cs_hat_cat';eq.outfit='cs_out_rainbow';eq.cape='cs_cape_wing'}
   if(n.look==='scroll'){eq.hat='hat_ninja';eq.face='face_patch'}
@@ -1197,7 +1232,7 @@ function buildTown(){
   L.plats.push(plat(920,300,170,14,'o'));
   L.ropes.push({x:1005,y1:300,y2:gy});
   L.plats.push(plat(1500,380,150,14,'o'),plat(1640,300,120,14,'o'));   // decorative hop
-  L.npcs=NPCS.filter(n=>!n.map).map(n=>Object.assign({gy},n));
+  L.npcs=NPCS.filter(n=>!n.map&&!n.maps).map(n=>Object.assign({gy},n));
   L.dummies=[{x:560,y:gy},{x:660,y:gy},{x:760,y:gy}];
   L.portals=[{x:2290,y:gy,to:'forest',label:'도깨비 숲'},{x:2450,y:gy,to:'sky',label:'하늘길',lock:'dokkaebi'}];
   return L;
@@ -1319,7 +1354,47 @@ function buildPvp(){
   L.plats.push(plat(240,310,150,14,'o'),plat(570,310,150,14,'o'),plat(405,215,150,14,'o'));
   return L;
 }
-const MAPS={pvp:buildPvp,town:buildTown,forest:buildForest,boss1:buildArena1,sky:buildSky,boss2:buildArena2,pq1:buildPQ1,pq2:buildPQ2,pq3:buildPQ3,pq4:buildPQ4};
+/* ---------- 파티던전 : 귀문 동굴(용암 점프맵) → 귀목의 제단 ---------- */
+function buildCave(){
+  const r=mulberry(77),Hh=1000,seq=['n','c','m','n','c','v','n','c','m','c','n','v'];
+  const L=newL({id:'cave',name:'귀문 동굴',sub:'파티던전 1단계 · 용암 위 숨겨진 길을 돌파하라',theme:'lava',music:'sky',w:0,h:Hh,killY:Hh+90,mscale:3,pit:true,cave:true});
+  let y=720;L.plats.push(plat(-300,y,660,400,'s'));L.spawn={x:200,y};
+  let cur={x:0,w:360,y},x=360;
+  for(let i=0;i<40;i++){
+    const k=i<2?'n':seq[(i*5+2)%seq.length];let nx,w,ny;
+    if(k==='m'){
+      const gap=260;w=120;ny=cur.y-10;
+      L.plats.push(plat(x+gap/2-48,cur.y-4,96,16,'o',{mv:{x0:x+gap/2-48,y0:cur.y-4,ax:gap/2-60,ay:0,sp:1.15,ph:r()*6}}));
+      nx=x+gap;L.plats.push(plat(nx,ny,w,16,'o'));
+    }else if(k==='v'){
+      const up=cur.y>=560,dist=170;w=120;ny=up?cur.y-dist:cur.y+dist;
+      const y0=up?cur.y-dist/2:cur.y+dist/2;
+      L.plats.push(plat(x+40,y0,104,16,'o',{mv:{x0:x+40,y0,ax:0,ay:dist/2,sp:1.25,ph:up?Math.PI:0}}));
+      nx=x+40+104+40;L.plats.push(plat(nx,ny,w,16,'o'));
+    }else{
+      const gap=40+r()*46;w=Math.round(100+r()*70);ny=clamp(cur.y+Math.round(-60+r()*110),340,820);nx=x+gap;
+      const cr=k==='c';L.plats.push(plat(nx,ny,w,16,'o',cr?{crumble:{timer:0,fall:false,fy:0,back:0}}:{}));
+      if(!cr&&w>=140&&i%3===0)L.spikes.push({x:nx+w/2-22,y:ny,w:44});
+      else if(!cr&&w>=130)L.mobs.push(['egg',nx+w/2,ny,nx+14,nx+w-14]);
+      if(i%2===1)L.mobs.push(['wisp',nx+w/2,ny-110,80]);
+      if(i%3===2)L.drops.push({x:nx+w/2,y:Math.max(60,ny-330),period:2.6+r(),ph:r()*3});
+    }
+    if(i===19)L.flags.push({x:nx+w/2,y:ny});
+    cur={x:nx,w,y:ny};x=nx+w;
+  }
+  const ex=x+60;L.plats.push(plat(ex,cur.y,520,400,'s'));
+  L.portals.push({x:ex+330,y:cur.y,to:'altar',label:'귀목의 제단',reach:'cave',party:true});
+  L.npcs=NPCS.filter(n=>n.maps&&n.maps.includes('cave')).map(n=>Object.assign({},n,{x:330,gy:720}));
+  L.w=ex+640;return L;
+}
+function buildAltar(){
+  const L=arenaBase({id:'altar',name:'귀목의 제단',sub:'파티던전 · 제단에 귀안을 바쳐 천년 귀목을 깨워라',theme:'lava',music:'boss',spawn:{x:120,y:470},altarMap:true});
+  L.plats.push(plat(300,370,170,14,'o'),plat(810,370,170,14,'o'),plat(470,270,340,14,'o'),plat(130,285,150,14,'o'),plat(1000,285,150,14,'o'));
+  L.altar={x:230,y:470};
+  L.npcs=NPCS.filter(n=>n.maps&&n.maps.includes('altar')).map(n=>Object.assign({},n,{x:60,gy:470}));
+  return L;
+}
+const MAPS={cave:buildCave,altar:buildAltar,pvp:buildPvp,town:buildTown,forest:buildForest,boss1:buildArena1,sky:buildSky,boss2:buildArena2,pq1:buildPQ1,pq2:buildPQ2,pq3:buildPQ3,pq4:buildPQ4};
 
 /* ---------------- physics ---------------- */
 function updatePlats(L,dt,t){
@@ -1380,11 +1455,14 @@ function recalc(p){
   p.maxhp=Math.round((j.hp+(lv-1)*13)*[1,1.15,1.4,1.8][ti]);
   p.maxmp=Math.round((j.mp+(lv-1)*4)*[1,1.1,1.25,1.5][ti]);
   p.atkBase=(j.atk+(lv-1)*2.3)*[1,1.15,1.45,1.9][ti];
+  p.spdMul=1;
+  if(p.kind==='p1'&&typeof SAVE!=='undefined'&&SAVE&&SAVE.gear){let a=0,h=0,m=0,sp=0;for(const sl in SAVE.gear){const id=SAVE.gear[sl];a+=gearStat(id,'atk');h+=gearStat(id,'hp');m+=gearStat(id,'mp');sp+=gearStat(id,'spd')}
+    p.atkBase*=1+a/100;p.maxhp=Math.round(p.maxhp*(1+h/100));p.maxmp=Math.round(p.maxmp*(1+m/100));p.spdMul=1+sp/100}
   if(p.kind==='p1'&&typeof SAVE!=='undefined'&&SAVE&&SAVE.enh){p.maxhp=Math.round(p.maxhp*(1+SAVE.enh.hp*.015));p.atkBase*=1+SAVE.enh.atk*.012}
   p.hp=Math.min(p.hp,p.maxhp);p.mp=Math.min(p.mp,p.maxmp);
 }
 const atkOf=p=>p.atkBase*(p.buff?p.buff.atk:1);
-const spdOf=p=>JOB[p.job].spd*(p.buff?p.buff.spd:1);
+const spdOf=p=>JOB[p.job].spd*(p.spdMul||1)*(p.buff?p.buff.spd:1);
 const prect=p=>({x:p.x-p.w/2+2,y:p.y-p.h,w:p.w-4,h:p.h});
 const alive=()=>PARTY.filter(p=>!p.dead);
 const unlocked=(p,i)=>p.tier>=SK_TIER[i];
@@ -1444,11 +1522,14 @@ function hitTarget(t,dmg,dir,crit,p,o){
 }
 function killMob(m){
   m.dead=true;const d=MOBS[m.type];
+  if(m.type==='arm'){spark(m.x,m.y,30,'#ff8a3a',300,.7,5,200,true);sfx('boom');S.shake=Math.max(S.shake,14);gainExp(m.exp,true);qev('kill',{mob:'arm'});ftext(m.x,m.y-50,'귀목의 팔 파괴!','#ffb060',20);
+    if(!S.mobs.some(o=>o.type==='arm'&&!o.dead&&o!==m))G.toast('팔이 모두 부서졌다! 귀목의 본체를 공격하라!');return}
   spark(m.x,m.y-12,16,m.type==='wisp'?'#7ad0ff':'#f4f0e6',230,.55,4,300,true);
   gainExp(m.exp,true);S.kills=(S.kills||0)+1;
   const cn=Math.round(rnd(d.coin[0],d.coin[1])*(S.L.mscale>1?1.6:1));
   for(let i=0;i<Math.min(3,1+(cn>8?1:0)+(cn>16?1:0));i++)dropItem('coin',m.x+rnd(-14,14),(m.type==='wisp'?m.y:m.y-14),Math.max(1,Math.round(cn/Math.min(3,1+(cn>8?1:0)+(cn>16?1:0)))));
   if(Math.random()<.36&&!S.L.pq)dropItem('vegbit',m.x,m.y-16,1);
+  if(S.L.cave&&Math.random()<.20)dropItem('gtooth',m.x,m.y-16,1);
   if(Math.random()<.10||m.bonus)dropItem(m.bonus||Math.random()<.6?'hp':'mp',m.x,m.y-16,1);
   if(S.L.pq===1)dropItem('coupon',m.x,m.y-16,1);
   qev('kill',{mob:m.type});
@@ -1474,6 +1555,7 @@ function updateMobs(dt){
   const L=S.L;
   for(const m of S.mobs){
     if(m.dead)continue;
+    if(m.type==='arm'){m.t+=dt;m.flash-=dt;m.slam=Math.max(0,(m.slam||0)-dt);m.x=m.bx+Math.sin(m.t*1.3+m.ph)*7;m.y=m.by+Math.cos(m.t*1.1+m.ph)*6-(m.slam>0?Math.sin(m.slam/.9*Math.PI)*40:0);continue}
     m.t+=dt;m.flash-=dt;m.kbx=approach(m.kbx,0,700*dt);
     if(m.type==='wisp'){
       const tg=nearestAlive(m.x,m.y,m.chase?900:260);
@@ -1532,6 +1614,7 @@ function pickup(it,p){
   else if(k==='mp'){const h=Math.round(p.maxmp*.4);p.mp=Math.min(p.maxmp,p.mp+h);ftext(p.x,p.y-70,'+'+h,'#6ab0ff',17)}
   else if(k==='vegbit'){SAVE.inv.vegbit=(SAVE.inv.vegbit||0)+1;ftext(it.x,it.y-20,'야채 조각','#9be8ae',13);qev('collect',{item:'vegbit'})}
   else if(k==='coupon'){S.pq.coupons++;ftext(it.x,it.y-20,'영혼 쿠폰 '+S.pq.coupons+'/15','#c0a0ff',15)}
+  else if(k==='gtooth'||k==='essence'){SAVE.inv[k]=(SAVE.inv[k]||0)+1;ftext(it.x,it.y-24,ETC_NAME[k]+' 획득!',k==='essence'?'#ff9a4a':'#ffd34a',16);qev('collect',{item:k})}
   else if(k==='key'){S.pq.keys++;ftext(it.x,it.y-20,'열쇠 '+S.pq.keys+'/7','#ffe04a',17)}
 }
 
@@ -1958,6 +2041,7 @@ function drawEproj(g,e,t){
 const BOSS_REW={
   dokkaebi:{pct:.30,coin:500,pool:['hat_helm','face_mask','out_dobok']},
   fox:{pct:.35,coin:1000,pool:['hat_fox','cape_gold','aura_thunder']},
+  guimok:{pct:.5,coin:3000,pool:['cape_ghost','aura_flame']},
   eggking:{pct:.40,coin:1500,pool:['hat_crown','out_gold','aura_flame','cape_ghost']},
 };
 function mkBoss(id){
@@ -1965,12 +2049,15 @@ function mkBoss(id){
   const b={kind:'boss',id,face:-1,phase:1,flash:0,stun:0,anim:'idle',wait:1,cond:null,invuln:false,dying:false,dead:false,vx:0,vy:0,airT:0,onGround:true,gy:470,t:0,alpha:1,alphaT:1,last:''};
   if(id==='dokkaebi'){Object.assign(b,{name:'도깨비 대왕',x:1020,y:470,w:104,h:165,hp:Math.round(2600*sc),spd:125,cdmg:18});b.rect=e=>({x:e.x-44,y:e.y-e.h,w:88,h:e.h});b.gen=dokkaebiBrain(b)}
   else if(id==='fox'){Object.assign(b,{name:'구미호',x:900,y:330,w:80,h:120,hp:Math.round(3800*sc),cdmg:20,tx:900,ty:330,orbs:0,face:-1});b.rect=e=>({x:e.x-34,y:e.y-122,w:68,h:118});b.gen=foxBrain(b)}
+  else if(id==='guimok'){Object.assign(b,{name:'천년 귀목',x:L.w/2+20,y:470,w:180,h:300,hp:Math.round(9000*sc),cdmg:24});b.rect=e=>({x:e.x-70,y:e.y-290,w:140,h:290});b.gen=guimokBrain(b);
+    for(let i=0;i<8;i++){const side=i%2?1:-1,lv=i>>1,ax=b.x+side*(175+(lv%2)*30),ay=420-lv*65;
+      spawnMob('arm',ax,ay,{bx:ax,by:ay,side,lv,hp:Math.round(900*sc),max:Math.round(900*sc),rect:e=>({x:e.x-e.w/2,y:e.y-e.h/2,w:e.w,h:e.h})})}}
   else{Object.assign(b,{name:'달걀귀신 대왕',x:1000,y:470,w:150,h:190,hp:Math.round(3600*sc),spd:100,cdmg:16});b.rect=e=>({x:e.x-e.w*.46,y:e.y-(e.anim==='roll'?105:e.h),w:e.w*.92,h:e.anim==='roll'?105:e.h-4});b.gen=eggKingBrain(b)}
   if((id==='dokkaebi'&&qst('j2').s==='active')||(id==='fox'&&qst('j3').s==='active')){b.hp=Math.round(b.hp*1.6);b.trial=true;b.name+=' (시련)'}
   b.max=b.hp;return b;
 }
 function hitBoss(b,dmg,crit,p){
-  if(b.invuln||b.dying){const r=rectOf(b);ftext(r.x+r.w/2,r.y,'무적','#aab',14);return}
+  if(b.invuln||b.dying){const r=rectOf(b);ftext(r.x+r.w/2,r.y,b.id==='guimok'&&!b.dying?'팔부터 부숴라!':'무적','#aab',14);return}
   dmg=Math.round(dmg*(b.stun>0?1.35:1));b.hp-=dmg;b.flash=.09;
   const r=rectOf(b),cx=r.x+r.w/2,cy=r.y+r.h*(.3+Math.random()*.4);
   ftext(cx+rnd(-20,20),r.y+10,dmg,crit?'#ffb040':(b.stun>0?'#ff9aff':'#fff'),crit?28:20);sfx(crit?'crit':'hit');spark(cx,cy,crit?12:6,crit?'#ffb040':'#fff6c0',crit?280:180,.4);
@@ -1986,11 +2073,14 @@ function bossFinish(b){
   b.dead=true;const rw=BOSS_REW[b.id];
   SAVE.cleared[b.id]=true;rw.exp=Math.max(30,Math.round(need(SAVE.lvl)*rw.pct*bossPct(SAVE.lvl)));gainExp(rw.exp);addCoins(rw.coin);
   let drop=null;const free=rw.pool.filter(i=>!SAVE.inv[i]);
-  if(free.length){drop=free[Math.random()*free.length|0];SAVE.inv[drop]=1}
+  if(free.length&&Math.random()<(b.id==='guimok'?.3:1)){drop=free[Math.random()*free.length|0];SAVE.inv[drop]=1}
+  const extra=[];
+  for(const[gid,rate]of(GEAR_DROP[b.id]||[]))if(Math.random()<rate){const d=GEAR[gid];if(SAVE.ginv[gid]){const c=[50,150,400,1200,3000][d.gr];SAVE.coins+=c;extra.push('['+GRADE[d.gr]+'] '+d.n+' (중복 → '+c+'●)')}else{SAVE.ginv[gid]=1;extra.push('★ ['+GRADE[d.gr]+'] '+d.n+' 획득!')}}
+  if(b.id==='guimok'&&Math.random()<.4){SAVE.inv.essence=(SAVE.inv.essence||0)+1;extra.push('귀목의 정수 +1');qev('collect',{item:'essence'})}
   qev('boss',{id:b.id});
   if(b.id==='eggking'){SAVE.pq=(SAVE.pq||0)+1;qev('pq',{})}
   saveGame();
-  G.clear={title:b.name+' 격파!',lines:['경험치 +'+rw.exp,'야채코인 +'+rw.coin].concat(drop?['획득: '+ITEMS[drop].n+' ['+RARITY[ITEMS[drop].r]+']']:[])};
+  G.clear={title:b.name+' 격파!',lines:['경험치 +'+rw.exp,'야채코인 +'+rw.coin].concat(drop?['획득: '+ITEMS[drop].n+' ['+RARITY[ITEMS[drop].r]+']']:[]).concat(extra).slice(0,5)};
   G.state='clear';
 }
 function updateBoss(dt){
@@ -2004,6 +2094,7 @@ function updateBoss(dt){
     return;
   }
   if(b.stun>0)b.stun-=dt;
+  if(b.id==='guimok'){const any=S.mobs.some(m=>m.type==='arm'&&!m.dead);b.invuln=any||b.lock;if(!any&&b.phase===1){b.phase=2;sfx('roar');S.shake=20;spark(b.x,b.y-150,50,'#ff6a20',420,.8,5,0,true)}}
   // script
   if(b.cond){if(b.cond())b.cond=null}else if(b.wait>0)b.wait-=dt;
   if(!b.cond&&b.wait<=0&&b.gen){
@@ -2033,7 +2124,8 @@ function updateBoss(dt){
 }
 function drawBoss(g,b,t){
   if(b.dead)return;
-  if(b.id==='dokkaebi')drawDokkaebi(g,b,t);
+  if(b.id==='guimok')drawGuimok(g,b,t);
+  else if(b.id==='dokkaebi')drawDokkaebi(g,b,t);
   else if(b.id==='fox'){
     for(const c of S.clones)drawFox(g,{x:c.x,y:c.y,face:sgn(PARTY[0].x-c.x),phase:b.phase,anim:'cast',flash:0},t,.5*Math.min(1,c.t*3)*(c.t>1.3?1-(c.t-1.3)/.3:1),'#9fd0ff');
     drawFox(g,Object.assign({},b,{y:b.y+(b.bob||0)}),t,b.alpha);
@@ -2201,6 +2293,68 @@ function* egShell(b){
   for(let i=0;i<n;i++)addEproj({kind:'shard',x:b.x,y:b.gy-140,vx:(i/(n-1)-.5)*760,vy:-rnd(520,760),grav:1250,r:12,dmg:14,life:5});
   yield 1.3;b.anim='idle';
 }
+
+/* ---------------- 천년 귀목 (파티던전 보스 · 팔 8개) ---------------- */
+const armsAlive=()=>S.mobs.filter(m=>m.type==='arm'&&!m.dead);
+function* guimokBrain(b){
+  b.lock=true;b.anim='roar';sfx('roar');S.shake=24;G.toast('천년 귀목이 깨어났다! 팔 8개를 먼저 부숴라!');yield 2;b.lock=false;b.anim='idle';
+  while(true){
+    yield b.phase>1?.55:.95;
+    const arms=armsAlive();const opts=arms.length?['arm','arm','root','rock','fire','wisp']:['root','rock','fire','wave','wisp','root'];
+    let pick;do{pick=opts[Math.random()*opts.length|0]}while(pick===b.last&&opts.length>1);b.last=pick;b.tg=tp();
+    if(pick==='arm'){const n=Math.min(arms.length,1+(Math.random()<.5?1:0));arms.sort(()=>Math.random()-.5);
+      for(const a of arms.slice(0,n)){a.slam=.9;addZone({x:a.bx-85,y:a.by,w:170,h:470-a.by,warn:.85,act:.18,dmg:28,kind:'slam'})}sfx('warn');yield 1.1}
+    else if(pick==='root'){b.anim='roar';for(const p of alive())addZone({x:p.x-40,y:210,w:80,h:260,warn:1,act:.35,dmg:30,kind:'pillar'});
+      if(b.phase>1)for(let i=0;i<3;i++)addZone({x:rnd(80,S.L.w-160),y:210,w:80,h:260,warn:1.2,act:.35,dmg:30,kind:'pillar'});sfx('warn');yield 1.4;b.anim='idle'}
+    else if(pick==='rock'){b.anim='roar';sfx('roar');S.shake=12;const n=b.phase>1?14:9;for(let i=0;i<n;i++)addEproj({kind:'rock',x:rnd(60,S.L.w-60),y:-30-i*45,vy:160,grav:1100,r:15,dmg:22,life:4});yield 1.6;b.anim='idle'}
+    else if(pick==='fire'){b.anim='cast';const t=b.tg,ox=b.x,oy=b.y-235,ang=Math.atan2(t.y-40-oy,t.x-ox),n=b.phase>1?9:6;sfx('fire');
+      for(let k=0;k<2;k++){for(let i=0;i<n;i++){const a=ang+(i-(n-1)/2)*.17;addEproj({kind:'ember',x:ox,y:oy,vx:Math.cos(a)*330,vy:Math.sin(a)*330,r:12,dmg:20,life:4})}yield .45}yield .6;b.anim='idle'}
+    else if(pick==='wave'){b.anim='slam';S.shake=16;sfx('boom');for(const d of[-1,1])addEproj({kind:'shock',x:b.x+d*90,y:470,vx:d*420,dmg:24,life:5,r:20});yield .9;b.anim='idle'}
+    else if(pick==='wisp'){if(S.mobs.filter(m=>m.type==='wisp'&&!m.dead).length<4){for(let i=0;i<2;i++)spawnMob('wisp',b.x+(i?-220:220),220,{chase:true,range:30,col:'rgba(255,140,60,',col2:'#ff9a40',col3:'#c03010'})}yield .6}
+  }
+}
+function drawGuimok(g,b,t){
+  const x=b.x,y=b.y,ph=b.phase>1,fl=b.flash>0,sw=Math.sin(t*1.4)*3;
+  g.save();
+  // 뿌리
+  g.strokeStyle='#2a140c';g.lineCap='round';
+  for(let i=0;i<7;i++){const d=(i-3)/3;g.lineWidth=16-Math.abs(d)*6;g.beginPath();g.moveTo(x+d*40,y-30);g.quadraticCurveTo(x+d*110,y-10,x+d*170+hash(i)*20,y+2);g.stroke()}
+  // 팔 연결 가지
+  for(const a of S.mobs){if(a.type!=='arm'||a.dead)continue;const sx=x+a.side*55,sy=a.by+6;
+    g.strokeStyle=O_;g.lineWidth=26;g.beginPath();g.moveTo(sx,sy+10);g.quadraticCurveTo((sx+a.x)/2,sy-30,a.x-a.side*40,a.y);g.stroke();
+    g.strokeStyle='#5a301c';g.lineWidth=20;g.stroke()}
+  // 몸통
+  const gr=g.createLinearGradient(x-80,0,x+80,0);gr.addColorStop(0,'#3a1e10');gr.addColorStop(.5,fl?'#c08060':'#6a3a20');gr.addColorStop(1,'#3a1e10');
+  g.beginPath();g.moveTo(x-75,y);g.quadraticCurveTo(x-60+sw,y-160,x-70,y-280);g.quadraticCurveTo(x,y-330,x+70,y-280);g.quadraticCurveTo(x+60+sw,y-160,x+75,y);g.closePath();
+  g.fillStyle=gr;g.fill();g.lineWidth=4;g.strokeStyle=O_;g.stroke();
+  g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=3;for(let i=0;i<6;i++){g.beginPath();g.moveTo(x-50+i*20,y-20);g.quadraticCurveTo(x-45+i*18+sw,y-150,x-40+i*16,y-260);g.stroke()}
+  // 왕관 가지
+  g.strokeStyle='#2a140c';g.lineWidth=7;for(let i=0;i<5;i++){const a=-Math.PI/2+(i-2)*.35;g.beginPath();g.moveTo(x+(i-2)*18,y-285);g.lineTo(x+(i-2)*18+Math.cos(a)*50,y-285+Math.sin(a)*50+Math.sin(t*2+i)*3);g.stroke()}
+  // 얼굴
+  const eg=ph?'#ff3a1a':'#ffb020',gl=g.createRadialGradient(x,y-220,4,x,y-220,90);gl.addColorStop(0,ph?'rgba(255,60,20,.45)':'rgba(255,170,40,.3)');gl.addColorStop(1,'rgba(255,100,20,0)');g.fillStyle=gl;g.fillRect(x-100,y-320,200,200);
+  for(const s of[-1,1]){g.beginPath();g.ellipse(x+s*24,y-228,15,b.anim==='roar'?12:8,s*.25,0,6.28);g.fillStyle='#120604';g.fill();circ(g,x+s*24,y-228,5.5,eg)}
+  g.beginPath();g.moveTo(x-34,y-176);g.quadraticCurveTo(x,y-(b.anim==='roar'||b.anim==='cast'?140:166),x+34,y-176);g.quadraticCurveTo(x,y-188,x-34,y-176);g.fillStyle='#120604';g.fill();
+  for(let i=0;i<5;i++)poly(g,[x-26+i*13,y-180,x-20+i*13,y-168,x-14+i*13,y-180],'#e8d8b0');
+  if(b.invuln&&!b.dying){g.strokeStyle=`rgba(255,180,80,${.35+.2*Math.sin(t*6)})`;g.lineWidth=4;g.setLineDash([12,8]);g.beginPath();g.ellipse(x,y-150,105,170,0,0,6.28);g.stroke();g.setLineDash([])}
+  g.restore();
+}
+function drawArm(g,m,t){
+  const s=m.side,x=m.x,y=m.y;
+  g.save();g.translate(x,y);if(m.flash>0)g.globalAlpha=.7;
+  // 손 (갈퀴)
+  g.beginPath();g.ellipse(s*10,0,46,22,0,0,6.28);g.fillStyle='#5a301c';g.fill();g.lineWidth=3;g.strokeStyle=O_;g.stroke();
+  for(let i=0;i<4;i++){const a=s>0?(-.6+i*.4):(Math.PI+.6-i*.4);g.strokeStyle=O_;g.lineWidth=9;g.beginPath();g.moveTo(s*40,0);g.lineTo(s*40+Math.cos(a)*34,Math.sin(a)*34+(m.slam>0?14:0));g.stroke();g.strokeStyle='#7a4a2c';g.lineWidth=5;g.stroke()}
+  circ(g,s*4,-4,6,m.slam>0?'#ff4a1a':'#ffb020',O_,1.5);
+  g.restore();
+  if(m.hp<m.max){g.fillStyle='rgba(0,0,0,.6)';g.fillRect(x-30,y-40,60,6);g.fillStyle='#ff8a3a';g.fillRect(x-29,y-39,58*m.hp/m.max,4)}
+}
+function drawAltar(g,a,t,ready){
+  const x=a.x,y=a.y;
+  g.save();poly(g,[x-46,y,x-38,y-40,x+38,y-40,x+46,y],'#4a3a40',O_,3);g.fillStyle='#6a5560';g.fillRect(x-40,y-48,80,10);g.strokeStyle=O_;g.lineWidth=2.5;g.strokeRect(x-40,y-48,80,10);
+  const gl=g.createRadialGradient(x,y-70,3,x,y-70,60);gl.addColorStop(0,ready?'rgba(255,90,40,.7)':'rgba(255,90,40,.25)');gl.addColorStop(1,'rgba(255,60,20,0)');g.fillStyle=gl;g.fillRect(x-70,y-130,140,120);
+  for(let i=0;i<3;i++){const fx=x-20+i*20,h=14+Math.sin(t*9+i*2)*5;g.beginPath();g.moveTo(fx-6,y-48);g.quadraticCurveTo(fx,y-48-h*2,fx+6,y-48);g.fillStyle='#ff8a30';g.fill()}
+  g.restore();
+}
 /* ============================================================
    QUESTS / DIALOG / SHOP / WARDROBE / HUD / MENUS
    ============================================================ */
@@ -2252,7 +2406,7 @@ function qev(type,d){
     q.objs.forEach((o,i)=>{
       const nn=o.n||1;if(st.p[i]>=nn)return;let v=st.p[i];
       if(type==='kill'&&o.t==='kill'&&(o.mob==='any'?d.mob!=='dummy':o.mob===d.mob))v++;
-      else if(type==='boss'&&o.t==='boss'&&o.id===d.id)v=nn;
+      else if(type==='boss'&&o.t==='boss'&&o.id===d.id)v=o.n>1?v+1:nn;
       else if(type==='flag'&&o.t==='flag'&&o.key===d)v=1;
       else if(type==='reach'&&o.t==='reach'&&o.map===d.map)v=1;
       else if(type==='collect'&&o.t==='collect'&&o.item===d.item)v++;
@@ -2278,6 +2432,9 @@ function qTurnIn(id){
   if(ex){gainExp(ex);lines.push('경험치 +'+ex)}
   if(cn){SAVE.coins+=cn;lines.push('야채코인 +'+cn)}
   if(q.rew.item){if(!SAVE.inv[q.rew.item]){SAVE.inv[q.rew.item]=1;lines.push('획득: '+ITEMS[q.rew.item].n+' ['+RARITY[ITEMS[q.rew.item].r]+']')}else{SAVE.coins+=ITEMS[q.rew.item].price/2|0;lines.push('중복 아이템 → '+(ITEMS[q.rew.item].price/2|0)+' 코인')}}
+  if(q.rew.give)for(const k in q.rew.give){SAVE.inv[k]=(SAVE.inv[k]||0)+q.rew.give[k];lines.push('획득: '+ETC_NAME[k]+' ×'+q.rew.give[k])}
+  if(q.rew.gear){const g=GEAR[q.rew.gear];if(!SAVE.ginv[q.rew.gear]){SAVE.ginv[q.rew.gear]=1;lines.push('★ 획득: ['+GRADE[g.gr]+'] '+g.n+'  (인벤토리 I → 장비)')}else{SAVE.coins+=1000;lines.push('중복 장비 → 1000 코인')}}
+  if(q.rep){st.s='none';st.p=[]}
   if(q.adv){advanceJob(q.adv);lines.push('전직 완료!  '+jline(JOB[SAVE.job],q.adv))}
   sfx('lvl');saveGame();return lines;
 }
@@ -2305,7 +2462,7 @@ function questDetail(n,giver,id){
   const q=QUESTS[id],st=qst(id);
   let txt_=q.desc+'\n\n';
   q.objs.forEach((o,i)=>{txt_+=(st.s==='none'?'▫ ':(st.p[i]>=(o.n||1)?'✔ ':'▫ '))+o.label+(o.n>1&&st.s!=='none'?'  ('+Math.min(st.p[i],o.n)+'/'+o.n+')':(o.n>1?'  ×'+o.n:''))+'\n'});
-  const r=q.rew;txt_+='\n보상: EXP '+qExp(q)+'  코인 '+qCoin(q)+'  '+(r.item?'['+ITEMS[r.item].n+']':'')+(q.adv?'  ★'+q.adv+'차 전직':'');
+  const r=q.rew;txt_+='\n보상: EXP '+qExp(q)+'  코인 '+qCoin(q)+'  '+(r.item?'['+ITEMS[r.item].n+']':'')+(r.gear?'  ['+GRADE[GEAR[r.gear].gr]+'] '+GEAR[r.gear].n+' ('+gearDesc(r.gear)+')':'')+(r.give?'  '+Object.keys(r.give).map(k=>ETC_NAME[k]+'×'+r.give[k]).join(' '):'')+(q.adv?'  ★'+q.adv+'차 전직':'')+(q.rep?'\n(반복 가능)':'');
   const opts=[];
   if(st.s==='none')opts.push({t:'수락한다',fn:()=>{qAccept(id);questMenu(n,giver,'좋아, 잘 부탁하네!')}});
   if(st.s==='ready')opts.push({t:'완료 보고',fn:()=>{const l=qTurnIn(id);openDialog(n.name,'수고했네! 퀘스트 완료!\n\n'+l.join('\n'),[{t:'확인',fn:()=>questMenu(n,giver)}])}});
@@ -2436,6 +2593,7 @@ function talkNPC(n){
   else if(n.id==='daily')dailyMenu(n);
   else if(n.id==='duel')duelMenu(n);
   else if(n.id==='att')attMenu(n);
+  else if(n.id==='zgate')questMenu(n,'zgate',SAVE.lvl<40?'귀문은 Lv.40 이상만 지날 수 있다. 더 강해져서 오게.':'여기는 천년 귀목이 잠든 귀문이다.\n1) 숨겨진 길(점프맵)을 돌파하고  2) 금이빨로 귀안을 만들어  3) 제단에 바쳐 귀목을 깨워라.\n보유 귀안: '+(SAVE.inv.gwi||0)+'개 · 금이빨 '+(SAVE.inv.gtooth||0)+'개');
   else if(n.id==='cash')openShop(true);
   else if(n.id==='scroll')scrollMenu(n);
   else if(n.id==='shop')openShop();
@@ -2447,6 +2605,7 @@ function talkNPC(n){
     else opts.push({t:'하늘길 (도깨비 대왕 격파 후 개방)',fn:()=>openDialog(n.name,'하늘길은 도깨비 대왕을 쓰러뜨려야 열리네.')});
     if(SAVE.cleared.dokkaebi)opts.push({t:'도깨비 대왕 재도전',fn:()=>{closeUI();goMap('boss1')}});
     if(SAVE.cleared.fox)opts.push({t:'구미호 재도전',fn:()=>{closeUI();goMap('boss2')}});
+    opts.push({t:SAVE.lvl>=40?'귀문 동굴 (파티던전)':'귀문 동굴 (Lv.40 이상)',fn:()=>{if(SAVE.lvl<40){openDialog(n.name,'귀문은 Lv.40 이상만 들어갈 수 있다네. 그 너머엔 천년 묵은 귀목이 잠들어 있지…');return}closeUI();goMap('cave')}});
     opts.push({t:'닫기',fn:closeUI});
     openDialog(n.name,'나무아미타불… 어디로 가시려는가? 마을 동쪽 포탈로도 이동할 수 있네.',opts);
   }
@@ -2547,7 +2706,7 @@ const INV_TABS=['장비','소비','기타'];
 function openInv(tab){G.ui='inv';G.inv={tab:tab||0,sel:0};sfx('sel')}
 function invRows(){
   const t=G.inv.tab;
-  if(t===0)return SLOTS.map((sl,i)=>({kind:'slot',i,label:sl[1],id:PARTY[0].eq[sl[0]]||null}));
+  if(t===0)return GSLOTS.map(([k,lb])=>({kind:'gear',slot:k,label:lb,id:SAVE.gear[k]||null})).concat(SLOTS.map((sl,i)=>({kind:'slot',i,label:sl[1],id:PARTY[0].eq[sl[0]]||null})));
   if(t===1){
     const r=[{kind:'potion',id:'hp'},{kind:'potion',id:'mp'}];
     for(const k of Object.keys(SCROLLS))r.push({kind:'scroll',id:k});
@@ -2555,6 +2714,9 @@ function invRows(){
   }
   const r=[];
   r.push({kind:'misc',n:'야채 조각',v:SAVE.inv.vegbit||0,d:'몬스터가 떨어뜨리는 재료. 퀘스트 납품에 쓴다.'});
+  r.push({kind:'misc',n:'귀안(鬼眼)',v:SAVE.inv.gwi||0,d:'귀목의 제단에 바쳐 천년 귀목을 소환한다. 귀문 수문장 퀘스트로만 얻을 수 있다.'});
+  r.push({kind:'misc',n:'도깨비 금이빨',v:SAVE.inv.gtooth||0,d:'귀문 동굴 몬스터가 20% 확률로 떨어뜨린다. 8개로 귀안 1개.'});
+  r.push({kind:'misc',n:'귀목의 정수',v:SAVE.inv.essence||0,d:'천년 귀목이 40% 확률로 남긴다. 최고급 투구 퀘스트 재료.'});
   r.push({kind:'misc',n:'야채코인 ●',v:SAVE.coins,d:'상점 · 주문서 구매에 쓰는 기본 화폐.'});
   r.push({kind:'misc',n:'이벤트 코인 ◆',v:SAVE.ec,d:'출석 · 일일 올클리어 · PvP 승리로 획득. 이벤트 상점(캐시 치장)에서 사용.'});
   r.push({kind:'misc',n:'보유 치장템',v:Object.keys(ITEMS).filter(k=>SAVE.inv[k]).length+' / '+Object.keys(ITEMS).length,d:'착용은 장비 탭에서 슬롯을 선택(Enter).'});
@@ -2573,6 +2735,7 @@ function invUpdate(){
   if(nv.ok){
     const r=rows[G.inv.sel];if(!r)return;
     if(r.kind==='slot'){openWardrobe();G.wd.tab=r.i}
+    else if(r.kind==='gear')gearPick(r.slot);
     else if(r.kind==='potion'){usePotion(r.id)}
     else if(r.kind==='scroll'){const x=scrollApply(r.id);G.toast(x.msg.split('\n')[0]+(x.used?'':''))}
   }
@@ -2585,7 +2748,8 @@ function drawInv(g,t){
   rows.slice(st,st+per).forEach((r,i)=>{
     const y=134+i*42,sel=st+i===G.inv.sel;
     g.fillStyle=sel?'rgba(255,220,120,.22)':'rgba(255,255,255,.05)';g.beginPath();g.roundRect(80,y,470,38,8);g.fill();if(sel){g.strokeStyle='#ffd34a';g.lineWidth=2;g.stroke()}
-    if(r.kind==='slot'){txt(g,'['+r.label+']',96,y+25,15,'#9be8ff');txt(g,r.id?ITEMS[r.id].n:'(비어 있음)',170,y+25,16,r.id?RCOL[ITEMS[r.id].r]:'#888');txt(g,'Enter : 변경',536,y+25,12,'#cfd4e2','right',2)}
+    if(r.kind==='gear'){const d=r.id&&GEAR[r.id];txt(g,'['+r.label+']',96,y+25,15,'#ffb060');txt(g,d?'['+GRADE[d.gr]+'] '+d.n:'(비어 있음)',178,y+25,15,d?GCOL[d.gr]:'#888');txt(g,'Enter : 장착',536,y+25,12,'#cfd4e2','right',2)}
+    else if(r.kind==='slot'){txt(g,'['+r.label+']',96,y+25,15,'#9be8ff');txt(g,r.id?ITEMS[r.id].n:'(비어 있음)',170,y+25,16,r.id?RCOL[ITEMS[r.id].r]:'#888');txt(g,'Enter : 변경',536,y+25,12,'#cfd4e2','right',2)}
     else if(r.kind==='potion'){const d=POTION[r.id];txt(g,d.n,96,y+25,16,'#fff');txt(g,'×'+SAVE.potions[r.id],420,y+25,16,'#7aff9a','right');txt(g,'사용 ('+(r.id==='hp'?'1':'2')+'키)',536,y+25,12,'#cfd4e2','right',2)}
     else if(r.kind==='scroll'){const d=SCROLLS[r.id],c=SAVE.scrolls[r.id]||0;txt(g,d.n,96,y+25,15,c?'#fff':'#777');txt(g,'×'+c,420,y+25,16,c?'#7aff9a':'#777','right');txt(g,c?'사용':'',536,y+25,12,'#cfd4e2','right',2)}
     else{txt(g,r.n,96,y+25,16,'#fff');txt(g,String(r.v),536,y+25,16,'#ffd34a','right')}
@@ -2597,6 +2761,7 @@ function drawInv(g,t){
   if(G.inv.tab===0){
     g.save();g.translate(650,330);g.scale(2.1,2.1);drawVeggie(g,j,{x:0,y:0,face:1,t,st:'idle',eq:p.eq,tier:SAVE.tier});g.restore();
     txt(g,jline(j,SAVE.tier),730,160,17,'#ffe9a0','center');
+    if(sel&&sel.kind==='gear'&&sel.id){const d=GEAR[sel.id];txt(g,'['+GRADE[d.gr]+'] '+d.n,800,200,13,GCOL[d.gr],'center',2);wrap(g,gearDesc(sel.id),150,12).forEach((l,i)=>txt(g,l,800,220+i*18,12,'#fff','center',2))}
     const e=SAVE.enh||{atk:0,hp:0,used:0};
     const L=[['Lv.',SAVE.lvl],['HP',p.maxhp],['MP',p.maxmp],['공격력',Math.round(p.atkBase)],['이동속도',j.spd],['점프력',j.jump],['근육 강화','+'+e.atk],['체력 강화','+'+e.hp],['남은 슬롯',(enhSlots()-e.used)+'/'+enhSlots()]];
     L.forEach(([k,v],i)=>{const c=i%2,r=(i/2)|0,x0=c?738:588;txt(g,k,x0,372+r*22,13,'#cfd4e2','left',2);txt(g,String(v),x0+(c?138:136),372+r*22,13,'#fff','right',2)});
@@ -2611,6 +2776,16 @@ function drawInv(g,t){
     txt(g,'기타',730,160,17,'#ffe9a0','center');
     if(sel)wrap(g,sel.d||'',270,15).forEach((l,i)=>txt(g,l,730,210+i*24,15,'#fff','center',2));
   }
+}
+function gearPick(slot){
+  const own=Object.keys(GEAR).filter(k=>GEAR[k].slot===slot&&SAVE.ginv[k]).sort((a,b)=>GEAR[b].gr-GEAR[a].gr);
+  const lb=GSLOTS.find(s=>s[0]===slot)[1],cur=SAVE.gear[slot];
+  const done=id=>{if(id)SAVE.gear[slot]=id;else delete SAVE.gear[slot];const p=PARTY[0],r=p.hp/p.maxhp;recalc(p);p.hp=Math.round(p.maxhp*r);sfx('pickup');saveGame();openInv(0);G.inv.sel=GSLOTS.findIndex(s=>s[0]===slot)};
+  const opts=own.map(k=>({t:(k===cur?'✔ ':'')+'['+GRADE[GEAR[k].gr]+'] '+GEAR[k].n,fn:()=>done(k)}));
+  if(cur)opts.push({t:'장착 해제',fn:()=>done(null)});
+  opts.push({t:'닫기',fn:()=>{closeUI();openInv(0)}});
+  const lines=own.map(k=>'['+GRADE[GEAR[k].gr]+'] '+GEAR[k].n+(GEAR[k].quest?' (퀘스트 전용)':'')+' : '+gearDesc(k));
+  openDialog(lb+' 장착',own.length?lines.slice(0,8).join('\n'):'가진 '+lb+'이(가) 없다.\n보스를 쓰러뜨리면 낮은 확률로 장비가 떨어진다. (등급이 높을수록 희귀!)\n최고 등급은 퀘스트로만 얻을 수 있다.',opts);
 }
 function openWardrobe(){G.ui='wardrobe';G.wd={tab:0,sel:0};sfx('sel')}
 function wdList(){const slot=SLOTS[G.wd.tab][0];return[null].concat(Object.keys(ITEMS).filter(k=>ITEMS[k].slot===slot&&SAVE.inv[k]))}
@@ -2787,7 +2962,7 @@ function newGame(jobId){
 function continueGame(){
   SAVE=loadGame();if(!SAVE)return;
   for(const k of['inv','eq','potions','q','flags','cnt','talked','cleared'])SAVE[k]=SAVE[k]||{};
-  SAVE.potions.hp=SAVE.potions.hp||0;SAVE.potions.mp=SAVE.potions.mp||0;SAVE.tier=SAVE.tier||0;SAVE.pq=SAVE.pq||0;SAVE.duel=SAVE.duel||{w:0,l:0};SAVE.ec=SAVE.ec||0;SAVE.att=SAVE.att||{last:-1,streak:0,total:0,weeks:0};SAVE.enh=SAVE.enh||{atk:0,hp:0,used:0};SAVE.scrolls=SAVE.scrolls||{};SAVE.dayKey=SAVE.dayKey||'';
+  SAVE.potions.hp=SAVE.potions.hp||0;SAVE.potions.mp=SAVE.potions.mp||0;SAVE.tier=SAVE.tier||0;SAVE.pq=SAVE.pq||0;SAVE.duel=SAVE.duel||{w:0,l:0};SAVE.ec=SAVE.ec||0;SAVE.att=SAVE.att||{last:-1,streak:0,total:0,weeks:0};SAVE.enh=SAVE.enh||{atk:0,hp:0,used:0};SAVE.scrolls=SAVE.scrolls||{};SAVE.gear=SAVE.gear||{};SAVE.ginv=SAVE.ginv||{};SAVE.dayKey=SAVE.dayKey||'';
   PARTY=[buildP1()];goMap('town',true);if(checkDaily())G.toast('새로운 하루! 일일 퀘스트가 초기화됐어요 (쪽파)');
 }
 
@@ -2804,7 +2979,8 @@ function loadMap(id,end){
      cp:{x:L.spawn.x,y:L.spawn.y},flagsOn:L.flags.map(f=>Object.assign({on:false},f)),drops:L.drops.map(d=>({x:d.x,y:d.y,period:d.period,t:d.ph,warn:0})),
      bg:getBG(L.theme),kills:0,pq:null,spT:0,npcs:L.npcs};
   parts.length=0;texts.length=0;
-  for(const m of L.mobs){if(m[0]==='egg')spawnMob('egg',m[1],m[2],{min:m[3],max:m[4]});else spawnMob('wisp',m[1],m[2],{range:m[3]})}
+  const fire=L.theme==='lava'?{col:'rgba(255,140,60,',col2:'#ff9a40',col3:'#c03010'}:{};
+  for(const m of L.mobs){if(m[0]==='egg')spawnMob('egg',m[1],m[2],{min:m[3],max:m[4]});else spawnMob('wisp',m[1],m[2],Object.assign({range:m[3]},fire))}
   for(const d of L.dummies)S.dummies.push({kind:'dummy',x:d.x,y:d.y,w:36,h:92,hp:150,max:150,shake:0,flash:0,regen:0,respawn:0});
   for(const b of L.boxes)S.boxes.push(Object.assign({kind:'box',w:44,h:44,dead:false},b));
   if(L.pq){
@@ -2875,12 +3051,19 @@ function nearInteract(){
     if(Math.abs(p.x-n.x)<56&&Math.abs(p.y-n.gy)<40)return{k:'npc',n};
   }
   for(const po of L.portals){if(!po.hidden&&Math.abs(p.x-po.x)<52&&Math.abs(p.y-po.y)<70)return{k:'portal',po}}
+  if(L.altar&&!S.boss&&Math.abs(p.x-L.altar.x)<60&&Math.abs(p.y-L.altar.y)<30)return{k:'altar'};
   return null;
 }
 function usePortal(po){
   if(po.lock&&!SAVE.cleared[po.lock]){G.toast('아직 갈 수 없다… ('+MOBNAME(po.lock)+'을(를) 쓰러뜨려야 한다)');return}
+  if(po.party&&PARTY.length<2){const n={name:'귀문 수문장 해태'};openDialog(n.name,'귀목의 제단은 파티 던전이다. 2명 이상이어야 들어갈 수 있다.\nAI 동료로 채워서 들어가겠나? (2P는 마을 파티 모집꾼)',[{t:'AI 동료 2명과 입장',fn:()=>{while(PARTY.length<3)addMember('ai',JOBS[Math.random()*8|0].id);closeUI();usePortal(po)}},{t:'취소',fn:closeUI}]);return}
   if(po.reach){SAVE.cleared[po.reach]=true;qev('reach',{map:po.reach});}
   sfx('portal');goMap(po.to);
+}
+function summonGuimok(){
+  if(!(SAVE.inv.gwi>0)){G.toast('귀안(鬼眼)이 필요하다 — 귀문 수문장 퀘스트로만 얻을 수 있다');sfx('hurt');return}
+  SAVE.inv.gwi--;saveGame();sfx('portal');S.shake=20;spark(S.L.altar.x,S.L.altar.y-60,50,'#ff6a20',420,1,5,0,true);
+  S.boss=mkBoss('guimok');G.banner={t:0,name:'천년 귀목',sub:'팔 8개를 모두 부숴야 본체에 피해가 들어간다!'};startMusic('boss');
 }
 const MOBNAME=id=>({dokkaebi:'도깨비 대왕',fox:'구미호',eggking:'달걀귀신 대왕'})[id]||id;
 
@@ -2958,7 +3141,7 @@ function playStep(dt){
   for(const p of PARTY){if(p.kind==='p2'&&!p.dead&&lead&&!lead.dead){const dx=Math.abs(p.x-lead.x),dy=Math.abs(p.y-lead.y);p.far=(dx>W/2-30||dy>H/2-10)?p.far+dt:0;if(p.far>1.5){p.x=lead.x;p.y=lead.y;p.vx=p.vy=0;p.far=0;sfx('portal');spark(p.x,p.y-30,16,'#cfe0ff',200,.5,3,0,true)}}}
   // interact
   const near=nearInteract();S.near=near;
-  if(near&&pressed.ArrowUp&&!lead.rope){if(near.k==='npc')talkNPC(near.n);else if(near.k==='portal'){if(near.po.pqNext){sfx('portal');goMap(near.po.to)}else usePortal(near.po)}}
+  if(near&&pressed.ArrowUp&&!lead.rope){if(near.k==='altar')summonGuimok();else if(near.k==='npc')talkNPC(near.n);else if(near.k==='portal'){if(near.po.pqNext){sfx('portal');goMap(near.po.to)}else usePortal(near.po)}}
   // camera
   const cl=alive()[0]||lead;
   const tx=clamp(cl.x-W/2+cl.face*50,0,Math.max(0,L.w-W)),ty=clamp(cl.y-H*.6,0,Math.max(0,L.h-H));
@@ -3068,6 +3251,7 @@ function drawWorld(g){
     if(al>.5){const mk=npcMark(n.id),top=n.look==='board'?128:n.look==='closet'?126:n.look==='miko'?128:84,ny=n.gy-top-8;
       txt(g,n.name,n.x,ny,13,'#fff','center',3);drawMark(g,n.x,ny-22,mk==='ready'?'ready':mk==='new'?'new':mk==='act'?'act':null,t);}
   }
+  if(L.altar)drawAltar(g,L.altar,t,SAVE.inv.gwi>0&&!S.boss);
   for(const d of S.dummies)drawDummy(g,d,t);
   for(const b of S.boxes)if(!b.dead)drawCrate(g,b,t);
   for(const it of S.items){if(it.kind==='hp'||it.kind==='mp')drawPotion(g,it,t);else{
@@ -3077,10 +3261,11 @@ function drawWorld(g){
     else if(it.kind==='coupon'){g.beginPath();g.roundRect(-9,-18,18,13,3);g.fillStyle='#c0a0ff';g.fill();g.lineWidth=1.8;g.strokeStyle=O_;g.stroke();g.fillStyle='#fff';g.font=F(9);g.textAlign='center';g.fillText('魂',0,-8)}
     else if(it.kind==='key'){const gl=g.createRadialGradient(0,-12,2,0,-12,22);gl.addColorStop(0,'rgba(255,230,100,.8)');gl.addColorStop(1,'rgba(255,230,100,0)');g.fillStyle=gl;g.fillRect(-24,-36,48,48);circ(g,-4,-14,5,'#ffd34a',O_,1.6);g.fillStyle='#ffd34a';g.fillRect(-1,-14,12,3.5);g.fillRect(7,-14,3,8)}
     g.restore()}}
-  for(const m of S.mobs){if(!vis(m.x-40,m.y-60,80,80))continue;if(m.type==='wisp')drawWisp(g,m,t);else{g.save();if(m.type==='baby'){g.translate(m.x,m.y);g.scale(.72,.72);g.translate(-m.x,-m.y)}
+  for(const m of S.mobs){if(m.type==='arm'||!vis(m.x-40,m.y-60,80,80))continue;if(m.type==='wisp')drawWisp(g,m,t);else{g.save();if(m.type==='baby'){g.translate(m.x,m.y);g.scale(.72,.72);g.translate(-m.x,-m.y)}
     if(m.type==='baby'){g.translate(m.x*(1-1/.72)*0,0)}drawEgg(g,m,t);g.restore()}
     if(m.hp<m.max){g.fillStyle='rgba(0,0,0,.6)';g.fillRect(m.x-16,(m.type==='wisp'?m.y-36:m.y-46),32,5);g.fillStyle='#ff5a5a';g.fillRect(m.x-15,(m.type==='wisp'?m.y-35:m.y-45),30*m.hp/m.max,3)}}
   if(S.boss)drawBoss(g,S.boss,t);
+  for(const m of S.mobs)if(m.type==='arm'&&!m.dead)drawArm(g,m,t);
   // party
   const order=PARTY.slice().reverse();
   for(const p of order){
@@ -3114,7 +3299,7 @@ function drawWorld(g){
   for(const tx of texts){const a=clamp(tx.life/tx.max*1.6,0,1);g.globalAlpha=a;txt(g,String(tx.txt),tx.x,tx.y,tx.size,tx.col,'center',4)}
   g.globalAlpha=1;
   // interact hint
-  if(S.near&&G.state==='play'&&!G.ui){const n=S.near;const x=n.k==='npc'?n.n.x:n.po.x,y=(n.k==='npc'?n.n.gy:n.po.y)+44;txt(g,'↑ '+(n.k==='npc'?'대화':'입장'),x,y,15,'#ffe04a','center',4)}
+  if(S.near&&G.state==='play'&&!G.ui){const n=S.near;const x=n.k==='npc'?n.n.x:n.k==='altar'?L.altar.x:n.po.x,y=(n.k==='npc'?n.n.gy:n.k==='altar'?L.altar.y:n.po.y)+44;txt(g,'↑ '+(n.k==='npc'?'대화':n.k==='altar'?'귀안 바치기 (보유 '+(SAVE.inv.gwi||0)+')':'입장'),x,y,15,'#ffe04a','center',4)}
   g.restore();
   // vignette
   const vg=g.createRadialGradient(W/2,H/2,H*.45,W/2,H/2,H*.95);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(10,0,20,.45)');g.fillStyle=vg;g.fillRect(0,0,W,H);
