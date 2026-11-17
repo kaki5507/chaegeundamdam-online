@@ -196,21 +196,26 @@ function scrollUse(n){
   opts.push({t:'뒤로',fn:()=>scrollMenu(n)});
   openDialog(n.name,'어떤 주문서를 쓰겠나?\n\n'+enhText(),opts);
 }
-function useScroll(n,k){
-  const d=SCROLLS[k],e=SAVE.enh,p=PARTY[0];let msg;
+function scrollApply(k){   // 주문서 1장 사용 → {ok,msg} (슬롯 없음 등은 used:false)
+  const d=SCROLLS[k],e=SAVE.enh,p=PARTY[0];
+  if(!(SAVE.scrolls[k]>0))return{used:false,msg:'주문서가 없다'};
   if(d.white){
-    if(e.used<=0){openDialog(n.name,'복구할 슬롯이 없다네. 지금 슬롯은 모두 멀쩡해!',[{t:'뒤로',fn:()=>scrollUse(n)}]);return}
-    SAVE.scrolls[k]--;e.used--;sfx('lvl');spark(p.x,p.y-40,24,'#ffffff',260,.8,4,0,true);msg='순백의 빛이 퍼진다…\n슬롯 1칸이 복구되었다!';
-  }else{
-    if(e.used>=enhSlots()){openDialog(n.name,'남은 슬롯이 없다네. 순백의 주문서로 슬롯을 되살리거나 전직하게!\n\n'+enhText(),[{t:'뒤로',fn:()=>scrollUse(n)}]);return}
-    SAVE.scrolls[k]--;e.used++;
-    if(Math.random()<d.rate){e[d.stat]+=d.pts;recalc(p);sfx('lvl');spark(p.x,p.y-40,40,d.stat==='atk'?'#ff9a4a':'#6aff8a',320,.9,4,200,true);S.fx.push({k:'ring',x:p.x,y:p.y-40,r:150,t:0,max:.7,col:'#ffe04a'});
-      msg='주문서 성공!!!\n'+(d.stat==='atk'?'근육 강화':'체력 강화')+' +'+d.pts+'  →  +'+e[d.stat];}
-    else{sfx('hurt');spark(p.x,p.y-40,16,'#888',180,.6);msg='주문서가 타버렸다… 실패!\n(슬롯만 1칸 소모됨)';}
+    if(e.used<=0)return{used:false,msg:'복구할 슬롯이 없다. 지금 슬롯은 모두 멀쩡해!'};
+    SAVE.scrolls[k]--;e.used--;sfx('lvl');spark(p.x,p.y-40,24,'#ffffff',260,.8,4,0,true);saveGame();
+    return{used:true,ok:true,msg:'순백의 빛이 퍼진다…\n슬롯 1칸이 복구되었다!'};
   }
-  saveGame();
+  if(e.used>=enhSlots())return{used:false,msg:'남은 슬롯이 없다. 순백의 주문서로 슬롯을 되살리거나 전직하자!'};
+  SAVE.scrolls[k]--;e.used++;let msg,ok=Math.random()<d.rate;
+  if(ok){e[d.stat]+=d.pts;recalc(p);sfx('lvl');spark(p.x,p.y-40,40,d.stat==='atk'?'#ff9a4a':'#6aff8a',320,.9,4,200,true);S.fx.push({k:'ring',x:p.x,y:p.y-40,r:150,t:0,max:.7,col:'#ffe04a'});
+    msg='주문서 성공!!!\n'+(d.stat==='atk'?'근육 강화':'체력 강화')+' +'+d.pts+'  →  +'+e[d.stat]}
+  else{sfx('hurt');spark(p.x,p.y-40,16,'#888',180,.6);msg='주문서가 타버렸다… 실패!\n(슬롯만 1칸 소모됨)'}
+  saveGame();return{used:true,ok,msg};
+}
+function useScroll(n,k){
+  const r=scrollApply(k);
+  if(!r.used){openDialog(n.name,r.msg+'\n\n'+enhText(),[{t:'뒤로',fn:()=>scrollUse(n)}]);return}
   const again=SAVE.scrolls[k]>0;
-  openDialog(n.name,msg+'\n\n'+enhText(),[again?{t:'같은 주문서 또 사용  (×'+SAVE.scrolls[k]+')',fn:()=>useScroll(n,k)}:{t:'다른 주문서 사용',fn:()=>scrollUse(n)},{t:'뒤로',fn:()=>scrollMenu(n)}]);
+  openDialog(n.name,r.msg+'\n\n'+enhText(),[again?{t:'같은 주문서 또 사용  (×'+SAVE.scrolls[k]+')',fn:()=>useScroll(n,k)}:{t:'다른 주문서 사용',fn:()=>scrollUse(n)},{t:'뒤로',fn:()=>scrollMenu(n)}]);
 }
 function duelMenu(n){
   const has2=PARTY.some(p=>p.kind==='p2'),d=SAVE.duel||(SAVE.duel={w:0,l:0});
@@ -334,6 +339,76 @@ function drawShop(g,t){
 }
 
 /* ---------------- wardrobe ---------------- */
+/* ---------------- 인벤토리 (장비 · 소비 · 기타) ---------------- */
+const INV_TABS=['장비','소비','기타'];
+function openInv(tab){G.ui='inv';G.inv={tab:tab||0,sel:0};sfx('sel')}
+function invRows(){
+  const t=G.inv.tab;
+  if(t===0)return SLOTS.map((sl,i)=>({kind:'slot',i,label:sl[1],id:PARTY[0].eq[sl[0]]||null}));
+  if(t===1){
+    const r=[{kind:'potion',id:'hp'},{kind:'potion',id:'mp'}];
+    for(const k of Object.keys(SCROLLS))r.push({kind:'scroll',id:k});
+    return r;
+  }
+  const r=[];
+  r.push({kind:'misc',n:'야채 조각',v:SAVE.inv.vegbit||0,d:'몬스터가 떨어뜨리는 재료. 퀘스트 납품에 쓴다.'});
+  r.push({kind:'misc',n:'야채코인 ●',v:SAVE.coins,d:'상점 · 주문서 구매에 쓰는 기본 화폐.'});
+  r.push({kind:'misc',n:'이벤트 코인 ◆',v:SAVE.ec,d:'출석 · 일일 올클리어 · PvP 승리로 획득. 이벤트 상점(캐시 치장)에서 사용.'});
+  r.push({kind:'misc',n:'보유 치장템',v:Object.keys(ITEMS).filter(k=>SAVE.inv[k]).length+' / '+Object.keys(ITEMS).length,d:'착용은 장비 탭에서 슬롯을 선택(Enter).'});
+  r.push({kind:'misc',n:'파티퀘스트 클리어',v:SAVE.pq||0,d:'달걀귀신 소굴 클리어 횟수.'});
+  r.push({kind:'misc',n:'결투 전적',v:(SAVE.duel?SAVE.duel.w+'승 '+SAVE.duel.l+'패':'-'),d:'낙사 결투장 기록.'});
+  r.push({kind:'misc',n:'연속 출석',v:SAVE.att?SAVE.att.streak+'일 (누적 '+SAVE.att.total+')':'-',d:'7일 연속이면 캐시 치장템!'});
+  return r;
+}
+function invUpdate(){
+  const nv=nav(),rows=invRows();
+  if(nv.back||pressed.KeyI){closeUI();return}
+  if(nv.l){G.inv.tab=(G.inv.tab+2)%3;G.inv.sel=0;sfx('sel')}
+  if(nv.r){G.inv.tab=(G.inv.tab+1)%3;G.inv.sel=0;sfx('sel')}
+  const n=Math.max(1,invRows().length);
+  if(nv.u)G.inv.sel=(G.inv.sel+n-1)%n;if(nv.d)G.inv.sel=(G.inv.sel+1)%n;
+  if(nv.ok){
+    const r=rows[G.inv.sel];if(!r)return;
+    if(r.kind==='slot'){openWardrobe();G.wd.tab=r.i}
+    else if(r.kind==='potion'){usePotion(r.id)}
+    else if(r.kind==='scroll'){const x=scrollApply(r.id);G.toast(x.msg.split('\n')[0]+(x.used?'':''))}
+  }
+}
+function drawInv(g,t){
+  g.fillStyle='rgba(8,4,16,.62)';g.fillRect(0,0,W,H);panel(g,50,34,860,472,.94);
+  txt(g,'인벤토리',80,76,26,'#ffe9a0');txt(g,'← → 탭 · ↑↓ 선택 · Enter 사용/변경 · I / Esc 닫기',880,76,13,'#cfd4e2','right',2);
+  INV_TABS.forEach((s,i)=>{g.fillStyle=G.inv.tab===i?'#ffd34a':'rgba(255,255,255,.12)';g.beginPath();g.roundRect(80+i*110,92,100,30,8);g.fill();txt(g,s,130+i*110,114,16,G.inv.tab===i?'#2a1a00':'#fff','center',0)});
+  const rows=invRows(),per=8,pg=Math.floor(G.inv.sel/per),st=pg*per,p=PARTY[0],j=JOB[SAVE.job];
+  rows.slice(st,st+per).forEach((r,i)=>{
+    const y=134+i*42,sel=st+i===G.inv.sel;
+    g.fillStyle=sel?'rgba(255,220,120,.22)':'rgba(255,255,255,.05)';g.beginPath();g.roundRect(80,y,470,38,8);g.fill();if(sel){g.strokeStyle='#ffd34a';g.lineWidth=2;g.stroke()}
+    if(r.kind==='slot'){txt(g,'['+r.label+']',96,y+25,15,'#9be8ff');txt(g,r.id?ITEMS[r.id].n:'(비어 있음)',170,y+25,16,r.id?RCOL[ITEMS[r.id].r]:'#888');txt(g,'Enter : 변경',536,y+25,12,'#cfd4e2','right',2)}
+    else if(r.kind==='potion'){const d=POTION[r.id];txt(g,d.n,96,y+25,16,'#fff');txt(g,'×'+SAVE.potions[r.id],420,y+25,16,'#7aff9a','right');txt(g,'사용 ('+(r.id==='hp'?'1':'2')+'키)',536,y+25,12,'#cfd4e2','right',2)}
+    else if(r.kind==='scroll'){const d=SCROLLS[r.id],c=SAVE.scrolls[r.id]||0;txt(g,d.n,96,y+25,15,c?'#fff':'#777');txt(g,'×'+c,420,y+25,16,c?'#7aff9a':'#777','right');txt(g,c?'사용':'',536,y+25,12,'#cfd4e2','right',2)}
+    else{txt(g,r.n,96,y+25,16,'#fff');txt(g,String(r.v),536,y+25,16,'#ffd34a','right')}
+  });
+  txt(g,'페이지 '+(pg+1)+'/'+Math.max(1,Math.ceil(rows.length/per)),315,490,13,'#cfd4e2','center',2);
+  // right panel
+  panel(g,570,130,320,360,.7);
+  const sel=rows[G.inv.sel];
+  if(G.inv.tab===0){
+    g.save();g.translate(650,330);g.scale(2.1,2.1);drawVeggie(g,j,{x:0,y:0,face:1,t,st:'idle',eq:p.eq,tier:SAVE.tier});g.restore();
+    txt(g,jline(j,SAVE.tier),730,160,17,'#ffe9a0','center');
+    const e=SAVE.enh||{atk:0,hp:0,used:0};
+    const L=[['Lv.',SAVE.lvl],['HP',p.maxhp],['MP',p.maxmp],['공격력',Math.round(p.atkBase)],['이동속도',j.spd],['점프력',j.jump],['근육 강화','+'+e.atk],['체력 강화','+'+e.hp],['남은 슬롯',(enhSlots()-e.used)+'/'+enhSlots()]];
+    L.forEach(([k,v],i)=>{const c=i%2,r=(i/2)|0,x0=c?738:588;txt(g,k,x0,372+r*22,13,'#cfd4e2','left',2);txt(g,String(v),x0+(c?138:136),372+r*22,13,'#fff','right',2)});
+  }else if(G.inv.tab===1){
+    txt(g,'소비 아이템',730,160,17,'#ffe9a0','center');
+    const lines=sel&&sel.kind==='potion'?(sel.id==='hp'?['HP를 40% 회복','1번 키로도 사용 가능']:['MP를 50% 회복','2번 키로도 사용 가능']):
+      sel&&sel.kind==='scroll'?(SCROLLS[sel.id].white?['슬롯 1칸을 복구한다','(강화 수치는 그대로)','가격 '+SCROLLS[sel.id].price+'●']:['성공률 '+Math.round(SCROLLS[sel.id].rate*100)+'%','성공 시 '+(SCROLLS[sel.id].stat==='atk'?'근육(공격력)':'체력')+' +'+SCROLLS[sel.id].pts,'슬롯 1칸 소모 (성공/실패 무관)','가격 '+SCROLLS[sel.id].price+'●','구매: 마을 어딘가의 수상한 상인']):[];
+    lines.forEach((l,i)=>txt(g,l,730,210+i*26,15,'#fff','center',2));
+    const e=SAVE.enh;txt(g,'남은 슬롯 '+(enhSlots()-e.used)+' / '+enhSlots(),730,420,15,'#9be8ff','center',2);
+    txt(g,'근육 +'+e.atk+' · 체력 +'+e.hp,730,446,14,'#ffd34a','center',2);
+  }else{
+    txt(g,'기타',730,160,17,'#ffe9a0','center');
+    if(sel)wrap(g,sel.d||'',270,15).forEach((l,i)=>txt(g,l,730,210+i*24,15,'#fff','center',2));
+  }
+}
 function openWardrobe(){G.ui='wardrobe';G.wd={tab:0,sel:0};sfx('sel')}
 function wdList(){const slot=SLOTS[G.wd.tab][0];return[null].concat(Object.keys(ITEMS).filter(k=>ITEMS[k].slot===slot&&SAVE.inv[k]))}
 function wdUpdate(){
@@ -401,7 +476,7 @@ function drawHUD(g,t){
   for(const[i,k,c]of[[0,'hp','#ff4a5a'],[1,'mp','#4a8aff']]){const y=H-76+i*27;panel(g,px,y,62,24,.7);circ(g,px+14,y+12,7,c,O_,1.5);txt(g,(i+1)+' ×'+SAVE.potions[k],px+26,y+17,13,'#fff','left',2)}
   // top right
   txt(g,S.L.name,W-14,28,17,'#ffe9a0','right');txt(g,'● '+SAVE.coins,W-14,50,15,'#ffd34a','right');txt(g,'◆ '+SAVE.ec,W-14,67,13,'#ff8ae0','right',2);
-  txt(g,'H 도움말 · Q 퀘스트 · I 옷장 · P 일시정지 · M 음소거',W-14,H-20,11,'rgba(255,255,255,.55)','right',2);
+  txt(g,'H 도움말 · Q 퀘스트 · I 인벤토리 · P 일시정지 · M 음소거',W-14,H-20,11,'rgba(255,255,255,.55)','right',2);
   // quest tracker
   let qy=78;const act=Object.keys(SAVE.q).filter(k=>SAVE.q[k].s==='active'||SAVE.q[k].s==='ready').slice(0,3);
   for(const k of act){
@@ -484,7 +559,7 @@ function drawQuestLog(g,t){
 const HELP=[
   ['1P  이동','← →  /  ↑ ↓ (밧줄·포탈·NPC)'],['1P  점프','Space 또는 Alt  (↓ + 점프 : 아래로 내려가기)'],['1P  공격','Z 또는 Ctrl  (꾹 누르면 연속)'],
   ['1P  스킬','C (수련생) · 1차 X V · 2차 B · 3차 N'],['1P  물약','1 : HP  /  2 : MP'],['2P  이동','A D W S   점프 : Shift   공격 : F'],['2P  스킬','G H T Y U'],
-  ['메뉴','Q 퀘스트 · I 옷장 · P 일시정지 · M 음소거 · E AI 동료 배치/해제'],['밧줄','밧줄 앞에서 ↑ / ↓ , 점프+좌우로 뛰어내리기'],['팁','일일퀘스트 · PvP 결투장 · 전직(1차 마을/2차 숲 꼭대기/3차 하늘길 끝)'],
+  ['메뉴','Q 퀘스트 · I 인벤토리 · P 일시정지 · M 음소거 · E AI 동료 배치/해제'],['밧줄','밧줄 앞에서 ↑ / ↓ , 점프+좌우로 뛰어내리기'],['팁','일일퀘스트 · PvP 결투장 · 전직(1차 마을/2차 숲 꼭대기/3차 하늘길 끝)'],
 ];
 function drawHelp(g){
   g.fillStyle='rgba(8,4,16,.7)';g.fillRect(0,0,W,H);panel(g,90,50,780,440,.94);
