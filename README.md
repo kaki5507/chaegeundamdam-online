@@ -8,7 +8,7 @@
 
 ## ▶ 플레이
 
-- **배포 주소**: _(Render 배포 후 URL 기입)_
+- **배포 주소**: <https://chaegeundamdam-online.onrender.com> (무료 서버라 첫 접속 시 최대 1분 정도 깨어나는 시간이 걸립니다)
 - 로컬: `npm install && npm start` 후 <http://localhost:3000>
 - `index.html`만 열어도 게스트(오프라인)로 플레이할 수 있습니다. 이때 채팅과 이벤트는 꺼집니다.
 
