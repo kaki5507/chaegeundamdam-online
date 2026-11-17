@@ -49,7 +49,7 @@ function qev(type,d){
     q.objs.forEach((o,i)=>{
       const nn=o.n||1;if(st.p[i]>=nn)return;let v=st.p[i];
       if(type==='kill'&&o.t==='kill'&&(o.mob==='any'?d.mob!=='dummy':o.mob===d.mob))v++;
-      else if(type==='boss'&&o.t==='boss'&&o.id===d.id)v=nn;
+      else if(type==='boss'&&o.t==='boss'&&o.id===d.id)v=o.n>1?v+1:nn;
       else if(type==='flag'&&o.t==='flag'&&o.key===d)v=1;
       else if(type==='reach'&&o.t==='reach'&&o.map===d.map)v=1;
       else if(type==='collect'&&o.t==='collect'&&o.item===d.item)v++;
@@ -75,6 +75,9 @@ function qTurnIn(id){
   if(ex){gainExp(ex);lines.push('경험치 +'+ex)}
   if(cn){SAVE.coins+=cn;lines.push('야채코인 +'+cn)}
   if(q.rew.item){if(!SAVE.inv[q.rew.item]){SAVE.inv[q.rew.item]=1;lines.push('획득: '+ITEMS[q.rew.item].n+' ['+RARITY[ITEMS[q.rew.item].r]+']')}else{SAVE.coins+=ITEMS[q.rew.item].price/2|0;lines.push('중복 아이템 → '+(ITEMS[q.rew.item].price/2|0)+' 코인')}}
+  if(q.rew.give)for(const k in q.rew.give){SAVE.inv[k]=(SAVE.inv[k]||0)+q.rew.give[k];lines.push('획득: '+ETC_NAME[k]+' ×'+q.rew.give[k])}
+  if(q.rew.gear){const g=GEAR[q.rew.gear];if(!SAVE.ginv[q.rew.gear]){SAVE.ginv[q.rew.gear]=1;lines.push('★ 획득: ['+GRADE[g.gr]+'] '+g.n+'  (인벤토리 I → 장비)')}else{SAVE.coins+=1000;lines.push('중복 장비 → 1000 코인')}}
+  if(q.rep){st.s='none';st.p=[]}
   if(q.adv){advanceJob(q.adv);lines.push('전직 완료!  '+jline(JOB[SAVE.job],q.adv))}
   sfx('lvl');saveGame();return lines;
 }
@@ -102,7 +105,7 @@ function questDetail(n,giver,id){
   const q=QUESTS[id],st=qst(id);
   let txt_=q.desc+'\n\n';
   q.objs.forEach((o,i)=>{txt_+=(st.s==='none'?'▫ ':(st.p[i]>=(o.n||1)?'✔ ':'▫ '))+o.label+(o.n>1&&st.s!=='none'?'  ('+Math.min(st.p[i],o.n)+'/'+o.n+')':(o.n>1?'  ×'+o.n:''))+'\n'});
-  const r=q.rew;txt_+='\n보상: EXP '+qExp(q)+'  코인 '+qCoin(q)+'  '+(r.item?'['+ITEMS[r.item].n+']':'')+(q.adv?'  ★'+q.adv+'차 전직':'');
+  const r=q.rew;txt_+='\n보상: EXP '+qExp(q)+'  코인 '+qCoin(q)+'  '+(r.item?'['+ITEMS[r.item].n+']':'')+(r.gear?'  ['+GRADE[GEAR[r.gear].gr]+'] '+GEAR[r.gear].n+' ('+gearDesc(r.gear)+')':'')+(r.give?'  '+Object.keys(r.give).map(k=>ETC_NAME[k]+'×'+r.give[k]).join(' '):'')+(q.adv?'  ★'+q.adv+'차 전직':'')+(q.rep?'\n(반복 가능)':'');
   const opts=[];
   if(st.s==='none')opts.push({t:'수락한다',fn:()=>{qAccept(id);questMenu(n,giver,'좋아, 잘 부탁하네!')}});
   if(st.s==='ready')opts.push({t:'완료 보고',fn:()=>{const l=qTurnIn(id);openDialog(n.name,'수고했네! 퀘스트 완료!\n\n'+l.join('\n'),[{t:'확인',fn:()=>questMenu(n,giver)}])}});
@@ -233,6 +236,7 @@ function talkNPC(n){
   else if(n.id==='daily')dailyMenu(n);
   else if(n.id==='duel')duelMenu(n);
   else if(n.id==='att')attMenu(n);
+  else if(n.id==='zgate')questMenu(n,'zgate',SAVE.lvl<40?'귀문은 Lv.40 이상만 지날 수 있다. 더 강해져서 오게.':'여기는 천년 귀목이 잠든 귀문이다.\n1) 숨겨진 길(점프맵)을 돌파하고  2) 금이빨로 귀안을 만들어  3) 제단에 바쳐 귀목을 깨워라.\n보유 귀안: '+(SAVE.inv.gwi||0)+'개 · 금이빨 '+(SAVE.inv.gtooth||0)+'개');
   else if(n.id==='cash')openShop(true);
   else if(n.id==='scroll')scrollMenu(n);
   else if(n.id==='shop')openShop();
@@ -244,6 +248,7 @@ function talkNPC(n){
     else opts.push({t:'하늘길 (도깨비 대왕 격파 후 개방)',fn:()=>openDialog(n.name,'하늘길은 도깨비 대왕을 쓰러뜨려야 열리네.')});
     if(SAVE.cleared.dokkaebi)opts.push({t:'도깨비 대왕 재도전',fn:()=>{closeUI();goMap('boss1')}});
     if(SAVE.cleared.fox)opts.push({t:'구미호 재도전',fn:()=>{closeUI();goMap('boss2')}});
+    opts.push({t:SAVE.lvl>=40?'귀문 동굴 (파티던전)':'귀문 동굴 (Lv.40 이상)',fn:()=>{if(SAVE.lvl<40){openDialog(n.name,'귀문은 Lv.40 이상만 들어갈 수 있다네. 그 너머엔 천년 묵은 귀목이 잠들어 있지…');return}closeUI();goMap('cave')}});
     opts.push({t:'닫기',fn:closeUI});
     openDialog(n.name,'나무아미타불… 어디로 가시려는가? 마을 동쪽 포탈로도 이동할 수 있네.',opts);
   }
@@ -344,7 +349,7 @@ const INV_TABS=['장비','소비','기타'];
 function openInv(tab){G.ui='inv';G.inv={tab:tab||0,sel:0};sfx('sel')}
 function invRows(){
   const t=G.inv.tab;
-  if(t===0)return SLOTS.map((sl,i)=>({kind:'slot',i,label:sl[1],id:PARTY[0].eq[sl[0]]||null}));
+  if(t===0)return GSLOTS.map(([k,lb])=>({kind:'gear',slot:k,label:lb,id:SAVE.gear[k]||null})).concat(SLOTS.map((sl,i)=>({kind:'slot',i,label:sl[1],id:PARTY[0].eq[sl[0]]||null})));
   if(t===1){
     const r=[{kind:'potion',id:'hp'},{kind:'potion',id:'mp'}];
     for(const k of Object.keys(SCROLLS))r.push({kind:'scroll',id:k});
@@ -352,6 +357,9 @@ function invRows(){
   }
   const r=[];
   r.push({kind:'misc',n:'야채 조각',v:SAVE.inv.vegbit||0,d:'몬스터가 떨어뜨리는 재료. 퀘스트 납품에 쓴다.'});
+  r.push({kind:'misc',n:'귀안(鬼眼)',v:SAVE.inv.gwi||0,d:'귀목의 제단에 바쳐 천년 귀목을 소환한다. 귀문 수문장 퀘스트로만 얻을 수 있다.'});
+  r.push({kind:'misc',n:'도깨비 금이빨',v:SAVE.inv.gtooth||0,d:'귀문 동굴 몬스터가 20% 확률로 떨어뜨린다. 8개로 귀안 1개.'});
+  r.push({kind:'misc',n:'귀목의 정수',v:SAVE.inv.essence||0,d:'천년 귀목이 40% 확률로 남긴다. 최고급 투구 퀘스트 재료.'});
   r.push({kind:'misc',n:'야채코인 ●',v:SAVE.coins,d:'상점 · 주문서 구매에 쓰는 기본 화폐.'});
   r.push({kind:'misc',n:'이벤트 코인 ◆',v:SAVE.ec,d:'출석 · 일일 올클리어 · PvP 승리로 획득. 이벤트 상점(캐시 치장)에서 사용.'});
   r.push({kind:'misc',n:'보유 치장템',v:Object.keys(ITEMS).filter(k=>SAVE.inv[k]).length+' / '+Object.keys(ITEMS).length,d:'착용은 장비 탭에서 슬롯을 선택(Enter).'});
@@ -370,6 +378,7 @@ function invUpdate(){
   if(nv.ok){
     const r=rows[G.inv.sel];if(!r)return;
     if(r.kind==='slot'){openWardrobe();G.wd.tab=r.i}
+    else if(r.kind==='gear')gearPick(r.slot);
     else if(r.kind==='potion'){usePotion(r.id)}
     else if(r.kind==='scroll'){const x=scrollApply(r.id);G.toast(x.msg.split('\n')[0]+(x.used?'':''))}
   }
@@ -382,7 +391,8 @@ function drawInv(g,t){
   rows.slice(st,st+per).forEach((r,i)=>{
     const y=134+i*42,sel=st+i===G.inv.sel;
     g.fillStyle=sel?'rgba(255,220,120,.22)':'rgba(255,255,255,.05)';g.beginPath();g.roundRect(80,y,470,38,8);g.fill();if(sel){g.strokeStyle='#ffd34a';g.lineWidth=2;g.stroke()}
-    if(r.kind==='slot'){txt(g,'['+r.label+']',96,y+25,15,'#9be8ff');txt(g,r.id?ITEMS[r.id].n:'(비어 있음)',170,y+25,16,r.id?RCOL[ITEMS[r.id].r]:'#888');txt(g,'Enter : 변경',536,y+25,12,'#cfd4e2','right',2)}
+    if(r.kind==='gear'){const d=r.id&&GEAR[r.id];txt(g,'['+r.label+']',96,y+25,15,'#ffb060');txt(g,d?'['+GRADE[d.gr]+'] '+d.n:'(비어 있음)',178,y+25,15,d?GCOL[d.gr]:'#888');txt(g,'Enter : 장착',536,y+25,12,'#cfd4e2','right',2)}
+    else if(r.kind==='slot'){txt(g,'['+r.label+']',96,y+25,15,'#9be8ff');txt(g,r.id?ITEMS[r.id].n:'(비어 있음)',170,y+25,16,r.id?RCOL[ITEMS[r.id].r]:'#888');txt(g,'Enter : 변경',536,y+25,12,'#cfd4e2','right',2)}
     else if(r.kind==='potion'){const d=POTION[r.id];txt(g,d.n,96,y+25,16,'#fff');txt(g,'×'+SAVE.potions[r.id],420,y+25,16,'#7aff9a','right');txt(g,'사용 ('+(r.id==='hp'?'1':'2')+'키)',536,y+25,12,'#cfd4e2','right',2)}
     else if(r.kind==='scroll'){const d=SCROLLS[r.id],c=SAVE.scrolls[r.id]||0;txt(g,d.n,96,y+25,15,c?'#fff':'#777');txt(g,'×'+c,420,y+25,16,c?'#7aff9a':'#777','right');txt(g,c?'사용':'',536,y+25,12,'#cfd4e2','right',2)}
     else{txt(g,r.n,96,y+25,16,'#fff');txt(g,String(r.v),536,y+25,16,'#ffd34a','right')}
@@ -394,6 +404,7 @@ function drawInv(g,t){
   if(G.inv.tab===0){
     g.save();g.translate(650,330);g.scale(2.1,2.1);drawVeggie(g,j,{x:0,y:0,face:1,t,st:'idle',eq:p.eq,tier:SAVE.tier});g.restore();
     txt(g,jline(j,SAVE.tier),730,160,17,'#ffe9a0','center');
+    if(sel&&sel.kind==='gear'&&sel.id){const d=GEAR[sel.id];txt(g,'['+GRADE[d.gr]+'] '+d.n,800,200,13,GCOL[d.gr],'center',2);wrap(g,gearDesc(sel.id),150,12).forEach((l,i)=>txt(g,l,800,220+i*18,12,'#fff','center',2))}
     const e=SAVE.enh||{atk:0,hp:0,used:0};
     const L=[['Lv.',SAVE.lvl],['HP',p.maxhp],['MP',p.maxmp],['공격력',Math.round(p.atkBase)],['이동속도',j.spd],['점프력',j.jump],['근육 강화','+'+e.atk],['체력 강화','+'+e.hp],['남은 슬롯',(enhSlots()-e.used)+'/'+enhSlots()]];
     L.forEach(([k,v],i)=>{const c=i%2,r=(i/2)|0,x0=c?738:588;txt(g,k,x0,372+r*22,13,'#cfd4e2','left',2);txt(g,String(v),x0+(c?138:136),372+r*22,13,'#fff','right',2)});
@@ -408,6 +419,16 @@ function drawInv(g,t){
     txt(g,'기타',730,160,17,'#ffe9a0','center');
     if(sel)wrap(g,sel.d||'',270,15).forEach((l,i)=>txt(g,l,730,210+i*24,15,'#fff','center',2));
   }
+}
+function gearPick(slot){
+  const own=Object.keys(GEAR).filter(k=>GEAR[k].slot===slot&&SAVE.ginv[k]).sort((a,b)=>GEAR[b].gr-GEAR[a].gr);
+  const lb=GSLOTS.find(s=>s[0]===slot)[1],cur=SAVE.gear[slot];
+  const done=id=>{if(id)SAVE.gear[slot]=id;else delete SAVE.gear[slot];const p=PARTY[0],r=p.hp/p.maxhp;recalc(p);p.hp=Math.round(p.maxhp*r);sfx('pickup');saveGame();openInv(0);G.inv.sel=GSLOTS.findIndex(s=>s[0]===slot)};
+  const opts=own.map(k=>({t:(k===cur?'✔ ':'')+'['+GRADE[GEAR[k].gr]+'] '+GEAR[k].n,fn:()=>done(k)}));
+  if(cur)opts.push({t:'장착 해제',fn:()=>done(null)});
+  opts.push({t:'닫기',fn:()=>{closeUI();openInv(0)}});
+  const lines=own.map(k=>'['+GRADE[GEAR[k].gr]+'] '+GEAR[k].n+(GEAR[k].quest?' (퀘스트 전용)':'')+' : '+gearDesc(k));
+  openDialog(lb+' 장착',own.length?lines.slice(0,8).join('\n'):'가진 '+lb+'이(가) 없다.\n보스를 쓰러뜨리면 낮은 확률로 장비가 떨어진다. (등급이 높을수록 희귀!)\n최고 등급은 퀘스트로만 얻을 수 있다.',opts);
 }
 function openWardrobe(){G.ui='wardrobe';G.wd={tab:0,sel:0};sfx('sel')}
 function wdList(){const slot=SLOTS[G.wd.tab][0];return[null].concat(Object.keys(ITEMS).filter(k=>ITEMS[k].slot===slot&&SAVE.inv[k]))}
