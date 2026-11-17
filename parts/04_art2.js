@@ -38,7 +38,7 @@ function drawOutfit(g,id,shy){
 }
 function drawGear(g,c,eq,x,y,t){
   g.save();g.translate(x,y);g.lineJoin='round';
-  const ey=EYE_Y[c.head]||0;
+  const ey=3;
   if(eq.face){const id=eq.face;
     if(id==='face_sun'){g.fillStyle='#10101a';g.beginPath();g.roundRect(-10.5,ey-4,9,6.5,2);g.roundRect(1.5,ey-4,9,6.5,2);g.fill();g.lineWidth=1.5;g.strokeStyle=O_;g.stroke();g.beginPath();g.moveTo(-1.5,ey-2);g.lineTo(1.5,ey-2);g.stroke();g.fillStyle='rgba(255,255,255,.4)';g.fillRect(-9,ey-3,3,1.4);g.fillRect(3,ey-3,3,1.4)}
     else if(id==='face_heart'){for(const s of[-1,1]){g.save();g.translate(s*5.5,ey-.5);g.beginPath();g.moveTo(0,5);g.bezierCurveTo(-8,0,-6,-6,0,-3);g.bezierCurveTo(6,-6,8,0,0,5);g.fillStyle='rgba(255,70,140,.8)';g.fill();g.lineWidth=1.5;g.strokeStyle=O_;g.stroke();g.restore()}}
@@ -109,7 +109,7 @@ function drawNPC(g,n,t,mark,faceDir){
   }
   // veggie-bodied NPCs
   const map={chief:'guardian',coach:'fighter',shop:'gunner',monk:'priest',aunt:'mage',daily:'archer',duel:'warrior',sage:'rogue',moon:'mage',att:'priest',cash:'rogue',scroll:'gunner',zgate:'guardian'};
-  const job=JOB[map[n.look]],eq={};
+  const xl=NPC_LOOK_X[n.look],job=xl?JOB[xl.job]:JOB[map[n.look]],eq=xl?Object.assign({},xl.eq):{};
   if(n.look==='coach'){eq.hat='hat_helm';eq.outfit='out_dobok'}
   if(n.look==='shop'){eq.outfit='out_tank';eq.hat='hat_flower'}
   if(n.look==='monk'){eq.outfit='out_hanbok'}
