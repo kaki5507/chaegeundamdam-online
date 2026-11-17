@@ -84,7 +84,8 @@ app.put('/api/save', auth, limit('save', 60), async (req, res) => {
   } catch (e) { console.error(e); res.status(500).json({ error: '서버 오류' }); }
 });
 app.delete('/api/account', auth, limit('auth', 20), async (req, res) => { await db.deleteUser(req.user); res.json({ ok: true }); });
-app.get('/api/health', (_q, res) => res.json({ ok: true }));
+let DBKIND = 'init';
+app.get('/api/health', (_q, res) => res.json({ ok: true, db: DBKIND }));
 
 // 정적 파일: 게임 본체와 문서 이미지만 공개
 app.get('/', (_q, res) => res.sendFile(path.join(ROOT, 'index.html')));
@@ -93,7 +94,8 @@ app.use('/docs', express.static(path.join(ROOT, 'docs'), { maxAge: '1h' }));
 
 const PORT = process.env.PORT || 3000;
 db.init().then(kind => {
-  console.log('[db]', kind);
+  DBKIND = kind; console.log('[db]', kind);
+  if (kind === 'file' && process.env.RENDER) console.error('[경고] DATABASE_URL 이 없어 임시 파일 DB를 사용합니다. 재배포/재시작 시 계정이 사라집니다! Render > Environment 에 Neon 연결 문자열을 넣으세요.');
   if (require.main === module) app.listen(PORT, () => console.log('listening on', PORT));
 }).catch(e => { console.error('db init failed', e); process.exit(1); });
 module.exports = app;
