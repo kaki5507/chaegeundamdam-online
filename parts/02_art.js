@@ -363,7 +363,7 @@ function drawVegWeapon(g,c,t,st){ // 야채 무기 (손 기준 좌표)
   }
 }
 function drawVeggie(g,c,o){
-  const t=o.t||0,st=o.st||'idle',face=o.face||1,ap=o.ap||0,sc=.98;
+  const t=o.t||0,st=o.st||'idle',face=o.face||1,ap=o.ap||0,sc=.98*(o.sc||1);
   g.save();g.translate(o.x,o.y);g.scale(face*sc,sc);
   if(o.alpha!==undefined)g.globalAlpha=o.alpha;
   const ph=t*14,run=st==='run',shirt=c.col,shirtD=shade(c.col,-40),pants=c.short;

@@ -78,6 +78,7 @@ function drawNPC(g,n,t,mark,faceDir){
   const x=n.x,y=n.gy;
   g.save();
   if(n.look==='fame'){drawFameSign(g,x,y,t);g.restore();return}
+  if(n.swing){drawSwingNPC(g,n,t,faceDir);g.restore();return}
   if(n.look==='board'){
     g.fillStyle='#5a3a1c';g.fillRect(x-40,y-92,6,92);g.fillRect(x+34,y-92,6,92);
     g.beginPath();g.roundRect(x-52,y-120,104,70,6);g.fillStyle='#8a5a30';g.fill();g.lineWidth=3;g.strokeStyle=O_;g.stroke();
@@ -124,11 +125,7 @@ function drawNPC(g,n,t,mark,faceDir){
   if(n.look==='duel'){eq.hat='hat_helm';eq.outfit='out_tank'}
   if(n.look==='sage'){eq.hat='hat_ninja';eq.cape='cape_red'}
   if(n.look==='moon'){eq.outfit='out_hanbok';eq.aura='aura_ghost'}
-  drawVeggie(g,job,{x,y,face:faceDir||1,t:t+n.x,st:'idle',eq,fid:xl&&xl.fid!=null?xl.fid:fidOf(n.id),tier:n.look==='moon'||n.look==='sage'?3:1});
-  if(n.look==='chief'){ // beard + cane
-    g.strokeStyle=O_;g.lineWidth=7;g.beginPath();g.moveTo(x+(faceDir||1)*-20,y-14);g.lineTo(x+(faceDir||1)*-20,y);g.stroke();
-    g.fillStyle='#f4f4f4';g.beginPath();g.moveTo(x-9,y-48);g.quadraticCurveTo(x,y-26,x+9,y-48);g.fill();g.lineWidth=1.6;g.strokeStyle=O_;g.stroke();
-  }
+  drawVeggie(g,job,{sc:WSC,x,y,face:faceDir||1,t:t+n.x,st:'idle',eq,fid:xl&&xl.fid!=null?xl.fid:fidOf(n.id),tier:n.look==='moon'||n.look==='sage'?3:1});
   if(n.look==='shop'){ // stall
     g.fillStyle='#8a5a30';g.fillRect(x+34,y-36,64,36);g.lineWidth=2.4;g.strokeStyle=O_;g.strokeRect(x+34,y-36,64,36);
     g.fillStyle='#c0283c';poly(g,[x+28,y-70,x+104,y-70,x+98,y-48,x+34,y-48],'#c0283c',O_,2.4);

@@ -9,7 +9,7 @@ const CTRL=[
 const NOIN={l:0,r:0,u:0,d:0,uT:0,jT:0,jH:0,a:0,aT:0,s:[0,0,0,0,0],fd:0};
 
 function mkPlayer(kind,jobId,lvl){
-  const p={kind,job:jobId,x:0,y:0,w:26,h:52,vx:0,vy:0,face:1,onGround:false,ground:null,rope:null,rcool:0,drop:0,coyote:0,jbuf:0,
+  const p={kind,job:jobId,x:0,y:0,w:20,h:36,vx:0,vy:0,face:1,onGround:false,ground:null,rope:null,rcool:0,drop:0,coyote:0,jbuf:0,
     inv:0,stun:0,atkT:0,atkCd:0,hitQ:-1,combo:0,comboT:0,cds:[0,0,0,0,0],buff:null,shieldT:0,dashT:0,dashHit:null,skillT:0,
     hp:1,mp:1,dead:false,deadT:0,t:Math.random()*5,eq:{},lvl:lvl||1,tier:0,team:0,fid:Math.random()*20|0,lastAtk:null,hold:false,ai:null,aiT:0,far:0,mpWarn:0,vyPrev:0};
   recalc(p);p.hp=p.maxhp;p.mp=p.maxmp;return p;
@@ -47,7 +47,7 @@ function gainExp(n,mob){
     SAVE.exp-=need(SAVE.lvl);SAVE.lvl++;
     SAVE.apFree=(SAVE.apFree||0)+5;p.lvl=SAVE.lvl;recalc(p);p.hp=p.maxhp;p.mp=p.maxmp;
     for(const q of PARTY)if(q!==p&&!q.foe){q.lvl=SAVE.lvl;q.tier=q.kind==='p1'?SAVE.tier:tierOfLv(q.lvl);recalc(q);q.hp=q.maxhp;q.mp=q.maxmp}
-    sfx('lvl');ftext(p.x,p.y-110,'LEVEL UP! Lv.'+SAVE.lvl,'#ffe04a',24,1.6);spark(p.x,p.y-30,40,'#ffe04a',320,.9,4,200,true);
+    sfx('lvl');ftext(p.x,p.y-110,'LEVEL UP! Lv.'+SAVE.lvl,'#ffe04a',24,1.6);spark(p.x,p.y-20,40,'#ffe04a',320,.9,4,200,true);
     const ai=[1,2,3].find(t=>SAVE.lvl===ADV_LV[t]&&SAVE.tier<t);
     G.toast('레벨 업!  Lv.'+SAVE.lvl+(ai?'  — '+ai+'차 전직 가능! ('+['','야채마을 교관','도깨비 숲 꼭대기','하늘길 끝'][ai]+')':''));
     if(!ai)G.toast('AP +5 — O 키로 능력치를 올리세요');
@@ -119,7 +119,7 @@ function spawnMob(type,x,y,o){
   if(type==='wisp'){m.rect=e=>({x:e.x-e.w/2,y:e.y-e.h/2,w:e.w,h:e.h});m.ox=x;m.by=y;m.range=m.range||70}
   S.mobs.push(m);return m;
 }
-function nearestAlive(x,y,maxd=9999){let b=null,bd=maxd;for(const p of PARTY){if(p.dead)continue;const d=Math.hypot(p.x-x,p.y-30-y);if(d<bd){bd=d;b=p}}return b}
+function nearestAlive(x,y,maxd=9999){let b=null,bd=maxd;for(const p of PARTY){if(p.dead)continue;const d=Math.hypot(p.x-x,p.y-20-y);if(d<bd){bd=d;b=p}}return b}
 function updateMobs(dt){
   const L=S.L;
   for(const m of S.mobs){
@@ -193,9 +193,9 @@ function hurtPlayer(p,dmg,srcx,o){
   const def=p.buff&&p.buff.def?p.buff.def:0;
   dmg=Math.max(1,Math.round(dmg*(1-def)));
   p.hp-=dmg;p.inv=o&&o.inv!==undefined?o.inv:1.0;p.stun=o&&o.stun||.2;p.vx=(sgn(p.x-srcx)||p.face*-1)*(o&&o.kb||240);p.vy=-(o&&o.up||300);p.rope=null;p.atkT=0;p.hitQ=-1;p.dashT=0;
-  ftext(p.x,p.y-70,'-'+dmg,'#ff5a5a',20);sfx('hurt');spark(p.x,p.y-30,10,'#ff7a7a',200,.4);
+  ftext(p.x,p.y-70,'-'+dmg,'#ff5a5a',20);sfx('hurt');spark(p.x,p.y-20,10,'#ff7a7a',200,.4);
   if(p.kind!=='ai'){S.shake=Math.max(S.shake,8);S.hitstop=Math.max(S.hitstop,.05)}
-  if(p.hp<=0){p.hp=0;p.dead=true;p.deadT=0;if(S.L.pvp)pvpKO(p);else p.vx=0;sfx('die');spark(p.x,p.y-30,26,'#cfe0ff',260,.9,4,-50,true);ftext(p.x,p.y-90,'기절했다…','#cfe0ff',16,1.4)}
+  if(p.hp<=0){p.hp=0;p.dead=true;p.deadT=0;if(S.L.pvp)pvpKO(p);else p.vx=0;sfx('die');spark(p.x,p.y-20,26,'#cfe0ff',260,.9,4,-50,true);ftext(p.x,p.y-90,'기절했다…','#cfe0ff',16,1.4)}
   return true;
 }
 /* ---------- PvP ---------- */
@@ -215,7 +215,7 @@ function pvpKO(p,ring){
   pv.score[1-p.team]++;ftext(p.x,Math.min(p.y,S.L.h)-100,'KO!','#ffd34a',28,1.4);S.shake=14;
   if(pv.score[1-p.team]>=pv.to){pv.over=true;pv.winner=1-p.team;sfx('lvl');const d=SAVE.duel||(SAVE.duel={w:0,l:0});if(pv.winner===0){d.w++;SAVE.coins+=150;G.toast('결투 승리! 야채코인 +150')}else d.l++;saveGame()}
 }
-function healPlayer(p,amt){const h=Math.min(p.maxhp-p.hp,Math.round(amt));if(h>0){p.hp+=h;ftext(p.x,p.y-70,'+'+h,'#6aff8a',18)}spark(p.x,p.y-30,10,'#8affb0',140,.6,3,-60,true)}
+function healPlayer(p,amt){const h=Math.min(p.maxhp-p.hp,Math.round(amt));if(h>0){p.hp+=h;ftext(p.x,p.y-70,'+'+h,'#6aff8a',18)}spark(p.x,p.y-20,10,'#8affb0',140,.6,3,-60,true)}
 
 /* ---------- player update ---------- */
 function updatePlayer(p,dt){
@@ -227,14 +227,14 @@ function updatePlayer(p,dt){
     p.deadT+=dt;
     if(L.pvp){
       p.vx=approach(p.vx,0,600*dt);
-      if(p.deadT>2&&!S.pvp.over){const sp=S.L.spawns[p.team];p.dead=false;p.hp=p.maxhp;p.mp=p.maxmp;p.x=sp.x;p.y=sp.y;p.vx=p.vy=0;p.inv=2;p.stun=0;p.buff=null;p.lastAtk=null;sfx('portal');spark(p.x,p.y-30,24,'#fff7a0',260,.7,4,0,true);ftext(p.x,p.y-80,'부활!','#fff7a0',20)}
+      if(p.deadT>2&&!S.pvp.over){const sp=S.L.spawns[p.team];p.dead=false;p.hp=p.maxhp;p.mp=p.maxmp;p.x=sp.x;p.y=sp.y;p.vx=p.vy=0;p.inv=2;p.stun=0;p.buff=null;p.lastAtk=null;sfx('portal');spark(p.x,p.y-20,24,'#fff7a0',260,.7,4,0,true);ftext(p.x,p.y-80,'부활!','#fff7a0',20)}
       return;
     }
     const allies=PARTY.filter(q=>!q.dead);
     if(allies.length&&p.deadT>(p.kind==='ai'?7:6)){
-      const a=allies[0];p.dead=false;p.hp=Math.round(p.maxhp*.5);p.mp=p.maxmp*.5;p.x=a.x;p.y=a.y;p.vx=p.vy=0;p.inv=2;sfx('portal');spark(p.x,p.y-30,24,'#fff7a0',260,.7,4,0,true);ftext(p.x,p.y-80,'부활!','#fff7a0',20);
+      const a=allies[0];p.dead=false;p.hp=Math.round(p.maxhp*.5);p.mp=p.maxmp*.5;p.x=a.x;p.y=a.y;p.vx=p.vy=0;p.inv=2;sfx('portal');spark(p.x,p.y-20,24,'#fff7a0',260,.7,4,0,true);ftext(p.x,p.y-80,'부활!','#fff7a0',20);
     }else if(!allies.length&&!L.arena&&!L.pq&&!L.town&&p.deadT>1.3){
-      p.dead=false;p.hp=p.maxhp;p.mp=p.maxmp;p.x=S.cp.x;p.y=S.cp.y;p.vx=p.vy=0;p.inv=2;sfx('portal');ftext(p.x,p.y-80,'체크포인트 부활','#fff7a0',18);spark(p.x,p.y-30,20,'#fff7a0',200,.6,3,0,true)}
+      p.dead=false;p.hp=p.maxhp;p.mp=p.maxmp;p.x=S.cp.x;p.y=S.cp.y;p.vx=p.vy=0;p.inv=2;sfx('portal');ftext(p.x,p.y-80,'체크포인트 부활','#fff7a0',18);spark(p.x,p.y-20,20,'#fff7a0',200,.6,3,0,true)}
     else if(!allies.length&&L.town&&p.deadT>1.3){p.dead=false;p.hp=p.maxhp;p.mp=p.maxmp;p.vx=p.vy=0;p.inv=2}
     return;
   }
@@ -317,7 +317,7 @@ function finishPlayer(p,dt,I,onRope){
   if(L.pvp&&p.y>L.killY&&!p.dead){p.hp=0;p.dead=true;p.deadT=0;p.vx=p.vy=0;sfx('die');ftext(p.x,L.h-60,'낙사!','#ff8a8a',22,1.2);pvpKO(p,true);return}
   if(p.y>L.killY){
     const loss=Math.round(p.maxhp*.12);p.hp=Math.max(1,p.hp-loss);ftext(p.x,Math.min(p.y,L.h)-60,'-'+loss,'#ff5a5a',20);sfx('hurt');
-    p.x=S.cp.x+rnd(-20,20);p.y=S.cp.y;p.vx=p.vy=0;p.inv=1.5;p.rope=null;S.shake=10;spark(p.x,p.y-30,18,'#fff7a0',200,.6,3,0,true);
+    p.x=S.cp.x+rnd(-20,20);p.y=S.cp.y;p.vx=p.vy=0;p.inv=1.5;p.rope=null;S.shake=10;spark(p.x,p.y-20,18,'#fff7a0',200,.6,3,0,true);
   }
   if(p.y>L.h+800){p.y=S.cp.y;p.x=S.cp.x}
   drawAuraFx(p,dt);
@@ -333,7 +333,7 @@ function doBasic(p,I){
   if(b.k==='melee'){p.hitQ=.07;sfx('atk')}
   else{
     const hq=(()=>{const a=b.homing?0:0;return a})();
-    S.pshots.push({owner:p,x:p.x+p.face*16,y:p.y-34,vx:p.face*b.spd,vy:0,w:14,h:14,dmg:atkOf(p)*b.m,pierce:0,life:b.life||.9,kind:b.ammo||JOB[p.job].proj,homing:b.homing,grav:0,hit:new Set(),rot:0,delay:0});
+    S.pshots.push({owner:p,x:p.x+p.face*16,y:p.y-22,vx:p.face*b.spd,vy:0,w:14,h:14,dmg:atkOf(p)*b.m,pierce:0,life:b.life||.9,kind:b.ammo||JOB[p.job].proj,homing:b.homing,grav:0,hit:new Set(),rot:0,delay:0});
     sfx('throw');
   }
   qev('flag','attacked');
@@ -344,8 +344,8 @@ function meleeHit(p){
   const dmg=atkOf(p)*b.m*(p.combo===2?1.5:1);
   let hit=0;
   eachTarget(t=>{if(ov(r,rectOf(t))){dealDamage(p,t,dmg,p.face);hit++}},p);
-  S.fx.push({k:'slash',x:p.x+p.face*26,y:p.y-30,face:p.face,t:0,max:.22,col:b.fire?'#ff8a30':JOB[p.job].col,combo:p.combo});
-  if(b.fire)spark(p.x+p.face*50,p.y-30,6,'#ff9a40',160,.3,3,-100,true);
+  S.fx.push({k:'slash',x:p.x+p.face*26,y:p.y-20,face:p.face,t:0,max:.22,col:b.fire?'#ff8a30':JOB[p.job].col,combo:p.combo});
+  if(b.fire)spark(p.x+p.face*50,p.y-20,6,'#ff9a40',160,.3,3,-100,true);
   // destroy weak enemy projectiles
   if(hit)p.mp=Math.min(p.maxmp,p.mp+1.2);
 }
@@ -357,7 +357,7 @@ function castSkill(p,i){
   if(p.mp<sk.mp){if(p.mpWarn<=0){p.mpWarn=.8;ftext(p.x,p.y-76,'MP 부족','#6ab0ff',14)}return}
   p.mp-=sk.mp;p.cds[i]=sk.cd*(p.tier>=3?.88:1);p.skillT=.38;
   if(p.kind==='p1'||p.kind==='p2'){qev('flag','skill');qev('count',{key:'skill'})}
-  const dmg=atkOf(p)*(sk.m||1),cx=p.x,cy=p.y-30;
+  const dmg=atkOf(p)*(sk.m||1),cx=p.x,cy=p.y-20;
   const nameTag=()=>{ftext(p.x,p.y-96,sk.n,'#ffe9a0',15,.9)};
   switch(sk.k){
     case'burst':{
@@ -372,7 +372,7 @@ function castSkill(p,i){
       const n=sk.cnt||1,sp=sk.sp||0;
       for(let k=0;k<n;k++){
         const a=(n>1?(k/(n-1)-.5)*sp*(n>1?1:0):0)*(1),ang=(p.face>0?0:Math.PI)+a*(p.face>0?1:-1);
-        S.pshots.push({owner:p,x:cx+p.face*18,y:p.y-34,vx:Math.cos(ang)*(sk.spd||600),vy:Math.sin(ang)*(sk.spd||600),w:18,h:18,dmg:dmg,pierce:sk.pierce||0,life:sk.life||1.1,kind:sk.ammo||j.proj,homing:sk.homing,grav:0,hit:new Set(),rot:0,delay:0,big:n===1&&(sk.m>2)});
+        S.pshots.push({owner:p,x:cx+p.face*18,y:p.y-22,vx:Math.cos(ang)*(sk.spd||600),vy:Math.sin(ang)*(sk.spd||600),w:18,h:18,dmg:dmg,pierce:sk.pierce||0,life:sk.life||1.1,kind:sk.ammo||j.proj,homing:sk.homing,grav:0,hit:new Set(),rot:0,delay:0,big:n===1&&(sk.m>2)});
       }
       break}
     case'rain':{
@@ -491,20 +491,20 @@ function aiThink(p,dt){
   p.aiT-=dt;
   // find target
   let tg=null,td=p.hold?220:340;
-  eachTarget(t=>{if(t.kind==='dummy')return;const r=rectOf(t),d=Math.hypot(r.x+r.w/2-p.x,r.y+r.h/2-(p.y-30));if(d<td){td=d;tg=r}},p);
+  eachTarget(t=>{if(t.kind==='dummy')return;const r=rectOf(t),d=Math.hypot(r.x+r.w/2-p.x,r.y+r.h/2-(p.y-20));if(d<td){td=d;tg=r}},p);
   const j=JOB[p.job],ranged=j.basic.k==='shoot';
   if(p.hold){
     if(tg){I.fd=sgn(tg.x+tg.w/2-p.x);if(td<(ranged?300:90)){I.a=1}}
   }else{
     const dxL=lead.x-p.x,dyL=lead.y-p.y;
     p.far=(Math.abs(dxL)>620||Math.abs(dyL)>240)?p.far+dt:0;
-    if(p.far>1.2||Math.abs(dxL)>900){p.x=lead.x-lead.face*50;p.y=lead.y;p.vx=p.vy=0;p.far=0;p.rope=null;spark(p.x,p.y-30,12,'#cfe0ff',180,.5,3,0,true)}
+    if(p.far>1.2||Math.abs(dxL)>900){p.x=lead.x-lead.face*50;p.y=lead.y;p.vx=p.vy=0;p.far=0;p.rope=null;spark(p.x,p.y-20,12,'#cfe0ff',180,.5,3,0,true)}
     let goX=lead.x-p.x,keep=110+(p.slot||0)*50;
     if(tg){
       const tx=tg.x+tg.w/2,pref=ranged?230:58;
       if(Math.abs(tx-p.x)>pref+14)goX=tx-p.x;else if(ranged&&Math.abs(tx-p.x)<pref-60)goX=p.x-tx;else goX=0;
       I.fd=sgn(tx-p.x);
-      if(td<(ranged?380:j.basic.range+26)&&Math.abs((tg.y+tg.h/2)-(p.y-30))<110+(ranged?70:0))I.a=1;
+      if(td<(ranged?380:j.basic.range+26)&&Math.abs((tg.y+tg.h/2)-(p.y-20))<110+(ranged?70:0))I.a=1;
       // skills
       if(p.aiT<=0){
         p.aiT=.25;

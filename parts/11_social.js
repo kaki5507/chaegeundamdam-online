@@ -88,9 +88,9 @@ function sysChat(text){pushChat({kind:'sys',text})}
 async function socialInit(){
   if(location.protocol==='file:')return;
   try{const r=await fetch('/api/health');const o=await r.json();ONLINE=!!o.ok}catch(e){ONLINE=false}
-  if(ONLINE){refreshMe();pollLoop()}
+  if(ONLINE){refreshMe();pollLoop();presenceConnect()}
 }
-async function refreshMe(){if(!ACCT){ISADMIN=false;return}try{const o=await api('GET','/api/me');ISADMIN=!!o.admin}catch(e){}}
+async function refreshMe(){presenceHello();if(!ACCT){ISADMIN=false;return}try{const o=await api('GET','/api/me');ISADMIN=!!o.admin}catch(e){}}
 let _pollMap='';
 async function pollOnce(){
   const map=S?S.id:'title';if(map!==_pollMap){_pollMap=map}

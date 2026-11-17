@@ -233,6 +233,7 @@ function duelMenu(n){
 function talkNPC(n){
   if(!SAVE.talked[n.id]){SAVE.talked[n.id]=1;qev('talk',{})}
   const p=PARTY[0];
+  if(['swingkid','roofcat','balloon','lookout'].includes(n.id))return talkExtra(n);
   if(n.id==='chief'){
     const intro=qst('h4').s!=='done'?'오, 항구에서 온 모험가로구나! 야채마을에 온 걸 환영하네.':'야채 용사여, 오늘도 근육은 잘 있는가?\n소문에 마을 어딘가 높은 곳에 수상한 보따리 장수가 숨어 있다더군. 반짝이는 빛을 찾아보게나.';
     questMenu(n,'chief',intro);
@@ -518,7 +519,7 @@ function drawHUD(g,t){
   const px=x0+n*(sw+4)+8;
   for(const[i,k,c]of[[0,'hp','#ff4a5a'],[1,'mp','#4a8aff']]){const y=H-76+i*27;panel(g,px,y,62,24,.7);circ(g,px+14,y+12,7,c,O_,1.5);txt(g,(i+1)+' ×'+SAVE.potions[k],px+26,y+17,13,'#fff','left',2)}
   // top right
-  txt(g,S.L.name,W-14,28,17,'#ffe9a0','right');txt(g,'● '+SAVE.coins,W-14,50,15,'#ffd34a','right');txt(g,'◆ '+SAVE.ec,W-14,67,13,'#ff8ae0','right',2);
+  txt(g,S.L.name,W-14,28,17,'#ffe9a0','right');txt(g,'● '+SAVE.coins,W-14,50,15,'#ffd34a','right');txt(g,'◆ '+SAVE.ec,W-14,67,13,'#ff8ae0','right',2);if(ONLINE_N)txt(g,'🟢 접속 '+ONLINE_N+'명',W-60,67,12,'#9cffb0','right',2);
   txt(g,'H 도움말 · Q 퀘스트 · I 인벤토리 · P 일시정지 · M 음소거',W-14,H-20,11,'rgba(255,255,255,.55)','right',2);
   // quest tracker
   let qy=78;const act=Object.keys(SAVE.q).filter(k=>SAVE.q[k].s==='active'||SAVE.q[k].s==='ready').slice(0,3);

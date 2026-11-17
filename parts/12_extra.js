@@ -95,7 +95,7 @@ function drawHarborDecor(g,L,t,cam){
   g.fillStyle='#ffe070';g.fillRect(lx-16,ly-218,32,28);g.strokeRect(lx-16,ly-218,32,28);poly(g,[lx-22,ly-218,lx,ly-240,lx+22,ly-218],'#ff5a5a',O_,2.5);
   const a=t*1.4,gl=g.createRadialGradient(lx,ly-204,4,lx,ly-204,90);gl.addColorStop(0,'rgba(255,240,150,.55)');gl.addColorStop(1,'rgba(255,240,150,0)');g.fillStyle=gl;g.beginPath();g.moveTo(lx,ly-204);g.arc(lx,ly-204,160,a,a+.35);g.closePath();g.fill();g.restore();
   // 배
-  const bx=2330,by=500+Math.sin(t*1.5)*3;g.save();g.translate(bx,by);
+  const bx=L.boatX||2330,by=500+Math.sin(t*1.5)*3;g.save();g.translate(bx,by);
   g.beginPath();g.moveTo(-120,-30);g.lineTo(140,-30);g.quadraticCurveTo(120,20,90,24);g.lineTo(-90,24);g.quadraticCurveTo(-118,10,-120,-30);g.fillStyle='#c0603a';g.fill();g.lineWidth=3;g.strokeStyle=O_;g.stroke();
   g.fillStyle='#fff';g.fillRect(-120,-30,260,8);g.strokeRect(-120,-30,260,8);
   g.fillStyle='#7a4a24';g.fillRect(-4,-190,8,160);g.strokeRect(-4,-190,8,160);

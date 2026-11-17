@@ -180,7 +180,7 @@ function playStep(dt){
   S.t+=dt;S.time+=dt;G.banner&&(G.banner.t+=dt);
   updatePlats(L,dt,S.t);
   for(const p of PARTY)updatePlayer(p,dt);
-  updateMobs(dt);updateItems(dt);updatePshots(dt);updateEproj(dt);updateZones(dt);updateBoss(dt);storyStep(dt);
+  updateMobs(dt);updateItems(dt);updatePshots(dt);updateEproj(dt);updateZones(dt);updateBoss(dt);storyStep(dt);presenceStep(dt);
   // totems
   for(const d of S.drops){
     d.t+=dt;const ph=d.t%d.period;d.warn=ph>d.period-.75?1:0;
@@ -305,7 +305,7 @@ function drawWorld(g){
   for(const f of S.flagsOn)if(vis(f.x-30,f.y-120,100,130))drawFlag(g,f,t);
   for(const d of S.drops)if(vis(d.x-60,d.y-60,120,120))drawTotem(g,d,t);
   L.plates.forEach((pl,i)=>drawPlate(g,pl,pl.on,0,t,i));
-  for(const po of L.portals){if(po.hidden)continue;if(vis(po.x-120,po.y-200,240,220)){drawPortal(g,po,t);txt(g,po.label,po.x,po.y+22,15,'#ffe9a0','center',3);if(po.lock&&!SAVE.cleared[po.lock])txt(g,'🔒',po.x,po.y-60,28,'#fff','center',3)}}
+  for(const po of L.portals){if(po.hidden)continue;if(vis(po.x-120,po.y-200,240,220)){if(!po.boat)drawPortal(g,po,t);else txt(g,'▼',po.x,po.y-40+Math.sin(t*4)*4,20,'#ffe04a','center',3);txt(g,po.label,po.x,po.y+22,15,'#ffe9a0','center',3);if(po.lock&&!SAVE.cleared[po.lock])txt(g,'🔒',po.x,po.y-60,28,'#fff','center',3)}}
   const lead=PARTY[0];
   for(const n of L.npcs||[]){
     let al=1;
@@ -313,10 +313,11 @@ function drawWorld(g){
       if(al<.05){if(Math.random()<.05)parts.push({x:n.x+rnd(-40,40),y:n.gy-rnd(20,100),vx:0,vy:-10,life:1.6,max:1.6,size:2.2,col:'#bfe8ff',grav:0,glow:true});continue}}
     if(!vis(n.x-70,n.gy-160,140,170))continue;
     n.alpha=al;g.save();if(n.look!=='miko')g.globalAlpha=al;drawNPC(g,n,t,null,sgn(lead.x-n.x));g.restore();
-    if(al>.5){const mk=npcMark(n.id),top=n.look==='board'?128:n.look==='closet'?126:n.look==='miko'?128:n.look==='fame'?156:84,ny=n.gy-top-8;
+    if(al>.5){const mk=npcMark(n.id),top=n.look==='board'?128:n.look==='closet'?126:n.look==='miko'?128:n.look==='fame'?156:60,ny=n.labelY?n.labelY:n.gy-top-8;
       txt(g,n.name,n.x,ny,13,'#fff','center',3);drawMark(g,n.x,ny-22,mk==='ready'?'ready':mk==='new'?'new':mk==='act'?'act':null,t);}
   }
   if(L.harbor)drawHarborDecor(g,L,t,cam);
+  if(L.houses)drawTownDecor(g,L,t,cam);
   if(L.steles)for(const st of L.steles)if(vis(st.x-140,st.y-240,280,290))drawStele(g,st,t,S.near&&S.near.st===st);
   if(L.altar)drawAltar(g,L.altar,t,SAVE.inv.gwi>0&&!S.boss);
   for(const d of S.dummies)drawDummy(g,d,t);
@@ -334,18 +335,20 @@ function drawWorld(g){
     if(m.hp<m.max){g.fillStyle='rgba(0,0,0,.6)';g.fillRect(m.x-16,(m.type==='wisp'?m.y-36:m.y-46),32,5);g.fillStyle='#ff5a5a';g.fillRect(m.x-15,(m.type==='wisp'?m.y-35:m.y-45),30*m.hp/m.max,3)}}
   if(S.boss)drawBoss(g,S.boss,t);
   for(const m of S.mobs)if(m.type==='arm'&&!m.dead)drawArm(g,m,t);
+  drawPeers(g,t);
   // party
   const order=PARTY.slice().reverse();
   for(const p of order){
-    if(p.dead){g.save();g.globalAlpha=.45;drawVeggie(g,JOB[p.job],{fid:p.fid,x:p.x,y:p.y-30+Math.sin(t*3)*6,face:p.face,t:p.t,st:'idle',eq:p.eq,tier:p.tier,alpha:.45});g.restore();continue}
+    if(p.dead){g.save();g.globalAlpha=.45;drawVeggie(g,JOB[p.job],{sc:WSC,fid:p.fid,x:p.x,y:p.y-30+Math.sin(t*3)*6,face:p.face,t:p.t,st:'idle',eq:p.eq,tier:p.tier,alpha:.45});g.restore();continue}
     const st=p.stun>0?'hurt':p.skillT>0&&p.atkT<=0?'skill':p.atkT>0?'atk':p.rope?'climb':!p.onGround?'air':Math.abs(p.vx)>30?'run':'idle';
     const blink=p.inv>0&&Math.floor(p.inv*14)%2===0&&p.stun<=0;
-    drawVeggie(g,JOB[p.job],{fid:p.fid,x:p.x,y:p.y,face:p.face,t:p.t,st,ap:p.atkDur?1-p.atkT/p.atkDur:0,combo:p.combo,buff:!!p.buff,eq:p.eq,tier:p.tier,alpha:blink?.45:1});
-    if(p.shieldT>0){g.strokeStyle=`rgba(150,230,255,${.5+.3*Math.sin(t*10)})`;g.lineWidth=3;g.beginPath();g.arc(p.x,p.y-28,36,0,6.28);g.stroke();g.fillStyle='rgba(150,230,255,.12)';g.fill()}
-    if(L.pvp){txt(g,(p===lead?'1P':p.kind==='p2'?'2P':p.team===lead.team?'아군':'상대'),p.x,p.y-72,12,p.team===lead.team?'#7aff9a':'#ff8a8a','center',3);bar(g,p.x-18,p.y-68,36,5,p.hp/p.maxhp,'#e8484f')}
-    else if(p!==lead){txt(g,(p.kind==='p2'?'2P':'AI')+(p.hold?' ■':''),p.x,p.y-72,12,p.kind==='p2'?'#ffb84a':'#9be8ff','center',3);bar(g,p.x-18,p.y-68,36,5,p.hp/p.maxhp,'#e8484f')}
-    else txt(g,'1P',p.x,p.y-72,12,'#7aff9a','center',3);
+    drawVeggie(g,JOB[p.job],{sc:WSC,fid:p.fid,x:p.x,y:p.y,face:p.face,t:p.t,st,ap:p.atkDur?1-p.atkT/p.atkDur:0,combo:p.combo,buff:!!p.buff,eq:p.eq,tier:p.tier,alpha:blink?.45:1});
+    if(p.shieldT>0){g.strokeStyle=`rgba(150,230,255,${.5+.3*Math.sin(t*10)})`;g.lineWidth=3;g.beginPath();g.arc(p.x,p.y-18,24,0,6.28);g.stroke();g.fillStyle='rgba(150,230,255,.12)';g.fill()}
+    if(L.pvp){txt(g,(p===lead?'1P':p.kind==='p2'?'2P':p.team===lead.team?'아군':'상대'),p.x,p.y-50,12,p.team===lead.team?'#7aff9a':'#ff8a8a','center',3);bar(g,p.x-18,p.y-46,36,5,p.hp/p.maxhp,'#e8484f')}
+    else if(p!==lead){txt(g,(p.kind==='p2'?'2P':'AI')+(p.hold?' ■':''),p.x,p.y-50,12,p.kind==='p2'?'#ffb84a':'#9be8ff','center',3);bar(g,p.x-18,p.y-46,36,5,p.hp/p.maxhp,'#e8484f')}
+    else txt(g,'1P',p.x,p.y-50,12,'#7aff9a','center',3);
   }
+  drawSelfTag(g);
   for(const s of S.pshots)drawPshot(g,s,t);
   for(const e of S.eproj)drawEproj(g,e,t);
   for(const z of S.zones)drawZone(g,z,t);

@@ -2,6 +2,7 @@
 /* ============================================================
    야채부락리 온라인 : 야채 무기 대모험  —  single-file canvas platformer
    ============================================================ */
+const WSC=.6;
 const W=960,H=540,GRAV=1900;
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
 let SC=1;
