@@ -1,0 +1,16 @@
+# Render Blueprint — 정적 사이트로 배포 (빌드 불필요, index.html 하나로 동작)
+services:
+  - type: web
+    name: chaegeundamdam-online
+    runtime: static
+    buildCommand: echo "static site"
+    staticPublishPath: .
+    pullRequestPreviewsEnabled: false
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=300
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
