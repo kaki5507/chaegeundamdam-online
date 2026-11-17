@@ -294,7 +294,7 @@ function hairPath(g,st,t,back){
   const H=HAIR[st]||HAIR.warrior;
   return H;
 }
-function drawHumanHead(g,c,t,st,hurt){
+function drawHumanHead(g,c,t,st,hurt,fid){
   const H=HAIR[c.id]||HAIR.warrior,hc=H.c,hd=shade(hc,-45),R=19,run=st==='run';
   const sway=Math.sin(t*(run?14:3))*(run?3:1.2);
   // 뒷머리
@@ -304,20 +304,7 @@ function drawHumanHead(g,c,t,st,hurt){
   // 귀 · 얼굴
   circ(g,-R+1,3,4.5,SKINC,O_,2);circ(g,R-1,3,4.5,SKINC,O_,2);
   g.beginPath();g.ellipse(0,1,R,R-1.5,0,0,6.28);g.fillStyle=SKINC;g.fill();g.lineWidth=2.4;g.strokeStyle=O_;g.stroke();
-  // 눈 · 볼 · 입
-  const blink=Math.sin(t*1.7+c.hp)>.985&&!hurt,ec=EYEC[c.id]||'#3a2a1a';
-  for(const s of[-1,1]){const ex=s*7.5,ey=4;
-    if(hurt){g.strokeStyle=O_;g.lineWidth=2;g.lineCap='round';g.beginPath();g.moveTo(ex-3,ey-3);g.lineTo(ex+3,ey+3);g.moveTo(ex+3,ey-3);g.lineTo(ex-3,ey+3);g.stroke();continue}
-    if(blink){g.strokeStyle=O_;g.lineWidth=2;g.lineCap='round';g.beginPath();g.moveTo(ex-3.5,ey);g.quadraticCurveTo(ex,ey+2.5,ex+3.5,ey);g.stroke();continue}
-    g.beginPath();g.ellipse(ex,ey,3.6,4.8,0,0,6.28);g.fillStyle='#1a1220';g.fill();
-    g.beginPath();g.ellipse(ex,ey+1.4,2.6,2.8,0,0,6.28);g.fillStyle=ec;g.fill();
-    circ(g,ex+1.3,ey-1.8,1.5,'#fff');circ(g,ex-1.2,ey+2.2,.7,'#fff');
-    g.strokeStyle=O_;g.lineWidth=1.6;g.beginPath();g.moveTo(ex-4,ey-6.6);g.quadraticCurveTo(ex,ey-8,ex+4,ey-6.6);g.stroke()}
-  g.fillStyle='rgba(255,120,120,.38)';g.beginPath();g.ellipse(-11,10,3.6,2.2,0,0,6.28);g.ellipse(11,10,3.6,2.2,0,0,6.28);g.fill();
-  g.strokeStyle=O_;g.lineWidth=1.6;g.lineCap='round';g.beginPath();
-  if(hurt){g.arc(0,13,2.4,0,6.28);g.fillStyle='#a04050';g.fill();g.stroke()}
-  else if(st==='atk'||st==='skill'){g.moveTo(-3,11.5);g.quadraticCurveTo(0,15.5,3,11.5);g.closePath();g.fillStyle='#c04a5a';g.fill();g.stroke()}
-  else{g.moveTo(-2.4,12);g.quadraticCurveTo(0,14,2.4,12);g.stroke()}
+  drawFace(g,fid|0,EYEC[c.id]||'#3a2a1a',t,hurt,st);
   // 앞머리
   g.fillStyle=hc;g.strokeStyle=O_;g.lineWidth=2.2;
   g.beginPath();g.moveTo(-R-1.5,4);g.quadraticCurveTo(-R-2,-R-3,0,-R-3);g.quadraticCurveTo(R+2,-R-3,R+1.5,4);
@@ -420,7 +407,7 @@ function drawVeggie(g,c,o){
   if(c.id==='fighter'&&st!=='climb'){g.save();g.translate(hb[0],hb[1]);drawVegWeapon(g,c,t,st);g.restore()}
   // 머리 (2등신)
   g.save();g.translate(0,sy-21);g.rotate(st==='run'?Math.sin(ph)*.035:st==='hurt'?-.12:0);
-  drawHumanHead(g,c,t,st,st==='hurt');
+  drawHumanHead(g,c,t,st,st==='hurt',o.fid);
   if(o.eq){g.save();g.translate(0,-3);g.scale(1.3,1.3);drawGear(g,c,o.eq,0,0,t);g.restore()}
   g.restore();
   g.restore();

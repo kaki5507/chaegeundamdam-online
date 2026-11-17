@@ -255,7 +255,7 @@ function drawScene(g,t){
   if(!narr){
     const L=isMe?{job:SAVE.job,eq:PARTY[0]?PARTY[0].eq:{},n:'나'}:NPC_LOOK_X[who];
     if(L){const x=isMe?W-150:150;g.save();g.translate(x,H-bar-8);g.scale(2.6,2.6);
-      drawVeggie(g,JOB[L.job],{x:0,y:0,face:isMe?-1:1,t,st:'idle',eq:L.eq,tier:isMe?SAVE.tier:1});g.restore()}
+      drawVeggie(g,JOB[L.job],{x:0,y:0,face:isMe?-1:1,t,st:'idle',eq:L.eq,tier:isMe?SAVE.tier:1,fid:isMe?SAVE.fid:(L.fid!=null?L.fid:fidOf(who))});g.restore()}
   }
   const bx=narr?120:isMe?60:260,bw=narr?720:640,by=H-bar-150;
   panel(g,bx,by,bw,130,.9);
