@@ -83,6 +83,27 @@ let EVENT = null;
 const curEvent = () => (EVENT && EVENT.until > Date.now() ? EVENT : null);
 const clean = s => String(s || '').replace(/[\u0000-\u001f\u007f<>]/g, '').trim().slice(0, 80);
 const lastChat = new Map();
+/* ---------- 명예의 전당 · 랭커 접속 환영 ---------- */
+let RANK = { at: 0, list: [] };
+async function rankList() { if (Date.now() - RANK.at > 15000) RANK = { at: Date.now(), list: await db.ranking(200) }; return RANK.list; }
+const optUser = req => { const m = /^Bearer (.+)$/.exec(req.headers.authorization || ''); return m && verify(m[1]); };
+app.get('/api/ranking', async (req, res) => {
+  try {
+    const list = await rankList(), me = optUser(req), i = me ? list.findIndex(r => r.key === me) : -1;
+    res.json({ top: list.slice(0, 10).map(({ key, up, ...r }) => r), me: i >= 0 ? { rank: i + 1, lvl: list[i].lvl } : null });
+  } catch (e) { console.error(e); res.status(500).json({ error: '서버 오류' }); }
+});
+const greeted = new Map();
+app.post('/api/hello', auth, limit('auth', 20), async (req, res) => {
+  try {
+    RANK.at = 0; const list = await rankList(), i = list.findIndex(r => r.key === req.user), rank = i >= 0 ? i + 1 : null;
+    if (rank && rank <= 3 && Date.now() - (greeted.get(req.user) || 0) > 10 * 60000) {
+      greeted.set(req.user, Date.now());
+      pushMsg({ kind: 'rank', rank, name: list[i].name, text: '랭킹 ' + rank + '위 ' + list[i].name + ' 님이 접속했습니다! 모두 환영해 주세요!', ch: 'all' });
+    }
+    res.json({ rank });
+  } catch (e) { console.error(e); res.status(500).json({ error: '서버 오류' }); }
+});
 app.get('/api/poll', (req, res) => {
   const since = +req.query.since || 0, map = String(req.query.map || '').slice(0, 20);
   const msgs = CHAT.filter(m => m.ts > since && (m.ch === 'all' || m.ch === 'map:' + map)).slice(since ? -40 : -12);

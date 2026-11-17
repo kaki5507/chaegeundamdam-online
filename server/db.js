@@ -58,4 +58,15 @@ async function setKV(k, v) {
   if (pool) { await pool.query('INSERT INTO kv(k,v) VALUES($1,$2) ON CONFLICT(k) DO UPDATE SET v=$2', [k, JSON.stringify(v)]); return; }
   const d = load(); d.kv = d.kv || {}; d.kv[k] = v; flush();
 }
-module.exports = { getKV, setKV, init, getUser, createUser, getSave, putSave, deleteUser };
+async function ranking(limit = 100) {
+  if (pool) {
+    const r = await pool.query(`SELECT u.display AS name, s.data->>'job' AS job, COALESCE((s.data->>'lvl')::int,1) AS lvl,
+      COALESCE((s.data->>'exp')::float,0) AS exp, COALESCE((s.data->>'tier')::int,0) AS tier, s.name AS key
+      FROM saves s JOIN users u ON u.name=s.name ORDER BY lvl DESC, exp DESC, s.updated_at ASC LIMIT $1`, [limit]);
+    return r.rows;
+  }
+  const d = load();
+  return Object.keys(d.saves).filter(k => d.users[k]).map(k => { const s = d.saves[k].data || {}; return { name: d.users[k].display, job: s.job, lvl: +s.lvl || 1, exp: +s.exp || 0, tier: +s.tier || 0, key: k, up: d.saves[k].updated || 0 }; })
+    .sort((a, b) => b.lvl - a.lvl || b.exp - a.exp || a.up - b.up).slice(0, limit);
+}
+module.exports = { ranking, getKV, setKV, init, getUser, createUser, getSave, putSave, deleteUser };

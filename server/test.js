@@ -35,6 +35,12 @@ const srv = app.listen(0, async () => {
     [s, o] = await j('GET', '/api/poll?since=0&map=x'); assert.equal(o.event.exp, 2);
     [s] = await j('POST', '/api/admin/event', { off: true }, at); assert.equal(s, 200);
     [s, o] = await j('GET', '/api/poll?since=0&map=x'); assert.equal(o.event, null);
+    // 랭킹 · 환영
+    [s] = await j('PUT', '/api/save', { save: { job: 'archer', lvl: 77, exp: 5 } }, at); assert.equal(s, 200);
+    [s, o] = await j('GET', '/api/ranking', null, at); assert.equal(o.top[0].name, 'admin1'); assert.equal(o.me.rank, 1); assert.equal(o.top[0].key, undefined);
+    [s, o] = await j('POST', '/api/hello', {}, at); assert.equal(o.rank, 1);
+    [s, o] = await j('GET', '/api/poll?since=0&map=x'); assert.ok(o.msgs.some(m => m.kind === 'rank' && m.rank === 1));
+    [s, o] = await j('POST', '/api/hello', {}, tok); assert.equal(o.rank, 2);
     console.log('SERVER TESTS OK');
   } catch (e) { console.error('FAIL', e); process.exitCode = 1; } finally { srv.close(); setTimeout(() => process.exit(), 100); }
 });
