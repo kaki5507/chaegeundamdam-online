@@ -148,6 +148,7 @@ app.get('/api/health', (_q, res) => res.json({ ok: true, db: DBKIND }));
 // 정적 파일: 게임 본체와 문서 이미지만 공개
 app.get('/', (_q, res) => res.sendFile(path.join(ROOT, 'index.html')));
 app.get('/index.html', (_q, res) => res.sendFile(path.join(ROOT, 'index.html')));
+app.use('/fonts', express.static(path.join(ROOT, 'fonts'), { maxAge: '30d', immutable: true }));
 app.use('/docs', express.static(path.join(ROOT, 'docs'), { maxAge: '1h' }));
 
 const PORT = process.env.PORT || 3000;
