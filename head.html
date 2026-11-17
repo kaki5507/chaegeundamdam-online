@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="icon" href="data:,">
 <title>채근담담 온라인 : 귀혼의 숲</title>
 <style>
 html,body{margin:0;height:100%;background:#0a0514;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
 body{display:flex;align-items:center;justify-content:center}
 canvas{display:block;background:#0a0514;box-shadow:0 0 40px rgba(120,60,200,.35);image-rendering:auto}
+#auth{position:fixed;inset:0;background:rgba(8,4,16,.72);display:flex;align-items:center;justify-content:center;z-index:50;font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;-webkit-user-select:text;user-select:text}
+#auth .box{width:min(360px,90vw);background:#1b1030;border:2.5px solid rgba(255,220,150,.8);border-radius:14px;padding:20px 22px;color:#fff;box-shadow:0 8px 40px #000a}
+#auth h2{margin:0 0 4px;color:#ffe9a0}#auth .sub{margin:0 0 12px;color:#cfd4e2;font-size:13px}
+#auth input{display:block;width:100%;box-sizing:border-box;margin:8px 0;padding:10px 12px;border-radius:8px;border:1.5px solid #6a5a8a;background:#120a22;color:#fff;font-size:15px;outline:none}
+#auth input:focus{border-color:#ffd34a}
+#auth .msg{min-height:20px;font-size:13px;color:#ff9a9a;margin:4px 0 8px}
+#auth .row{display:flex;gap:8px}#auth button{flex:1;padding:10px;border-radius:8px;border:0;background:#ffd34a;color:#2a1a00;font-weight:bold;font-size:14px;cursor:pointer}
+#auth button.g{background:#3a2e56;color:#fff}
 #touch{display:none;position:fixed;inset:0;pointer-events:none;font-family:sans-serif}
 #touch .b{position:absolute;pointer-events:auto;width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.5);color:#fff;font:bold 15px sans-serif;display:flex;align-items:center;justify-content:center;touch-action:none}
 #touch .b.on{background:rgba(255,220,120,.5)}

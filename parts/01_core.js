@@ -32,11 +32,12 @@ const held=n=>K[n].some(c=>keys[c]);
 const tap=n=>K[n].some(c=>pressed[c]);
 const PREVENT=['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','AltLeft','AltRight','ControlLeft'];
 addEventListener('keydown',e=>{
+  if(e.target&&/^(INPUT|TEXTAREA)$/.test(e.target.tagName))return;   // 로그인 창 입력 중에는 게임 키 무시
   if(PREVENT.includes(e.code))e.preventDefault();
   if(!e.repeat)pressed[e.code]=true;
   keys[e.code]=true;initAudio();
 });
-addEventListener('keyup',e=>{keys[e.code]=false});
+addEventListener('keyup',e=>{if(e.target&&/^(INPUT|TEXTAREA)$/.test(e.target.tagName))return;keys[e.code]=false});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
 /* touch controls */
 (function(){

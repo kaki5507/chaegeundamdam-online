@@ -169,12 +169,78 @@ function defaultSave(jobId){
   return {job:jobId,lvl:1,exp:0,coins:200,tier:0,inv:{},eq:{},potions:{hp:3,mp:2},q:{},flags:{},cnt:{},talked:{},cleared:{},pq:0,name:'부락리',dayKey:'',dbonus:false,duel:{w:0,l:0},ec:0,att:{last:-1,streak:0,total:0,weeks:0},enh:{atk:0,hp:0,used:0},scrolls:{}};
 }
 let SAVE=null;
-function saveGame(){try{localStorage.setItem(SAVEKEY,JSON.stringify(SAVE))}catch(e){}}
+/* ---------------- 계정 / 클라우드 저장 (서버가 없으면 게스트 로컬 저장) ---------------- */
+let ACCT=null;                         // {name,token}
+const TOKKEY='cgdd_acct_v1';
+const skey=()=>ACCT?SAVEKEY+':'+ACCT.name.toLowerCase():SAVEKEY;
+async function api(method,path,body){
+  const r=await fetch(path,{method,headers:Object.assign({'content-type':'application/json'},ACCT?{authorization:'Bearer '+ACCT.token}:{}),body:body?JSON.stringify(body):undefined});
+  let o={};try{o=await r.json()}catch(e){}
+  if(!r.ok)throw Object.assign(new Error(o.error||('서버 오류 ('+r.status+')')),{status:r.status});
+  return o;
+}
+let _cloudT=0,CLOUD={ok:null,at:0};
+function cloudSave(now){
+  if(!ACCT||!SAVE)return;clearTimeout(_cloudT);
+  const go=async()=>{try{await api('PUT','/api/save',{save:SAVE});CLOUD={ok:true,at:Date.now()}}catch(e){CLOUD={ok:false,at:Date.now(),err:e.message};if(e.status===401){ACCT=null;try{localStorage.removeItem(TOKKEY)}catch(_){}}}};
+  if(now)go();else _cloudT=setTimeout(go,1500);
+}
+function saveGame(){
+  if(!SAVE)return;SAVE.ts=Date.now();
+  try{localStorage.setItem(skey(),JSON.stringify(SAVE))}catch(e){}
+  cloudSave();
+}
+addEventListener('pagehide',()=>{if(ACCT&&SAVE){try{fetch('/api/save',{method:'PUT',keepalive:true,headers:{'content-type':'application/json',authorization:'Bearer '+ACCT.token},body:JSON.stringify({save:SAVE})})}catch(e){}}});
+function readLocal(key){try{const s=localStorage.getItem(key);return s?JSON.parse(s):null}catch(e){return null}}
 function loadGame(){
-  try{
-    let s=localStorage.getItem(SAVEKEY),old=false;
-    if(!s){s=localStorage.getItem(OLDKEY);old=!!s}
-    if(s){const o=JSON.parse(s);if(o&&o.job&&JOB[o.job]){
-      if(old){o.tier=Math.max(1,o.tier||1);o.q=o.q||{};o.q.j1={s:'done',p:[]};for(const k of['j2','j3'])if(o.q[k]&&o.q[k].s!=='done')delete o.q[k]}   // v2 → v3 이전: 이미 1차였던 것으로 처리
-      return o}}
-  }catch(e){}return null}
+  let o=readLocal(skey()),old=false;
+  if(!o&&!ACCT){o=readLocal(OLDKEY);old=!!o}
+  if(o&&o.job&&JOB[o.job]){
+    if(old){o.tier=Math.max(1,o.tier||1);o.q=o.q||{};o.q.j1={s:'done',p:[]};for(const k of['j2','j3'])if(o.q[k]&&o.q[k].s!=='done')delete o.q[k]}   // v2 → v3 이전
+    return o}
+  return null;
+}
+// 로그인 직후: 서버 저장과 로컬 저장 중 최신 것을 채택. 서버가 비어 있으면 게스트 저장을 계정으로 이전.
+async function syncAfterLogin(){
+  const srv=await api('GET','/api/save');
+  const loc=readLocal(skey()),guest=readLocal(SAVEKEY)||readLocal(OLDKEY);
+  if(srv.save&&(!loc||(srv.save.ts||0)>=(loc.ts||0))){try{localStorage.setItem(skey(),JSON.stringify(srv.save))}catch(e){}return'server'}
+  const up=loc||guest;
+  if(up){if(!up.ts)up.ts=Date.now();try{localStorage.setItem(skey(),JSON.stringify(up))}catch(e){}await api('PUT','/api/save',{save:up});return loc?'local':'guest'}
+  return'none';
+}
+function setAcct(a){ACCT=a;try{a?localStorage.setItem(TOKKEY,JSON.stringify(a)):localStorage.removeItem(TOKKEY)}catch(e){}}
+async function autoLogin(){
+  const a=readLocal(TOKKEY);if(!a||!a.token)return;
+  ACCT=a;
+  try{const me=await api('GET','/api/me');ACCT.name=me.name;await syncAfterLogin();CLOUD={ok:true,at:Date.now()}}
+  catch(e){if(e.status===401)setAcct(null);else ACCT=null}   // 서버 없음(정적 호스팅) → 게스트
+}
+/* 로그인 창 (DOM 오버레이) */
+function openAuth(onDone){
+  if(document.getElementById('auth'))return;
+  const d=document.createElement('div');d.id='auth';
+  d.innerHTML=`<div class="box"><h2>🥦 계정</h2>
+   <p class="sub">${ACCT?'로그인됨: <b>'+ACCT.name+'</b>':'이름과 비밀번호만으로 어디서든 이어서 플레이! (서버에 저장)'}</p>
+   ${ACCT?'':'<input id="a_n" placeholder="이름 (한글/영문/숫자 2~12자)" maxlength="12" autocomplete="username"><input id="a_p" type="password" placeholder="비밀번호 (4자 이상)" maxlength="64" autocomplete="current-password">'}
+   <div class="msg" id="a_m"></div>
+   <div class="row">${ACCT?'<button id="a_out">로그아웃</button>':'<button id="a_in">로그인</button><button id="a_up">회원가입</button>'}<button id="a_x" class="g">${ACCT?'닫기':'게스트로 계속'}</button></div></div>`;
+  document.body.appendChild(d);
+  const $=i=>d.querySelector('#'+i),msg=t=>{$('a_m').textContent=t};
+  const close=()=>{d.remove();pressed={};onDone&&onDone()};
+  $('a_x').onclick=close;
+  if(ACCT){$('a_out').onclick=()=>{setAcct(null);close()};return}
+  const go=async kind=>{
+    const name=$('a_n').value.trim(),password=$('a_p').value;
+    if(!name||!password){msg('이름과 비밀번호를 입력하세요');return}
+    msg('연결 중…');
+    try{
+      const o=await api('POST','/api/'+kind,{name,password});
+      setAcct({name:o.name,token:o.token});const how=await syncAfterLogin();CLOUD={ok:true,at:Date.now()};
+      msg(how==='server'?'불러오기 완료!':how==='guest'?'게스트 저장을 계정으로 옮겼어요':'완료!');setTimeout(close,500);
+    }catch(e){msg(e.message==='Failed to fetch'||e instanceof TypeError?'서버에 연결할 수 없어요 (게스트로 플레이)':e.message)}
+  };
+  $('a_in').onclick=()=>go('login');$('a_up').onclick=()=>go('register');
+  d.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')go('login')}));
+  setTimeout(()=>$('a_n').focus(),50);
+}
