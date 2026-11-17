@@ -96,6 +96,9 @@ function npcMark(id){
 /* ---------------- dialog ---------------- */
 function openDialog(name,text,opts){G.ui='dialog';G.dlg={name,text,opts:opts||[{t:'닫기',fn:closeUI}],sel:0};sfx('sel')}
 function closeUI(){G.ui=null;G.dlg=null;pressed={}}
+function faceMenu(n){
+  openDialog(n.name,'어떤 표정이 좋아? (지금: '+FACES[SAVE.fid|0]+')',FACES.map((f,i)=>({t:(i===(SAVE.fid|0)?'✔ ':'')+f,fn:()=>{SAVE.fid=i;PARTY[0].fid=i;saveGame();sfx('pickup');faceMenu(n);G.dlg.sel=i}})).concat([{t:'닫기',fn:closeUI}]));
+}
 function questMenu(n,giver,intro){
   const ids=Object.keys(QUESTS).filter(k=>QUESTS[k].giver===giver&&(qst(k).s!=='none'||qAvail(k)));
   const opts=ids.map(k=>{const s=qst(k).s;return{t:({none:'[!] ',active:'[진행중] ',ready:'[완료!] ',done:'[끝] '})[s]+QUESTS[k].name,fn:()=>questDetail(n,giver,k)}});
@@ -231,7 +234,7 @@ function talkNPC(n){
   if(!SAVE.talked[n.id]){SAVE.talked[n.id]=1;qev('talk',{})}
   const p=PARTY[0];
   if(n.id==='chief'){
-    const intro=qst('tut1').s==='none'?'오, 새로 온 야채 용사로구나! 이 야채마을에서는 모두가 근육을 단련한다네.\n먼저 튜토리얼 퀘스트부터 받아보게!':'야채 용사여, 오늘도 근육은 잘 있는가?\n소문에 마을 어딘가 높은 곳에 수상한 보따리 장수가 숨어 있다더군. 반짝이는 빛을 찾아보게나.';
+    const intro=qst('h4').s!=='done'?'오, 항구에서 온 모험가로구나! 야채마을에 온 걸 환영하네.':'야채 용사여, 오늘도 근육은 잘 있는가?\n소문에 마을 어딘가 높은 곳에 수상한 보따리 장수가 숨어 있다더군. 반짝이는 빛을 찾아보게나.';
     questMenu(n,'chief',intro);
   }else if(n.id==='board')questMenu(n,'board','마을 사람들이 붙여둔 의뢰서다. 보상은 두둑하다!');
   else if(n.id==='coach'||n.id==='adv2'||n.id==='adv3')advMenu(n);
@@ -244,7 +247,12 @@ function talkNPC(n){
   else if(n.id==='cash')openShop(true);
   else if(n.id==='scroll')scrollMenu(n);
   else if(n.id==='shop')openShop();
-  else if(n.id==='closet')openWardrobe();
+  else if(n.id==='closet')openDialog(n.name,'반짝반짝~ 오늘은 뭘 바꿔 볼까?',[{t:'옷장 열기 (치장)',fn:()=>{closeUI();openWardrobe()}},{t:'표정 바꾸기 ('+FACES[SAVE.fid|0]+')',fn:()=>faceMenu(n)},{t:'닫기',fn:closeUI}]);
+  else if(n.id==='fame')openFame();
+  else if(n.id==='captain')questMenu(n,'captain',qst('tut1').s==='none'?'어서 오게, 새내기 모험가! 여기는 새싹 항구야.\n큰 세상으로 나가기 전에 기초부터 익혀 보세.':'파도 소리 좋지? Lv.5가 되면 오른쪽 부두의 배를 타고 야채마을로 갈 수 있다네.');
+  else if(n.id==='fisher')questMenu(n,'fisher','오늘은 물때가 좋아~ 조개가 잔뜩 쓸려 왔지 뭐야.');
+  else if(n.id==='baker')questMenu(n,'baker','갓 구운 호박빵 냄새 맡았어? 항구 사람들 모두 이 빵으로 하루를 시작해!');
+  else if(n.id==='kid')openDialog(n.name,['형아 누나! 저 배 타면 어디 가는지 알아? 야채마을이래!','나도 크면 당근 활 쏘는 궁수 될 거야. 피융피융!','슬라임은 말랑말랑해서 맞아도 하나도 안 아파… 아마도?'][Math.random()*3|0]);
   else if(n.id==='party')partyMenu(n);
   else if(n.id==='portal'){
     const opts=[{t:'도깨비 숲 (점프맵)',fn:()=>{closeUI();goMap('forest')}}];
@@ -252,6 +260,7 @@ function talkNPC(n){
     else opts.push({t:'하늘길 (도깨비 대왕 격파 후 개방)',fn:()=>openDialog(n.name,'하늘길은 도깨비 대왕을 쓰러뜨려야 열리네.')});
     if(SAVE.cleared.dokkaebi)opts.push({t:'도깨비 대왕 재도전',fn:()=>{closeUI();goMap('boss1')}});
     if(SAVE.cleared.fox)opts.push({t:'구미호 재도전',fn:()=>{closeUI();goMap('boss2')}});
+    opts.push({t:'새싹 항구 (배 타고 돌아가기)',fn:()=>{closeUI();goMap('harbor')}});
     opts.push({t:SAVE.lvl>=15?'비석의 길 (스토리 던전)':'비석의 길 (Lv.15 이상)',fn:()=>{if(SAVE.lvl<15){openDialog(n.name,'비석의 길은 Lv.15 이상만 들어갈 수 있다네.');return}closeUI();goMap('stele')}});
     opts.push({t:SAVE.lvl>=40?'귀문 동굴 (파티던전)':'귀문 동굴 (Lv.40 이상)',fn:()=>{if(SAVE.lvl<40){openDialog(n.name,'귀문은 Lv.40 이상만 들어갈 수 있다네. 그 너머엔 천년 묵은 귀목이 잠들어 있지…');return}closeUI();goMap('cave')}});
     opts.push({t:'닫기',fn:closeUI});
@@ -344,7 +353,7 @@ function drawShop(g,t){
   const c=JOB[SAVE.job],it=lst[G.shop.sel];
   if((G.shop.cash||G.shop.tab===1)&&it){
     const eq=Object.assign({},PARTY[0].eq);eq[ITEMS[it.id].slot]=it.id;
-    g.save();g.translate(755,390);g.scale(2.3,2.3);drawVeggie(g,c,{x:0,y:0,face:1,t,st:'idle',eq,tier:SAVE.tier});g.restore();
+    g.save();g.translate(755,390);g.scale(2.3,2.3);drawVeggie(g,c,{x:0,y:0,face:1,t,st:'idle',eq,tier:SAVE.tier,fid:SAVE.fid});g.restore();
     txt(g,'미리보기',755,178,15,'#ffe9a0','center');
   }else{txt(g,'야채 즙은 HP 40%',755,260,15,'#fff','center');txt(g,'맑은 물은 MP 50% 회복',755,290,15,'#fff','center');txt(g,'1번 / 2번 키로 사용',755,330,14,'#cfd4e2','center')}
   txt(g,'페이지 '+(pg+1)+'/'+Math.ceil(lst.length/per),350,484,13,'#cfd4e2','center',2);
@@ -411,7 +420,7 @@ function drawInv(g,t){
   panel(g,570,130,320,360,.7);
   const sel=rows[G.inv.sel];
   if(G.inv.tab===0){
-    g.save();g.translate(650,330);g.scale(2.1,2.1);drawVeggie(g,j,{x:0,y:0,face:1,t,st:'idle',eq:p.eq,tier:SAVE.tier});g.restore();
+    g.save();g.translate(650,330);g.scale(2.1,2.1);drawVeggie(g,j,{x:0,y:0,face:1,t,st:'idle',eq:p.eq,tier:SAVE.tier,fid:SAVE.fid});g.restore();
     txt(g,jline(j,SAVE.tier),730,160,17,'#ffe9a0','center');
     if(sel&&sel.kind==='gear'&&sel.id){const d=GEAR[sel.id];txt(g,'['+GRADE[d.gr]+'] '+d.n,800,200,13,GCOL[d.gr],'center',2);wrap(g,gearDesc(sel.id),150,12).forEach((l,i)=>txt(g,l,800,220+i*18,12,'#fff','center',2))}
     const e=SAVE.enh||{atk:0,hp:0,used:0};
@@ -469,7 +478,7 @@ function drawWardrobe(g,t){
   txt(g,'보유 치장템 '+own+' / '+Object.keys(ITEMS).length,80,492,14,'#cfd4e2','left',2);
   panel(g,540,130,340,360,.7);
   const eq=Object.assign({},PARTY[0].eq),sel=lst[G.wd.sel];if(sel)eq[slot]=sel;else delete eq[slot];
-  g.save();g.translate(710,420);g.scale(3.1,3.1);drawVeggie(g,JOB[SAVE.job],{x:0,y:0,face:1,t,st:'idle',eq,tier:SAVE.tier,buff:false});g.restore();
+  g.save();g.translate(710,420);g.scale(3.1,3.1);drawVeggie(g,JOB[SAVE.job],{x:0,y:0,face:1,t,st:'idle',eq,tier:SAVE.tier,fid:SAVE.fid,buff:false});g.restore();
   txt(g,jline(JOB[SAVE.job],SAVE.tier),710,162,18,'#ffe9a0','center');
 }
 
@@ -479,7 +488,7 @@ function drawHUD(g,t){
   const j=JOB[p.job];
   // main panel
   panel(g,10,8,300,84,.72);
-  g.save();g.beginPath();g.roundRect(18,16,58,58,10);g.clip();g.fillStyle='rgba(80,60,120,.5)';g.fillRect(18,16,58,58);drawVeggie(g,j,{x:47,y:80,face:1,t,st:'idle',eq:p.eq,tier:p.tier});g.restore();
+  g.save();g.beginPath();g.roundRect(18,16,58,58,10);g.clip();g.fillStyle='rgba(80,60,120,.5)';g.fillRect(18,16,58,58);drawVeggie(g,j,{x:47,y:80,face:1,t,st:'idle',eq:p.eq,tier:p.tier,fid:p.fid});g.restore();
   txt(g,jline(j,p.tier),86,30,15,'#ffe9a0');txt(g,'Lv.'+p.lvl,86,48,14,'#9be8ff','left',2);
   txt(g,p.hp+'/'+p.maxhp,300,48,12,'#fff','right',2);
   bar(g,86,54,214,12,p.hp/p.maxhp,p.hp<p.maxhp*.3?'#ff4a4a':'#e8484f');

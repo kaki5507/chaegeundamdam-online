@@ -11,7 +11,7 @@ const NOIN={l:0,r:0,u:0,d:0,uT:0,jT:0,jH:0,a:0,aT:0,s:[0,0,0,0,0],fd:0};
 function mkPlayer(kind,jobId,lvl){
   const p={kind,job:jobId,x:0,y:0,w:26,h:52,vx:0,vy:0,face:1,onGround:false,ground:null,rope:null,rcool:0,drop:0,coyote:0,jbuf:0,
     inv:0,stun:0,atkT:0,atkCd:0,hitQ:-1,combo:0,comboT:0,cds:[0,0,0,0,0],buff:null,shieldT:0,dashT:0,dashHit:null,skillT:0,
-    hp:1,mp:1,dead:false,deadT:0,t:Math.random()*5,eq:{},lvl:lvl||1,tier:0,team:0,lastAtk:null,hold:false,ai:null,aiT:0,far:0,mpWarn:0,vyPrev:0};
+    hp:1,mp:1,dead:false,deadT:0,t:Math.random()*5,eq:{},lvl:lvl||1,tier:0,team:0,fid:Math.random()*20|0,lastAtk:null,hold:false,ai:null,aiT:0,far:0,mpWarn:0,vyPrev:0};
   recalc(p);p.hp=p.maxhp;p.mp=p.maxmp;return p;
 }
 function recalc(p){
@@ -97,6 +97,7 @@ function killMob(m){
   const cn=Math.round(rnd(d.coin[0],d.coin[1])*(S.L.mscale>1?1.6:1));
   for(let i=0;i<Math.min(3,1+(cn>8?1:0)+(cn>16?1:0));i++)dropItem('coin',m.x+rnd(-14,14),(m.type==='wisp'?m.y:m.y-14),Math.max(1,Math.round(cn/Math.min(3,1+(cn>8?1:0)+(cn>16?1:0)))));
   if(Math.random()<.36&&!S.L.pq)dropItem('vegbit',m.x,m.y-16,1);
+  if(S.L.harbor&&Math.random()<.4)dropItem('shell',m.x,m.y-16,1);
   if(S.L.cave&&Math.random()<.20*EV().drop)dropItem('gtooth',m.x,m.y-16,1);
   if(Math.random()<.10||m.bonus)dropItem(m.bonus||Math.random()<.6?'hp':'mp',m.x,m.y-16,1);
   if(S.L.pq===1)dropItem('coupon',m.x,m.y-16,1);

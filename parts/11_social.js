@@ -83,7 +83,7 @@ let ONLINE=false,ISADMIN=false,CHAT=[],CHAT_SINCE=0,SRVOFF=0,MEGABAN=null;
 let EVENT={id:'',exp:1,drop:1,until:0,msg:''};
 const evOn=()=>EVENT.until>Date.now()+SRVOFF;
 const EV=()=>evOn()?{exp:EVENT.exp||1,drop:EVENT.drop||1}:{exp:1,drop:1};
-function pushChat(m){CHAT.push(Object.assign({at:G.t},m));if(CHAT.length>80)CHAT.shift();if(m.kind==='hmega')MEGABAN={t0:G.t,m}}
+function pushChat(m){CHAT.push(Object.assign({at:G.t},m));if(CHAT.length>80)CHAT.shift();if(m.kind==='hmega')MEGABAN={t0:G.t,m};if(m.kind==='rank')RANKBAN={t0:G.t,m}}
 function sysChat(text){pushChat({kind:'sys',text})}
 async function socialInit(){
   if(location.protocol==='file:')return;
@@ -154,8 +154,8 @@ function drawSocial(g,t){
     if(open){g.fillStyle='rgba(10,4,20,.6)';g.fillRect(6,y0-16,560,list.length*lh+8)}
     list.forEach((m,i)=>{
       const a=open?1:clamp((14-(G.t-m.at))/2,0,1);g.globalAlpha=a;
-      const pre=m.kind==='sys'?'[알림] ':m.kind==='event'?'[운영자] ':m.kind==='mega'?'[확성기] '+m.name+' : ':m.kind==='hmega'?'[고확성기] '+m.name+' : ':m.name+' : ';
-      const col=m.kind==='sys'?'#9be8ff':m.kind==='event'?'#ff8ae0':m.kind==='mega'?'#ffb0e0':m.kind==='hmega'?'#ffe04a':'#fff';
+      const pre=m.kind==='rank'?'[명예의 전당] ':m.kind==='sys'?'[알림] ':m.kind==='event'?'[운영자] ':m.kind==='mega'?'[확성기] '+m.name+' : ':m.kind==='hmega'?'[고확성기] '+m.name+' : ':m.name+' : ';
+      const col=m.kind==='rank'?'#ffd34a':m.kind==='sys'?'#9be8ff':m.kind==='event'?'#ff8ae0':m.kind==='mega'?'#ffb0e0':m.kind==='hmega'?'#ffe04a':'#fff';
       g.font=F(12);let s=pre+m.text;while(g.measureText(s).width>(open?545:300)&&s.length>4)s=s.slice(0,-2);if(s!==pre+m.text)s+='…';
       txt(g,s,12,y0+i*lh,12,col,'left',3);
     });g.globalAlpha=1;
@@ -165,6 +165,7 @@ function drawSocial(g,t){
     const m=MEGABAN.m,s='📢 '+m.name+' : '+m.text;g.font=F(16);const w=Math.min(800,g.measureText(s).width+50);
     const gr=g.createLinearGradient(W/2-w/2,0,W/2+w/2,0);['#ff5a8a','#ffd34a','#5ad48a','#5ab0ff','#c05aff'].forEach((c,i)=>gr.addColorStop(i/4,c));
     g.fillStyle='rgba(20,6,30,.9)';g.beginPath();g.roundRect(W/2-w/2,98,w,36,10);g.fill();g.strokeStyle=gr;g.lineWidth=3;g.stroke();txt(g,s,W/2,122,16,'#fff','center',3);g.globalAlpha=1}}
+  drawRankBanner(g,t);
   // 이벤트 배지
   if(evOn()&&S&&!S.L.pq&&!S.L.pvp){const left=Math.ceil((EVENT.until-Date.now()-SRVOFF)/60000),s='🎉 '+evText(EVENT)+' · '+left+'분';g.font=F(13);const w=g.measureText(s).width+24;
     g.fillStyle='rgba(60,10,50,.8)';g.beginPath();g.roundRect(W/2-w/2,8,w,24,12);g.fill();g.strokeStyle='#ff8ae0';g.lineWidth=1.5;g.stroke();txt(g,s,W/2,25,13,'#ffd0f0','center',2)}

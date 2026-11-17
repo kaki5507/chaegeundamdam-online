@@ -6,17 +6,17 @@ const G={state:'title',t:0,ui:null,dlg:null,toasts:[],fade:null,sel:0,jsel:0,cle
 const NOSAVE=()=>!loadGame();
 
 function buildP1(){
-  const p=mkPlayer('p1',SAVE.job,SAVE.lvl);p.tier=SAVE.tier||0;p.eq=Object.assign({},SAVE.eq);p.slot=0;recalc(p);p.hp=p.maxhp;p.mp=p.maxmp;return p;
+  const p=mkPlayer('p1',SAVE.job,SAVE.lvl);p.tier=SAVE.tier||0;p.fid=SAVE.fid|0;p.eq=Object.assign({},SAVE.eq);p.slot=0;recalc(p);p.hp=p.maxhp;p.mp=p.maxmp;return p;
 }
 function newGame(jobId){
-  SAVE=defaultSave(jobId);PARTY=[buildP1()];saveGame();G.pqRun=null;
-  goMap('town',true);checkDaily();G.toast('촌장 무 할아버지(좌측)에게 ↑ 로 말을 걸어보세요!');
+  SAVE=defaultSave(jobId);SAVE.fid=G.fsel|0;PARTY=[buildP1()];saveGame();G.pqRun=null;
+  goMap('harbor',true);checkDaily();G.toast('선장 감자수염에게 ↑ 로 말을 걸어보세요!');setTimeout(sayHello,1500);
 }
 function continueGame(){
   SAVE=loadGame();if(!SAVE)return;
   for(const k of['inv','eq','potions','q','flags','cnt','talked','cleared'])SAVE[k]=SAVE[k]||{};
   SAVE.potions.hp=SAVE.potions.hp||0;SAVE.potions.mp=SAVE.potions.mp||0;SAVE.tier=SAVE.tier||0;SAVE.pq=SAVE.pq||0;SAVE.duel=SAVE.duel||{w:0,l:0};SAVE.ec=SAVE.ec||0;SAVE.att=SAVE.att||{last:-1,streak:0,total:0,weeks:0};SAVE.enh=SAVE.enh||{atk:0,hp:0,used:0};SAVE.scrolls=SAVE.scrolls||{};SAVE.mega=SAVE.mega||{m:1,h:0};SAVE.dg=SAVE.dg||{};SAVE.stele=SAVE.stele||{};ensureAP();SAVE.gear=SAVE.gear||{};SAVE.ginv=SAVE.ginv||{};migrateGear();SAVE.dayKey=SAVE.dayKey||'';
-  PARTY=[buildP1()];goMap('town',true);if(checkDaily())G.toast('새로운 하루! 일일 퀘스트가 초기화됐어요 (쪽파)');
+  PARTY=[buildP1()];goMap(SAVE.lvl<5&&!SAVE.flags.leftHarbor&&qst('h4').s!=='done'?'harbor':'town',true);setTimeout(sayHello,1500);if(checkDaily())G.toast('새로운 하루! 일일 퀘스트가 초기화됐어요 (쪽파)');
 }
 
 /* ---------- map loading ---------- */
@@ -112,7 +112,8 @@ function nearInteract(){
   return null;
 }
 function usePortal(po){
-  if(po.lockLv&&SAVE.lvl<po.lockLv){G.toast('Lv.'+po.lockLv+' 이상만 갈 수 있다');return}
+  if(po.lockLv&&SAVE.lvl<po.lockLv){G.toast(po.boat?'배는 Lv.5부터 탈 수 있어요 — 항구에서 조금 더 수련해요!':'Lv.'+po.lockLv+' 이상만 갈 수 있다');return}
+  if(po.boat){SAVE.flags.leftHarbor=1;saveGame()}
   if(po.lock&&!SAVE.cleared[po.lock]){G.toast('아직 갈 수 없다… ('+MOBNAME(po.lock)+'을(를) 쓰러뜨려야 한다)');return}
   if(po.party&&PARTY.length<2){const n={name:'귀문 수문장 해태'};openDialog(n.name,'귀목의 제단은 파티 던전이다. 2명 이상이어야 들어갈 수 있다.\nAI 동료로 채워서 들어가겠나? (2P는 마을 파티 모집꾼)',[{t:'AI 동료 2명과 입장',fn:()=>{while(PARTY.length<3)addMember('ai',JOBS[Math.random()*8|0].id);closeUI();usePortal(po)}},{t:'취소',fn:closeUI}]);return}
   if(po.reach){SAVE.cleared[po.reach]=true;qev('reach',{map:po.reach});}
@@ -149,6 +150,7 @@ function step(dt){
     else if(G.ui==='inv')invUpdate();
     else if(G.ui==='scene')sceneUpdate(dt);
     else if(G.ui==='stat')statUpdate();
+    else if(G.ui==='fame'){if(pressed.Escape||pressed.Enter||pressed.ArrowUp&&0)closeUI()}
     else if(G.ui==='qlog'){if(pressed.KeyQ||pressed.Escape||pressed.Enter)closeUI()}
     else if(G.ui==='help'){if(Object.keys(pressed).length)closeUI()}
     else if(G.ui==='pause'){const nv=nav();if(nv.u||nv.d){G.psel=1-(G.psel||0);sfx('sel')}if(pressed.KeyP||pressed.Escape){closeUI()}else if(nv.ok){if(G.psel){saveGame();stopMusic();G.state='title';G.ui=null;S=null}else closeUI()}}
@@ -235,6 +237,7 @@ function selectStep(){
   if(tap('up'))G.jsel=(G.jsel+4)%8;if(tap('down'))G.jsel=(G.jsel+4)%8;
   if(tap('left')||tap('right')||tap('up')||tap('down'))sfx('sel');
   if(pressed.Escape){G.state='title';return}
+  if(pressed.KeyF){G.fsel=((G.fsel|0)+1)%FACES.length;sfx('sel')}
   if(tap('ok')){newGame(JOBS[G.jsel].id);sfx('lvl')}
 }
 function drawTitle(g,t){
@@ -242,7 +245,7 @@ function drawTitle(g,t){
   const gr=g.createLinearGradient(0,H*.55,0,H);gr.addColorStop(0,'rgba(10,5,24,0)');gr.addColorStop(1,'rgba(10,5,24,.92)');g.fillStyle=gr;g.fillRect(0,H*.4,W,H*.6);
   // ground
   g.fillStyle='#2f7d3b';g.fillRect(0,468,W,H);g.fillStyle='#5cbc52';g.fillRect(0,468,W,8);g.fillStyle='#3f271d';g.fillRect(0,484,W,H);
-  JOBS.forEach((j,i)=>{const x=70+i*116,fl=i%2?-1:1;drawVeggie(g,j,{x,y:470,face:fl,t:t+i,st:'idle',eq:i===2?{hat:'hat_gat'}:i===5?{hat:'hat_ninja',cape:'cape_red'}:i===7?{outfit:'out_hanbok',aura:'aura_petal'}:i===4?{face:'face_sun'}:{},tier:i%3+1})});
+  JOBS.forEach((j,i)=>{const x=70+i*116,fl=i%2?-1:1;drawVeggie(g,j,{x,y:470,face:fl,t:t+i,st:'idle',fid:[1,3,11,9,13,4,7,19][i],eq:i===2?{hat:'hat_gat'}:i===5?{hat:'hat_ninja',cape:'cape_red'}:i===7?{outfit:'out_hanbok',aura:'aura_petal'}:i===4?{face:'face_sun'}:{},tier:i%3+1})});
   g.save();g.translate(W/2,128);
   g.font=F(66);g.textAlign='center';g.lineJoin='round';
   g.lineWidth=14;g.strokeStyle='#1c0a22';g.strokeText('채근담담 온라인',0,0);
@@ -265,13 +268,13 @@ function drawSelect(g,t){
     if(sel){g.strokeStyle='#ffd34a';g.lineWidth=4;g.beginPath();g.roundRect(x,y,208,178,12);g.stroke()}
     g.save();g.beginPath();g.rect(x+6,y+6,196,120);g.clip();
     const gl=g.createRadialGradient(x+104,y+100,10,x+104,y+100,90);gl.addColorStop(0,j.col+'55');gl.addColorStop(1,j.col+'00');g.fillStyle=gl;g.fillRect(x,y,208,178);
-    drawVeggie(g,j,{x:x+104,y:y+122,face:1,t:t+i,st:sel?'skill':'idle',tier:0});g.restore();
+    drawVeggie(g,j,{x:x+104,y:y+122,face:1,t:t+i,st:sel?'skill':'idle',tier:0,fid:G.fsel|0});g.restore();
     txt(g,j.veg+' '+j.role,x+104,y+148,17,'#fff','center');txt(g,'수련생→'+j.line.join('→'),x+104,y+168,10,'#ffe9a0','center',2);
   });
   const j=JOBS[G.jsel];panel(g,36,448,888,82,.85);
   txt(g,j.bio,54,478,16,'#fff');
   txt(g,'수련생 C '+j.sk[1].n+' · 1차 X '+j.sk[0].n+' / V '+j.sk[2].n+' · 2차 B '+j.sk[3].n+' · 3차 N '+j.sk[4].n,54,506,13,'#9be8ff','left',2);
-  txt(g,'← → ↑ ↓ 선택 · Enter 시작 · Esc 뒤로',W-30,22,13,'rgba(255,255,255,.7)','right',2);
+  txt(g,'← → ↑ ↓ 선택 · F 표정 바꾸기 ['+FACES[G.fsel|0]+'] · Enter 시작 · Esc 뒤로',W-30,22,13,'rgba(255,255,255,.7)','right',2);
 }
 
 /* ---------- world render ---------- */
@@ -310,9 +313,10 @@ function drawWorld(g){
       if(al<.05){if(Math.random()<.05)parts.push({x:n.x+rnd(-40,40),y:n.gy-rnd(20,100),vx:0,vy:-10,life:1.6,max:1.6,size:2.2,col:'#bfe8ff',grav:0,glow:true});continue}}
     if(!vis(n.x-70,n.gy-160,140,170))continue;
     n.alpha=al;g.save();if(n.look!=='miko')g.globalAlpha=al;drawNPC(g,n,t,null,sgn(lead.x-n.x));g.restore();
-    if(al>.5){const mk=npcMark(n.id),top=n.look==='board'?128:n.look==='closet'?126:n.look==='miko'?128:84,ny=n.gy-top-8;
+    if(al>.5){const mk=npcMark(n.id),top=n.look==='board'?128:n.look==='closet'?126:n.look==='miko'?128:n.look==='fame'?156:84,ny=n.gy-top-8;
       txt(g,n.name,n.x,ny,13,'#fff','center',3);drawMark(g,n.x,ny-22,mk==='ready'?'ready':mk==='new'?'new':mk==='act'?'act':null,t);}
   }
+  if(L.harbor)drawHarborDecor(g,L,t,cam);
   if(L.steles)for(const st of L.steles)if(vis(st.x-140,st.y-240,280,290))drawStele(g,st,t,S.near&&S.near.st===st);
   if(L.altar)drawAltar(g,L.altar,t,SAVE.inv.gwi>0&&!S.boss);
   for(const d of S.dummies)drawDummy(g,d,t);
@@ -333,10 +337,10 @@ function drawWorld(g){
   // party
   const order=PARTY.slice().reverse();
   for(const p of order){
-    if(p.dead){g.save();g.globalAlpha=.45;drawVeggie(g,JOB[p.job],{x:p.x,y:p.y-30+Math.sin(t*3)*6,face:p.face,t:p.t,st:'idle',eq:p.eq,tier:p.tier,alpha:.45});g.restore();continue}
+    if(p.dead){g.save();g.globalAlpha=.45;drawVeggie(g,JOB[p.job],{fid:p.fid,x:p.x,y:p.y-30+Math.sin(t*3)*6,face:p.face,t:p.t,st:'idle',eq:p.eq,tier:p.tier,alpha:.45});g.restore();continue}
     const st=p.stun>0?'hurt':p.skillT>0&&p.atkT<=0?'skill':p.atkT>0?'atk':p.rope?'climb':!p.onGround?'air':Math.abs(p.vx)>30?'run':'idle';
     const blink=p.inv>0&&Math.floor(p.inv*14)%2===0&&p.stun<=0;
-    drawVeggie(g,JOB[p.job],{x:p.x,y:p.y,face:p.face,t:p.t,st,ap:p.atkDur?1-p.atkT/p.atkDur:0,combo:p.combo,buff:!!p.buff,eq:p.eq,tier:p.tier,alpha:blink?.45:1});
+    drawVeggie(g,JOB[p.job],{fid:p.fid,x:p.x,y:p.y,face:p.face,t:p.t,st,ap:p.atkDur?1-p.atkT/p.atkDur:0,combo:p.combo,buff:!!p.buff,eq:p.eq,tier:p.tier,alpha:blink?.45:1});
     if(p.shieldT>0){g.strokeStyle=`rgba(150,230,255,${.5+.3*Math.sin(t*10)})`;g.lineWidth=3;g.beginPath();g.arc(p.x,p.y-28,36,0,6.28);g.stroke();g.fillStyle='rgba(150,230,255,.12)';g.fill()}
     if(L.pvp){txt(g,(p===lead?'1P':p.kind==='p2'?'2P':p.team===lead.team?'아군':'상대'),p.x,p.y-72,12,p.team===lead.team?'#7aff9a':'#ff8a8a','center',3);bar(g,p.x-18,p.y-68,36,5,p.hp/p.maxhp,'#e8484f')}
     else if(p!==lead){txt(g,(p.kind==='p2'?'2P':'AI')+(p.hold?' ■':''),p.x,p.y-72,12,p.kind==='p2'?'#ffb84a':'#9be8ff','center',3);bar(g,p.x-18,p.y-68,36,5,p.hp/p.maxhp,'#e8484f')}
@@ -377,7 +381,7 @@ function render(){
     drawWorld(g);drawHUD(g,t);drawBossBar(g);drawSocial(g,t);drawToasts(g);
     if(G.banner&&G.banner.t<3.2&&!G.ui){const a=Math.min(1,G.banner.t*2,(3.2-G.banner.t)*2);g.globalAlpha=clamp(a,0,1);
       panel(g,W/2-270,86,540,70,.78);txt(g,G.banner.name,W/2,122,30,'#ffe9a0','center');txt(g,G.banner.sub,W/2,146,15,'#cfd4e2','center',2);g.globalAlpha=1}
-    if(G.ui==='dialog')drawDialog(g,t);else if(G.ui==='shop')drawShop(g,t);else if(G.ui==='wardrobe')drawWardrobe(g,t);else if(G.ui==='inv')drawInv(g,t);else if(G.ui==='stat')drawStat(g,t);else if(G.ui==='scene')drawScene(g,t);else if(G.ui==='qlog')drawQuestLog(g,t);else if(G.ui==='help')drawHelp(g);
+    if(G.ui==='dialog')drawDialog(g,t);else if(G.ui==='shop')drawShop(g,t);else if(G.ui==='wardrobe')drawWardrobe(g,t);else if(G.ui==='inv')drawInv(g,t);else if(G.ui==='stat')drawStat(g,t);else if(G.ui==='fame')drawFame(g,t);else if(G.ui==='scene')drawScene(g,t);else if(G.ui==='qlog')drawQuestLog(g,t);else if(G.ui==='help')drawHelp(g);
     else if(G.ui==='pause'){g.fillStyle='rgba(8,4,16,.6)';g.fillRect(0,0,W,H);txt(g,'일시정지',W/2,200,36,'#ffe9a0','center');['계속하기','저장하고 타이틀로'].forEach((s,i)=>{const y=240+i*50,sel=(G.psel||0)===i;g.fillStyle=sel?'rgba(255,220,120,.3)':'rgba(255,255,255,.08)';g.beginPath();g.roundRect(W/2-140,y,280,40,10);g.fill();txt(g,s,W/2,y+27,19,sel?'#ffe9a0':'#fff','center')})}
     if(S.pvp&&S.pvp.over){g.fillStyle='rgba(8,4,16,.55)';g.fillRect(0,0,W,H);const win=S.pvp.winner===0;txt(g,win?'승리!':'패배…',W/2,230,56,win?'#ffe04a':'#ff8a8a','center');txt(g,S.pvp.score[0]+' : '+S.pvp.score[1]+'   (전적 '+SAVE.duel.w+'승 '+SAVE.duel.l+'패)',W/2,276,22,'#fff','center');if(S.pvp.t>1.2)txt(g,'Enter : 마을로',W/2,320,20,'#cfd4e2','center',2)}
     if(G.state==='over'){g.fillStyle='rgba(20,0,10,.7)';g.fillRect(0,0,W,H);txt(g,'기절했다…',W/2,230,48,'#ff8a8a','center');txt(g,'Enter : 다시 도전      Esc : 마을로',W/2,290,20,'#fff','center')}

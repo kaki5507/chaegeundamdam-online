@@ -214,7 +214,7 @@ const NPCS=[
 /* ---------------- save ---------------- */
 const SAVEKEY='yachae_buraki_v3',OLDKEY='yachae_buraki_v2';
 function defaultSave(jobId){
-  return {job:jobId,lvl:1,exp:0,coins:200,tier:0,inv:{},eq:{},potions:{hp:3,mp:2},q:{},flags:{},cnt:{},talked:{},cleared:{},pq:0,name:'부락리',dayKey:'',dbonus:false,duel:{w:0,l:0},ec:0,att:{last:-1,streak:0,total:0,weeks:0},enh:{atk:0,hp:0,used:0},scrolls:{},gear:{},ginv:{},ap:{str:4,dex:4,int:4,luk:4},apFree:0,mega:{m:1,h:0},dg:{},stele:{}};
+  return {job:jobId,lvl:1,exp:0,coins:200,tier:0,inv:{},eq:{},potions:{hp:3,mp:2},q:{},flags:{},cnt:{},talked:{},cleared:{},pq:0,name:'부락리',dayKey:'',dbonus:false,duel:{w:0,l:0},ec:0,att:{last:-1,streak:0,total:0,weeks:0},enh:{atk:0,hp:0,used:0},scrolls:{},gear:{},ginv:{},ap:{str:4,dex:4,int:4,luk:4},apFree:0,fid:0,mega:{m:1,h:0},dg:{},stele:{}};
 }
 let SAVE=null;
 /* ---------------- 계정 / 클라우드 저장 (서버가 없으면 게스트 로컬 저장) ---------------- */
