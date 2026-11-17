@@ -19,11 +19,14 @@ function recalc(p){
   p.maxhp=Math.round((j.hp+(lv-1)*13)*[1,1.15,1.4,1.8][ti]);
   p.maxmp=Math.round((j.mp+(lv-1)*4)*[1,1.1,1.25,1.5][ti]);
   p.atkBase=(j.atk+(lv-1)*2.3)*[1,1.15,1.45,1.9][ti];
+  p.spdMul=1;
+  if(p.kind==='p1'&&typeof SAVE!=='undefined'&&SAVE&&SAVE.gear){let a=0,h=0,m=0,sp=0;for(const sl in SAVE.gear){const id=SAVE.gear[sl];a+=gearStat(id,'atk');h+=gearStat(id,'hp');m+=gearStat(id,'mp');sp+=gearStat(id,'spd')}
+    p.atkBase*=1+a/100;p.maxhp=Math.round(p.maxhp*(1+h/100));p.maxmp=Math.round(p.maxmp*(1+m/100));p.spdMul=1+sp/100}
   if(p.kind==='p1'&&typeof SAVE!=='undefined'&&SAVE&&SAVE.enh){p.maxhp=Math.round(p.maxhp*(1+SAVE.enh.hp*.015));p.atkBase*=1+SAVE.enh.atk*.012}
   p.hp=Math.min(p.hp,p.maxhp);p.mp=Math.min(p.mp,p.maxmp);
 }
 const atkOf=p=>p.atkBase*(p.buff?p.buff.atk:1);
-const spdOf=p=>JOB[p.job].spd*(p.buff?p.buff.spd:1);
+const spdOf=p=>JOB[p.job].spd*(p.spdMul||1)*(p.buff?p.buff.spd:1);
 const prect=p=>({x:p.x-p.w/2+2,y:p.y-p.h,w:p.w-4,h:p.h});
 const alive=()=>PARTY.filter(p=>!p.dead);
 const unlocked=(p,i)=>p.tier>=SK_TIER[i];
@@ -83,11 +86,14 @@ function hitTarget(t,dmg,dir,crit,p,o){
 }
 function killMob(m){
   m.dead=true;const d=MOBS[m.type];
+  if(m.type==='arm'){spark(m.x,m.y,30,'#ff8a3a',300,.7,5,200,true);sfx('boom');S.shake=Math.max(S.shake,14);gainExp(m.exp,true);qev('kill',{mob:'arm'});ftext(m.x,m.y-50,'귀목의 팔 파괴!','#ffb060',20);
+    if(!S.mobs.some(o=>o.type==='arm'&&!o.dead&&o!==m))G.toast('팔이 모두 부서졌다! 귀목의 본체를 공격하라!');return}
   spark(m.x,m.y-12,16,m.type==='wisp'?'#7ad0ff':'#f4f0e6',230,.55,4,300,true);
   gainExp(m.exp,true);S.kills=(S.kills||0)+1;
   const cn=Math.round(rnd(d.coin[0],d.coin[1])*(S.L.mscale>1?1.6:1));
   for(let i=0;i<Math.min(3,1+(cn>8?1:0)+(cn>16?1:0));i++)dropItem('coin',m.x+rnd(-14,14),(m.type==='wisp'?m.y:m.y-14),Math.max(1,Math.round(cn/Math.min(3,1+(cn>8?1:0)+(cn>16?1:0)))));
   if(Math.random()<.36&&!S.L.pq)dropItem('vegbit',m.x,m.y-16,1);
+  if(S.L.cave&&Math.random()<.20)dropItem('gtooth',m.x,m.y-16,1);
   if(Math.random()<.10||m.bonus)dropItem(m.bonus||Math.random()<.6?'hp':'mp',m.x,m.y-16,1);
   if(S.L.pq===1)dropItem('coupon',m.x,m.y-16,1);
   qev('kill',{mob:m.type});
@@ -113,6 +119,7 @@ function updateMobs(dt){
   const L=S.L;
   for(const m of S.mobs){
     if(m.dead)continue;
+    if(m.type==='arm'){m.t+=dt;m.flash-=dt;m.slam=Math.max(0,(m.slam||0)-dt);m.x=m.bx+Math.sin(m.t*1.3+m.ph)*7;m.y=m.by+Math.cos(m.t*1.1+m.ph)*6-(m.slam>0?Math.sin(m.slam/.9*Math.PI)*40:0);continue}
     m.t+=dt;m.flash-=dt;m.kbx=approach(m.kbx,0,700*dt);
     if(m.type==='wisp'){
       const tg=nearestAlive(m.x,m.y,m.chase?900:260);
@@ -171,6 +178,7 @@ function pickup(it,p){
   else if(k==='mp'){const h=Math.round(p.maxmp*.4);p.mp=Math.min(p.maxmp,p.mp+h);ftext(p.x,p.y-70,'+'+h,'#6ab0ff',17)}
   else if(k==='vegbit'){SAVE.inv.vegbit=(SAVE.inv.vegbit||0)+1;ftext(it.x,it.y-20,'야채 조각','#9be8ae',13);qev('collect',{item:'vegbit'})}
   else if(k==='coupon'){S.pq.coupons++;ftext(it.x,it.y-20,'영혼 쿠폰 '+S.pq.coupons+'/15','#c0a0ff',15)}
+  else if(k==='gtooth'||k==='essence'){SAVE.inv[k]=(SAVE.inv[k]||0)+1;ftext(it.x,it.y-24,ETC_NAME[k]+' 획득!',k==='essence'?'#ff9a4a':'#ffd34a',16);qev('collect',{item:k})}
   else if(k==='key'){S.pq.keys++;ftext(it.x,it.y-20,'열쇠 '+S.pq.keys+'/7','#ffe04a',17)}
 }
 

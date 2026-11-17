@@ -13,7 +13,7 @@ const expMul=l=>need(l)/(14*interpA(KILL_A,l));      // 달걀귀신(기본 14ex
 const dailyPct=l=>l<10?.08:l<30?.05:l<50?.03:l<70?.02:.005;
 const tierOfLv=l=>l>=ADV_LV[3]?3:l>=ADV_LV[2]?2:l>=ADV_LV[1]?1:0;
 const bossPct=l=>l<50?1:l<70?.6:.2;
-const GIVER_NAME={chief:'촌장님',board:'게시판',coach:'전직 교관',miko:'귀혼 무녀',adv2:'숲의 스승',adv3:'달빛 대현자',daily:'일일 의뢰인'};
+const GIVER_NAME={zgate:'귀문 수문장',chief:'촌장님',board:'게시판',coach:'전직 교관',miko:'귀혼 무녀',adv2:'숲의 스승',adv3:'달빛 대현자',daily:'일일 의뢰인'};
 const jline=(j,t)=>t<=0?'수련생 '+j.veg:j.line[t-1];
 const SK_KEYS=['sk1','sk2','sk3','sk4','sk5'];   // X C V B N
 const SK_LABEL=['X','C','V','B','N'];
@@ -88,6 +88,28 @@ const ITEMS={
 };
 const SHOP_ITEMS=['hat_flower','hat_gat','hat_helm','hat_ninja','face_sun','face_heart','face_patch','out_vest','out_dobok','out_tank','cape_red','cape_blue','aura_petal','hat_fox','out_hanbok','aura_flame','aura_thunder','face_mask'];
 const RARITY=['일반','희귀','영웅','전설','캐시'],RCOL=['#cfd4e2','#7ad0ff','#c88aff','#ffcf3a','#ff8ae0'];
+/* ---------------- 장비 (능력치 %) : 등급이 높을수록 드랍률↓ · 퀘스트 전용은 더 높은 등급/성능 ---------------- */
+const GRADE=['일반','희귀','영웅','전설','신화'],GCOL=['#cfd4e2','#7ad0ff','#c88aff','#ffcf3a','#ff5a6a'];
+const GSLOTS=[['weapon','무기'],['armor','방어구'],['acc','장신구']];
+const GEAR={
+ g_stick:{slot:'weapon',n:'수련용 나무막대',gr:0,atk:3},
+ g_bat:{slot:'weapon',n:'도깨비 방망이',gr:1,atk:7},
+ g_eggshell:{slot:'armor',n:'달걀 껍질 갑옷',gr:1,hp:10},
+ g_foxbead:{slot:'acc',n:'여우 구슬 목걸이',gr:2,atk:6,mp:12},
+ g_gm_club:{slot:'weapon',n:'귀목 몽둥이',gr:2,atk:13},
+ g_gm_bark:{slot:'armor',n:'귀목 껍질 갑옷',gr:2,hp:18,atk:3},
+ g_gm_ring:{slot:'acc',n:'귀목 뿌리 반지',gr:3,atk:10,hp:10},
+ g_gm_heart:{slot:'weapon',n:'천년 귀목의 심장검',gr:3,atk:22},
+ // 퀘스트로만 획득 (드랍 없음)
+ q_bracelet:{slot:'acc',n:'귀문 수련자의 팔찌',gr:3,atk:9,hp:9,spd:3,quest:1},
+ q_helm:{slot:'armor',n:'천년 귀목 투구',gr:4,atk:16,hp:32,mp:15,spd:5,quest:1},
+};
+// 보스별 드랍 테이블 [장비, 확률]
+const GEAR_DROP={dokkaebi:[['g_stick',.25],['g_bat',.10]],fox:[['g_foxbead',.07]],eggking:[['g_eggshell',.15]],
+  guimok:[['g_gm_club',.10],['g_gm_bark',.10],['g_gm_ring',.025],['g_gm_heart',.01]]};
+const gearStat=(id,k)=>(GEAR[id]&&GEAR[id][k])||0;
+const gearDesc=id=>{const d=GEAR[id];return['atk','hp','mp','spd'].filter(k=>d[k]).map(k=>({atk:'공격력',hp:'체력',mp:'MP',spd:'이동속도'})[k]+' +'+d[k]+'%').join(' · ')};
+const ETC_NAME={vegbit:'야채 조각',gtooth:'도깨비 금이빨',essence:'귀목의 정수',gwi:'귀안(鬼眼)'};
 const CASH_ITEMS=Object.keys(ITEMS).filter(k=>ITEMS[k].cash);
 // 출석 : 연속 7일 사이클. 7일째에 캐시 치장템 지급 · 누적 출석 보너스
 const ATT_DAY=[3,3,5,5,8,8,20];
@@ -110,6 +132,7 @@ const POTION={hp:{n:'야채 즙(HP)',price:60,heal:.4},mp:{n:'맑은 물(MP)',pr
 const MOBS={
  egg:{n:'달걀귀신',hp:30,dmg:12,exp:14,coin:[3,9],w:30,h:34},
  wisp:{n:'도깨비불',hp:22,dmg:10,exp:10,coin:[2,7],w:26,h:30},
+ arm:{n:'귀목의 팔',hp:900,dmg:0,exp:120,coin:[0,0],w:150,h:56},
  baby:{n:'아기 달걀귀신',hp:14,dmg:8,exp:4,coin:[1,3],w:22,h:24},
 };
 
@@ -137,6 +160,13 @@ const QUESTS={
    objs:[{t:'boss',id:'dokkaebi',label:'도깨비 대왕 처치 (시련)'},{t:'collect',item:'vegbit',n:15,label:'야채 조각 수집'}],rew:{pct:.5,coin:800},adv:2},
  j3:{name:'3차 전직의 시험',giver:'adv3',min:ADV_LV[3],pre:['j2'],desc:'하늘길 끝 달빛 신당의 대현자가 내리는 마지막 시련. 시련 모드의 구미호(체력 1.6배)를 쓰러뜨리고 야채 조각 30개를 바쳐라.',
    objs:[{t:'boss',id:'fox',label:'구미호 처치 (시련)'},{t:'collect',item:'vegbit',n:30,label:'야채 조각 수집'}],rew:{pct:.4,coin:2000},adv:3},
+ // ---- 파티던전 : 귀문 동굴 → 귀목의 제단 (자쿰식) ----
+ z1:{name:'[귀문] 1단계 · 숨겨진 길',giver:'zgate',min:40,desc:'귀문 동굴의 용암 점프맵을 끝까지 돌파하라. 떨어지면 용암에 데인다! 끝에 귀목의 제단 입구가 있다.',
+   objs:[{t:'reach',map:'cave',label:'귀문 동굴 끝(제단 입구) 도달'}],rew:{pct:.3,coin:1500,gear:'q_bracelet'}},
+ z2:{name:'[귀문] 2단계 · 귀안 만들기 (반복)',giver:'zgate',min:40,pre:['z1'],rep:1,desc:'귀목을 깨우려면 귀안(鬼眼)이 필요하다. 귀문 동굴 몬스터가 드물게(20%) 떨어뜨리는 도깨비 금이빨 8개를 모아오면 귀안 1개를 만들어 주마. 귀안은 이 퀘스트로만 얻을 수 있다.',
+   objs:[{t:'collect',item:'gtooth',n:8,label:'도깨비 금이빨 (동굴 몬스터 20%)'}],rew:{pct:.05,coin:300,give:{gwi:1}}},
+ z3:{name:'[귀문] 3단계 · 귀목 토벌대',giver:'zgate',min:40,pre:['z1'],desc:'천년 귀목을 세 번 쓰러뜨리고, 귀목이 드물게(40%) 남기는 귀목의 정수 3개를 가져와라. 그 정수로 최고의 투구를 만들어 주지.',
+   objs:[{t:'boss',id:'guimok',n:3,label:'천년 귀목 처치'},{t:'collect',item:'essence',n:3,label:'귀목의 정수 (보스 40%)'}],rew:{pct:.5,coin:5000,gear:'q_helm'}},
  // ---- 일일 퀘스트 (매일 초기화 · 경험치는 레벨당 필요량의 일정 %) ----
  d1:{daily:1,name:'[일일] 달걀귀신 사냥',giver:'daily',min:1,desc:'오늘도 달걀귀신이 설친다. 20마리를 잡아라.',objs:[{t:'kill',mob:'egg',n:20,label:'달걀귀신 처치'}],rew:{pct:'d'}},
  d2:{daily:1,name:'[일일] 도깨비불 끄기',giver:'daily',min:1,desc:'도깨비불 10마리를 꺼뜨려라.',objs:[{t:'kill',mob:'wisp',n:10,label:'도깨비불 처치'}],rew:{pct:'d'}},
@@ -160,13 +190,14 @@ const NPCS=[
  {id:'closet',name:'옷장 요정',x:900,look:'closet',tag:'치장 · 옷장'},
  {id:'adv2',name:'숲의 스승 가지',x:0,look:'sage',tag:'2차 전직 (Lv.30)',map:'forest'},
  {id:'adv3',name:'달빛 대현자',x:0,look:'moon',tag:'3차 전직 (Lv.70)',map:'sky'},
+ {id:'zgate',name:'귀문 수문장 해태',x:0,look:'zgate',tag:'귀목 원정대 (Lv.40)',maps:['cave','altar']},
  {id:'miko',name:'귀혼 무녀',x:110,look:'miko',tag:'???',hidden:true},
 ];
 
 /* ---------------- save ---------------- */
 const SAVEKEY='yachae_buraki_v3',OLDKEY='yachae_buraki_v2';
 function defaultSave(jobId){
-  return {job:jobId,lvl:1,exp:0,coins:200,tier:0,inv:{},eq:{},potions:{hp:3,mp:2},q:{},flags:{},cnt:{},talked:{},cleared:{},pq:0,name:'부락리',dayKey:'',dbonus:false,duel:{w:0,l:0},ec:0,att:{last:-1,streak:0,total:0,weeks:0},enh:{atk:0,hp:0,used:0},scrolls:{}};
+  return {job:jobId,lvl:1,exp:0,coins:200,tier:0,inv:{},eq:{},potions:{hp:3,mp:2},q:{},flags:{},cnt:{},talked:{},cleared:{},pq:0,name:'부락리',dayKey:'',dbonus:false,duel:{w:0,l:0},ec:0,att:{last:-1,streak:0,total:0,weeks:0},enh:{atk:0,hp:0,used:0},scrolls:{},gear:{},ginv:{}};
 }
 let SAVE=null;
 /* ---------------- 계정 / 클라우드 저장 (서버가 없으면 게스트 로컬 저장) ---------------- */
