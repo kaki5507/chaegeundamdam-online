@@ -68,9 +68,46 @@ app.post('/api/login', limit('auth', 20), async (req, res) => {
     res.json({ token: sign(u.name), name: u.display });
   } catch (e) { console.error(e); res.status(500).json({ error: '서버 오류' }); }
 });
+const ADMINS = (process.env.ADMIN_NAMES || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+const isAdmin = n => ADMINS.includes(String(n).toLowerCase());
 app.get('/api/me', auth, async (req, res) => {
   const u = await db.getUser(req.user); if (!u) return res.status(401).json({ error: '계정이 없습니다.' });
-  res.json({ name: u.display });
+  res.json({ name: u.display, admin: isAdmin(req.user) });
+});
+
+/* ---------- 채팅 (메모리 링버퍼) · 확성기 · 운영자 이벤트 ---------- */
+const CHAT = []; let lastTs = 0;
+const nextTs = () => (lastTs = Math.max(Date.now(), lastTs + 1));
+function pushMsg(m) { m.ts = nextTs(); CHAT.push(m); if (CHAT.length > 300) CHAT.shift(); return m; }
+let EVENT = null;
+const curEvent = () => (EVENT && EVENT.until > Date.now() ? EVENT : null);
+const clean = s => String(s || '').replace(/[\u0000-\u001f\u007f<>]/g, '').trim().slice(0, 80);
+const lastChat = new Map();
+app.get('/api/poll', (req, res) => {
+  const since = +req.query.since || 0, map = String(req.query.map || '').slice(0, 20);
+  const msgs = CHAT.filter(m => m.ts > since && (m.ch === 'all' || m.ch === 'map:' + map)).slice(since ? -40 : -12);
+  res.json({ now: Date.now(), msgs, event: curEvent() });
+});
+app.post('/api/chat', auth, async (req, res) => {
+  const now = Date.now(), last = lastChat.get(req.user) || 0;
+  if (now - last < 1200) return res.status(429).json({ error: '채팅이 너무 빠릅니다.' });
+  const text = clean(req.body && req.body.text); if (!text) return res.status(400).json({ error: '빈 메시지' });
+  const kind = ['map', 'mega', 'hmega'].includes(req.body.kind) ? req.body.kind : 'map';
+  const map = String(req.body.map || 'town').slice(0, 20);
+  const u = await db.getUser(req.user); if (!u) return res.status(401).json({ error: '계정이 없습니다.' });
+  lastChat.set(req.user, now);
+  res.json({ ok: true, msg: pushMsg({ kind, name: u.display, text, ch: kind === 'map' ? 'map:' + map : 'all' }) });
+});
+app.post('/api/admin/event', auth, async (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: '운영자만 이벤트를 열 수 있습니다.' });
+  const b = req.body || {};
+  if (b.off) { EVENT = null; await db.setKV('event', null); pushMsg({ kind: 'event', name: '운영자', text: '이벤트가 종료되었습니다.', ch: 'all' }); return res.json({ ok: true, event: null }); }
+  const exp = Math.min(5, Math.max(1, +b.exp || 1)), drop = Math.min(5, Math.max(1, +b.drop || 1)), minutes = Math.min(1440, Math.max(1, +b.minutes || 60));
+  EVENT = { id: 'e' + Date.now(), exp, drop, until: Date.now() + minutes * 60000, msg: clean(b.msg), by: req.user };
+  await db.setKV('event', EVENT);
+  const what = [exp > 1 ? '경험치 ' + exp + '배' : '', drop > 1 ? '드롭률 ' + drop + '배' : ''].filter(Boolean).join(' · ');
+  pushMsg({ kind: 'event', name: '운영자', text: what + ' 이벤트가 실행됐다! (' + minutes + '분) ' + EVENT.msg, ch: 'all' });
+  res.json({ ok: true, event: EVENT });
 });
 app.get('/api/save', auth, async (req, res) => {
   try { const s = await db.getSave(req.user); res.json(s ? { save: s.data, updated: s.updated } : { save: null }); }
@@ -95,6 +132,7 @@ app.use('/docs', express.static(path.join(ROOT, 'docs'), { maxAge: '1h' }));
 const PORT = process.env.PORT || 3000;
 db.init().then(kind => {
   DBKIND = kind; console.log('[db]', kind);
+  db.getKV('event').then(e => { if (e && e.until > Date.now()) EVENT = e; }).catch(() => {});
   if (kind === 'file' && process.env.RENDER) console.error('[경고] DATABASE_URL 이 없어 임시 파일 DB를 사용합니다. 재배포/재시작 시 계정이 사라집니다! Render > Environment 에 Neon 연결 문자열을 넣으세요.');
   if (require.main === module) app.listen(PORT, () => console.log('listening on', PORT));
 }).catch(e => { console.error('db init failed', e); process.exit(1); });

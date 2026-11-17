@@ -14,6 +14,7 @@ async function init() {
       name TEXT PRIMARY KEY, display TEXT NOT NULL, salt TEXT NOT NULL, hash TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT now())`);
     await pool.query(`CREATE TABLE IF NOT EXISTS saves(
       name TEXT PRIMARY KEY REFERENCES users(name) ON DELETE CASCADE, data JSONB NOT NULL, updated_at TIMESTAMPTZ DEFAULT now())`);
+    await pool.query(`CREATE TABLE IF NOT EXISTS kv(k TEXT PRIMARY KEY, v JSONB NOT NULL)`);
     return 'postgres';
   }
   return 'file';
@@ -49,4 +50,12 @@ async function deleteUser(name) {
   if (pool) { await pool.query('DELETE FROM users WHERE name=$1', [name]); return; }
   const d = load(); delete d.users[name]; delete d.saves[name]; flush();
 }
-module.exports = { init, getUser, createUser, getSave, putSave, deleteUser };
+async function getKV(k) {
+  if (pool) { const r = await pool.query('SELECT v FROM kv WHERE k=$1', [k]); return r.rows[0] ? r.rows[0].v : null; }
+  const d = load(); return (d.kv || {})[k] || null;
+}
+async function setKV(k, v) {
+  if (pool) { await pool.query('INSERT INTO kv(k,v) VALUES($1,$2) ON CONFLICT(k) DO UPDATE SET v=$2', [k, JSON.stringify(v)]); return; }
+  const d = load(); d.kv = d.kv || {}; d.kv[k] = v; flush();
+}
+module.exports = { getKV, setKV, init, getUser, createUser, getSave, putSave, deleteUser };
