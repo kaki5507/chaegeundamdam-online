@@ -11,7 +11,7 @@ function buildTown(){
   L.plats.push(plat(920,300,170,14,'o'));
   L.ropes.push({x:1005,y1:300,y2:gy});
   L.plats.push(plat(1500,380,150,14,'o'),plat(1640,300,120,14,'o'));   // decorative hop
-  L.npcs=NPCS.filter(n=>!n.map).map(n=>Object.assign({gy},n));
+  L.npcs=NPCS.filter(n=>!n.map&&!n.maps).map(n=>Object.assign({gy},n));
   L.dummies=[{x:560,y:gy},{x:660,y:gy},{x:760,y:gy}];
   L.portals=[{x:2290,y:gy,to:'forest',label:'도깨비 숲'},{x:2450,y:gy,to:'sky',label:'하늘길',lock:'dokkaebi'}];
   return L;
@@ -133,7 +133,47 @@ function buildPvp(){
   L.plats.push(plat(240,310,150,14,'o'),plat(570,310,150,14,'o'),plat(405,215,150,14,'o'));
   return L;
 }
-const MAPS={pvp:buildPvp,town:buildTown,forest:buildForest,boss1:buildArena1,sky:buildSky,boss2:buildArena2,pq1:buildPQ1,pq2:buildPQ2,pq3:buildPQ3,pq4:buildPQ4};
+/* ---------- 파티던전 : 귀문 동굴(용암 점프맵) → 귀목의 제단 ---------- */
+function buildCave(){
+  const r=mulberry(77),Hh=1000,seq=['n','c','m','n','c','v','n','c','m','c','n','v'];
+  const L=newL({id:'cave',name:'귀문 동굴',sub:'파티던전 1단계 · 용암 위 숨겨진 길을 돌파하라',theme:'lava',music:'sky',w:0,h:Hh,killY:Hh+90,mscale:3,pit:true,cave:true});
+  let y=720;L.plats.push(plat(-300,y,660,400,'s'));L.spawn={x:200,y};
+  let cur={x:0,w:360,y},x=360;
+  for(let i=0;i<40;i++){
+    const k=i<2?'n':seq[(i*5+2)%seq.length];let nx,w,ny;
+    if(k==='m'){
+      const gap=260;w=120;ny=cur.y-10;
+      L.plats.push(plat(x+gap/2-48,cur.y-4,96,16,'o',{mv:{x0:x+gap/2-48,y0:cur.y-4,ax:gap/2-60,ay:0,sp:1.15,ph:r()*6}}));
+      nx=x+gap;L.plats.push(plat(nx,ny,w,16,'o'));
+    }else if(k==='v'){
+      const up=cur.y>=560,dist=170;w=120;ny=up?cur.y-dist:cur.y+dist;
+      const y0=up?cur.y-dist/2:cur.y+dist/2;
+      L.plats.push(plat(x+40,y0,104,16,'o',{mv:{x0:x+40,y0,ax:0,ay:dist/2,sp:1.25,ph:up?Math.PI:0}}));
+      nx=x+40+104+40;L.plats.push(plat(nx,ny,w,16,'o'));
+    }else{
+      const gap=40+r()*46;w=Math.round(100+r()*70);ny=clamp(cur.y+Math.round(-60+r()*110),340,820);nx=x+gap;
+      const cr=k==='c';L.plats.push(plat(nx,ny,w,16,'o',cr?{crumble:{timer:0,fall:false,fy:0,back:0}}:{}));
+      if(!cr&&w>=140&&i%3===0)L.spikes.push({x:nx+w/2-22,y:ny,w:44});
+      else if(!cr&&w>=130)L.mobs.push(['egg',nx+w/2,ny,nx+14,nx+w-14]);
+      if(i%2===1)L.mobs.push(['wisp',nx+w/2,ny-110,80]);
+      if(i%3===2)L.drops.push({x:nx+w/2,y:Math.max(60,ny-330),period:2.6+r(),ph:r()*3});
+    }
+    if(i===19)L.flags.push({x:nx+w/2,y:ny});
+    cur={x:nx,w,y:ny};x=nx+w;
+  }
+  const ex=x+60;L.plats.push(plat(ex,cur.y,520,400,'s'));
+  L.portals.push({x:ex+330,y:cur.y,to:'altar',label:'귀목의 제단',reach:'cave',party:true});
+  L.npcs=NPCS.filter(n=>n.maps&&n.maps.includes('cave')).map(n=>Object.assign({},n,{x:330,gy:720}));
+  L.w=ex+640;return L;
+}
+function buildAltar(){
+  const L=arenaBase({id:'altar',name:'귀목의 제단',sub:'파티던전 · 제단에 귀안을 바쳐 천년 귀목을 깨워라',theme:'lava',music:'boss',spawn:{x:120,y:470},altarMap:true});
+  L.plats.push(plat(300,370,170,14,'o'),plat(810,370,170,14,'o'),plat(470,270,340,14,'o'),plat(130,285,150,14,'o'),plat(1000,285,150,14,'o'));
+  L.altar={x:230,y:470};
+  L.npcs=NPCS.filter(n=>n.maps&&n.maps.includes('altar')).map(n=>Object.assign({},n,{x:60,gy:470}));
+  return L;
+}
+const MAPS={cave:buildCave,altar:buildAltar,pvp:buildPvp,town:buildTown,forest:buildForest,boss1:buildArena1,sky:buildSky,boss2:buildArena2,pq1:buildPQ1,pq2:buildPQ2,pq3:buildPQ3,pq4:buildPQ4};
 
 /* ---------------- physics ---------------- */
 function updatePlats(L,dt,t){

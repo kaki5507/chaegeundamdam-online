@@ -21,6 +21,9 @@ const THEMES={
   night:{sky:['#03030f','#0e1245','#2a2878','#6b4aa0'],moon:{x:.5,y:.27,r:92,c:'#ff7a72',glow:'rgba(255,60,70,'},
     layers:[{k:'ridge',col:'#1d1b52',amp:80,base:.64,f:.06,cyc:[2,4,7]},{k:'pines',col:'#100d33',base:.86,f:.28,hh:[80,150],n:24},{k:'gates',col:'#3a0a18',base:.98,f:.5}],
     grass:'#7e68c4',grass2:'#40337a',dirt:'#2a2250',dirt2:'#1a1538',stone:'#5a5090',plank:'#7a5aa0',plank2:'#3a2a5a',fly:'#9fd0ff'},
+  lava:{sky:['#0a0204','#2a0608','#6a120c','#d0401a'],moon:{x:.62,y:.86,r:120,c:'#ff8a3a',glow:'rgba(255,90,20,'},
+    layers:[{k:'ridge',col:'#2a0a0e',amp:120,base:.5,f:.06,cyc:[2,3,8]},{k:'ridge',col:'#1a0608',amp:90,base:.7,f:.16,cyc:[3,5,13]},{k:'gates',col:'#3a0806',base:.96,f:.45}],
+    grass:'#ff7a2a',grass2:'#a8320e',dirt:'#3a1c18',dirt2:'#241010',stone:'#5a3a38',plank:'#7a4a30',plank2:'#3a2014',fly:'#ffb060'},
 };
 const LW=1200,LHT=330;
 const BGCACHE={};
