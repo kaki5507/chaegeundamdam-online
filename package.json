@@ -1,0 +1,13 @@
+{
+  "name": "chaegeundamdam-online",
+  "version": "1.0.0",
+  "description": "채근담담 온라인 : 귀혼의 숲 — 웹 2D 점프맵 액션 RPG (계정/저장 서버 포함)",
+  "private": true,
+  "scripts": {
+    "start": "node server/server.js",
+    "build": "bash build.sh",
+    "test:server": "node server/test.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": { "express": "^4.19.2", "pg": "^8.12.0" }
+}
