@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>채근담담 온라인 : 귀혼의 숲</title>
+<style>
+html,body{margin:0;height:100%;background:#0a0514;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
+body{display:flex;align-items:center;justify-content:center}
+canvas{display:block;background:#0a0514;box-shadow:0 0 40px rgba(120,60,200,.35);image-rendering:auto}
+#touch{display:none;position:fixed;inset:0;pointer-events:none;font-family:sans-serif}
+#touch .b{position:absolute;pointer-events:auto;width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.5);color:#fff;font:bold 15px sans-serif;display:flex;align-items:center;justify-content:center;touch-action:none}
+#touch .b.on{background:rgba(255,220,120,.5)}
+</style></head><body>
+<canvas id="c" width="960" height="540"></canvas>
+<div id="touch">
+ <div class="b" data-k="ArrowLeft" style="left:14px;bottom:70px">◀</div>
+ <div class="b" data-k="ArrowRight" style="left:90px;bottom:70px">▶</div>
+ <div class="b" data-k="ArrowUp" style="left:52px;bottom:134px">▲</div>
+ <div class="b" data-k="ArrowDown" style="left:52px;bottom:6px">▼</div>
+ <div class="b" data-k="Space" style="right:14px;bottom:70px">점프</div>
+ <div class="b" data-k="KeyZ" style="right:82px;bottom:30px">공격</div>
+ <div class="b" data-k="KeyX" style="right:150px;bottom:70px;width:48px;height:48px">X</div>
+ <div class="b" data-k="KeyC" style="right:96px;bottom:112px;width:48px;height:48px">C</div>
+ <div class="b" data-k="KeyV" style="right:40px;bottom:146px;width:48px;height:48px">V</div>
+ <div class="b" data-k="KeyB" style="right:150px;bottom:126px;width:44px;height:44px">B</div>
+ <div class="b" data-k="KeyN" style="right:150px;bottom:176px;width:44px;height:44px">N</div>
+ <div class="b" data-k="Enter" style="left:170px;bottom:6px;width:46px;height:46px">OK</div>
+ <div class="b" data-k="Escape" style="left:222px;bottom:6px;width:46px;height:46px">취소</div>
+ <div class="b" data-k="KeyQ" style="right:14px;top:8px;width:42px;height:42px">Q</div>
+ <div class="b" data-k="KeyI" style="right:62px;top:8px;width:42px;height:42px">I</div>
+ <div class="b" data-k="KeyE" style="right:110px;top:8px;width:42px;height:42px">E</div>
+</div>
+<script>
