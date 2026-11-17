@@ -9,11 +9,11 @@ const NEED_A=[[1,28],[9,92],[10,160],[29,2400],[30,3200],[49,26000],[50,36000],[
 const KILL_A=[[1,8],[9,10],[10,22],[29,60],[30,80],[49,170],[50,240],[69,450],[70,1800],[99,5000]];
 function interpA(A,l){l=Math.max(1,Math.min(99,l));for(let i=1;i<A.length;i++){if(l<=A[i][0]){const a=A[i-1],b=A[i],k=(l-a[0])/Math.max(1,b[0]-a[0]);return Math.exp(Math.log(a[1])+(Math.log(b[1])-Math.log(a[1]))*k)}}return A[A.length-1][1]}
 const need=l=>Math.round(interpA(NEED_A,l));
-const expMul=l=>need(l)/(14*interpA(KILL_A,l));      // 달걀귀신(기본 14exp) 기준
+const expMul=l=>need(l)/(14*interpA(KILL_A,l));      // 달걀 슬라임(기본 14exp) 기준
 const dailyPct=l=>l<10?.08:l<30?.05:l<50?.03:l<70?.02:.005;
 const tierOfLv=l=>l>=ADV_LV[3]?3:l>=ADV_LV[2]?2:l>=ADV_LV[1]?1:0;
 const bossPct=l=>l<50?1:l<70?.6:.2;
-const GIVER_NAME={zgate:'귀문 수문장',chief:'촌장님',board:'게시판',coach:'전직 교관',miko:'귀혼 무녀',adv2:'숲의 스승',adv3:'달빛 대현자',daily:'일일 의뢰인'};
+const GIVER_NAME={zgate:'귀문 수문장',chief:'촌장님',board:'게시판',coach:'전직 교관',miko:'숨은 무녀',adv2:'숲의 스승',adv3:'달빛 대현자',daily:'일일 의뢰인'};
 const jline=(j,t)=>t<=0?'수련생 '+j.veg:j.line[t-1];
 const SK_KEYS=['sk1','sk2','sk3','sk4','sk5'];   // X C V B N
 const SK_LABEL=['X','C','V','B','N'];
@@ -70,7 +70,7 @@ const ITEMS={
  out_hanbok:{slot:'outfit',n:'붉은 두루마기',price:1400,r:2,col:'#c0283c'},
  cape_red:{slot:'cape',n:'붉은 망토',price:500,r:0,col:'#c0283c'},
  cape_blue:{slot:'cape',n:'푸른 망토',price:500,r:0,col:'#2a56b8'},
- cape_ghost:{slot:'cape',n:'귀혼의 망토',price:2400,r:3,col:'#e8f0ff'},
+ cape_ghost:{slot:'cape',n:'은하수 망토',price:2400,r:3,col:'#e8f0ff'},
  cape_gold:{slot:'cape',n:'황금 망토',price:2800,r:3,col:'#ffcf3a'},
  // ---- 캐시 치장 : 이벤트 코인(◆)으로만 구매/획득 가능 ----
  cs_hat_halo:{slot:'hat',n:'[캐시] 천사의 고리',price:0,ec:12,cash:1,r:4,col:'#ffe97a'},
@@ -90,25 +90,41 @@ const SHOP_ITEMS=['hat_flower','hat_gat','hat_helm','hat_ninja','face_sun','face
 const RARITY=['일반','희귀','영웅','전설','캐시'],RCOL=['#cfd4e2','#7ad0ff','#c88aff','#ffcf3a','#ff8ae0'];
 /* ---------------- 장비 (능력치 %) : 등급이 높을수록 드랍률↓ · 퀘스트 전용은 더 높은 등급/성능 ---------------- */
 const GRADE=['일반','희귀','영웅','전설','신화'],GCOL=['#cfd4e2','#7ad0ff','#c88aff','#ffcf3a','#ff5a6a'];
-const GSLOTS=[['weapon','무기'],['armor','방어구'],['acc','장신구']];
+const GSLOTS=[['rh','오른손(무기)'],['lh','왼손(보조)'],['armor','방어구'],['acc1','장신구 1'],['acc2','장신구 2'],['acc3','장신구 3'],['acc4','장신구 4']];
+// 무기 종류 : 직업마다 쓸 수 있는 무기가 정해져 있다. 양손무기는 왼손까지 차지한다.
+const WT={any:{n:'막대',st:null,h2:0},sword:{n:'한손검',st:'str',h2:0},twohand:{n:'양손검',st:'str',h2:1},knuckle:{n:'너클',st:'str',h2:0},
+  bow:{n:'활',st:'dex',h2:1},gun:{n:'총',st:'dex',h2:1},staff:{n:'스태프',st:'int',h2:1},wand:{n:'완드',st:'int',h2:0},dagger:{n:'단검',st:'luk',h2:0},
+  shield:{n:'방패',st:'str',lh:1},book:{n:'마도서',st:'int',lh:1},offdagger:{n:'보조 단검',st:'luk',lh:1}};
+const JOB_WEAP={warrior:['sword','twohand'],guardian:['sword','twohand'],fighter:['knuckle'],archer:['bow'],gunner:['gun'],mage:['staff','wand'],priest:['wand','staff'],rogue:['dagger']};
+const JOB_LH={warrior:['shield'],guardian:['shield'],priest:['shield','book'],mage:['book'],rogue:['offdagger'],fighter:[],archer:[],gunner:[]};
 const GEAR={
- g_stick:{slot:'weapon',n:'수련용 나무막대',gr:0,atk:3},
- g_bat:{slot:'weapon',n:'도깨비 방망이',gr:1,atk:7},
- g_eggshell:{slot:'armor',n:'달걀 껍질 갑옷',gr:1,hp:10},
- g_foxbead:{slot:'acc',n:'여우 구슬 목걸이',gr:2,atk:6,mp:12},
- g_gm_club:{slot:'weapon',n:'귀목 몽둥이',gr:2,atk:13},
- g_gm_bark:{slot:'armor',n:'귀목 껍질 갑옷',gr:2,hp:18,atk:3},
- g_gm_ring:{slot:'acc',n:'귀목 뿌리 반지',gr:3,atk:10,hp:10},
- g_gm_heart:{slot:'weapon',n:'천년 귀목의 심장검',gr:3,atk:22},
+ g_stick:{wt:'any',n:'수련용 나무막대',gr:0,atk:3},
+ g_bat:{wt:'twohand',n:'도깨비 방망이',gr:1,atk:9,req:{lv:10,str:25}},
+ g_lid:{wt:'shield',n:'솥뚜껑 방패',gr:1,hp:8,req:{lv:10,str:25}},
+ g_eggshell:{slot:'armor',n:'달걀 껍질 갑옷',gr:1,hp:10,req:{lv:12}},
+ g_foxbead:{slot:'acc',n:'여우 구슬 목걸이',gr:2,atk:5,mp:12,req:{lv:20}},
+ g_foxfan:{wt:'book',n:'구미호 부적첩',gr:2,atk:4,mp:15,req:{lv:20,int:45}},
+ g_gm_club:{wt:'twohand',n:'귀목 몽둥이',gr:2,atk:17,req:{lv:40,str:100}},
+ g_gm_bow:{wt:'bow',n:'귀목 장궁',gr:2,atk:17,req:{lv:40,dex:100}},
+ g_gm_staff:{wt:'staff',n:'귀목 지팡이',gr:2,atk:17,req:{lv:40,int:100}},
+ g_gm_knife:{wt:'dagger',n:'귀목 가시 단검',gr:2,atk:13,req:{lv:40,luk:100}},
+ g_gm_bark:{slot:'armor',n:'귀목 껍질 갑옷',gr:2,hp:18,atk:3,req:{lv:40}},
+ g_gm_ring:{slot:'acc',n:'귀목 뿌리 반지',gr:3,atk:8,hp:8,req:{lv:45}},
+ g_gm_heart:{wt:'sword',n:'천년 귀목의 심장검',gr:3,atk:22,req:{lv:45,str:120}},
  // 퀘스트로만 획득 (드랍 없음)
- q_bracelet:{slot:'acc',n:'귀문 수련자의 팔찌',gr:3,atk:9,hp:9,spd:3,quest:1},
- q_helm:{slot:'armor',n:'천년 귀목 투구',gr:4,atk:16,hp:32,mp:15,spd:5,quest:1},
+ q_bracelet:{slot:'acc',n:'귀문 수련자의 팔찌',gr:3,atk:9,hp:9,spd:3,quest:1,req:{lv:40}},
+ q_helm:{slot:'armor',n:'천년 귀목 투구',gr:4,atk:16,hp:32,mp:15,spd:5,quest:1,req:{lv:50}},
 };
-// 보스별 드랍 테이블 [장비, 확률]
-const GEAR_DROP={dokkaebi:[['g_stick',.25],['g_bat',.10]],fox:[['g_foxbead',.07]],eggking:[['g_eggshell',.15]],
-  guimok:[['g_gm_club',.10],['g_gm_bark',.10],['g_gm_ring',.025],['g_gm_heart',.01]]};
+for(const k in GEAR){const d=GEAR[k];if(d.wt)d.slot=WT[d.wt].lh?'lh':'rh'}
+const GEAR_DROP={dokkaebi:[['g_stick',.25],['g_bat',.08],['g_lid',.08]],fox:[['g_foxbead',.06],['g_foxfan',.05]],eggking:[['g_eggshell',.15]],
+  guimok:[['g_gm_club',.04],['g_gm_bow',.04],['g_gm_staff',.04],['g_gm_knife',.04],['g_gm_bark',.10],['g_gm_ring',.025],['g_gm_heart',.01]]};
+const SLOT_OF=id=>GEAR[id].slot;   // 'rh' | 'lh' | 'armor' | 'acc'
+const slotFits=(id,sl)=>{const s=SLOT_OF(id);return s==='acc'?sl.startsWith('acc'):s===sl};
+const is2H=id=>!!(id&&GEAR[id].wt&&WT[GEAR[id].wt].h2);
 const gearStat=(id,k)=>(GEAR[id]&&GEAR[id][k])||0;
-const gearDesc=id=>{const d=GEAR[id];return['atk','hp','mp','spd'].filter(k=>d[k]).map(k=>({atk:'공격력',hp:'체력',mp:'MP',spd:'이동속도'})[k]+' +'+d[k]+'%').join(' · ')};
+const gearDesc=id=>{const d=GEAR[id];return(d.wt?'['+WT[d.wt].n+(WT[d.wt].h2?'·양손':'')+'] ':'')+['atk','hp','mp','spd'].filter(k=>d[k]).map(k=>({atk:'공격력',hp:'체력',mp:'MP',spd:'이동속도'})[k]+' +'+d[k]+'%').join(' · ')+(d.req?'  /  요구 '+reqText(d.req):'')};
+const STATN={str:'STR',dex:'DEX',int:'INT',luk:'LUK',lv:'Lv.'};
+const reqText=r=>Object.keys(r).map(k=>k==='lv'?'Lv.'+r.lv:STATN[k]+' '+r[k]).join(' ');
 const ETC_NAME={vegbit:'야채 조각',gtooth:'도깨비 금이빨',essence:'귀목의 정수',gwi:'귀안(鬼眼)'};
 const CASH_ITEMS=Object.keys(ITEMS).filter(k=>ITEMS[k].cash);
 // 출석 : 연속 7일 사이클. 7일째에 캐시 치장템 지급 · 누적 출석 보너스
@@ -125,15 +141,16 @@ const SCROLLS={
  hp60:{n:'체력 주문서 60%',stat:'hp',rate:.6,pts:2,price:1000},
  hp30:{n:'체력 주문서 30%',stat:'hp',rate:.3,pts:4,price:2500},
  white:{n:'순백의 주문서 (슬롯 복구)',white:1,price:10000},
+ apreset:{n:'AP 초기화 주문서',apreset:1,price:3000},
 };
 const POTION={hp:{n:'야채 즙(HP)',price:60,heal:.4},mp:{n:'맑은 물(MP)',price:60,heal:.5}};
 
 /* ---------------- monsters ---------------- */
 const MOBS={
- egg:{n:'달걀귀신',hp:30,dmg:12,exp:14,coin:[3,9],w:30,h:34},
- wisp:{n:'도깨비불',hp:22,dmg:10,exp:10,coin:[2,7],w:26,h:30},
+ egg:{n:'달걀 슬라임',hp:30,dmg:12,exp:14,coin:[3,9],w:30,h:34},
+ wisp:{n:'불꽃 요정',hp:22,dmg:10,exp:10,coin:[2,7],w:26,h:30},
  arm:{n:'귀목의 팔',hp:900,dmg:0,exp:120,coin:[0,0],w:150,h:56},
- baby:{n:'아기 달걀귀신',hp:14,dmg:8,exp:4,coin:[1,3],w:22,h:24},
+ baby:{n:'아기 달걀 슬라임',hp:14,dmg:8,exp:4,coin:[1,3],w:22,h:24},
 };
 
 /* ---------------- quests ---------------- */
@@ -146,8 +163,8 @@ const QUESTS={
  main2:{name:'도깨비 대왕 토벌',giver:'chief',min:3,pre:['main1'],desc:'숲의 끝에서 날뛰는 도깨비 대왕을 처치하라!',objs:[{t:'boss',id:'dokkaebi',label:'도깨비 대왕 처치'}],rew:{exp:220,coin:600,item:'cape_red'}},
  main3:{name:'하늘길 개척',giver:'chief',min:6,pre:['main2'],desc:'구름 위 하늘길 끝까지 도달하라. 떨어지면 큰일이다!',objs:[{t:'reach',map:'sky',label:'하늘길 끝 도달'}],rew:{exp:320,coin:700,item:'face_sun'}},
  main4:{name:'구미호의 구슬',giver:'chief',min:8,pre:['main3'],desc:'하늘길 끝 달빛 신당의 구미호를 쓰러뜨려라.',objs:[{t:'boss',id:'fox',label:'구미호 처치'}],rew:{exp:600,coin:1200,item:'aura_ghost'}},
- s1:{name:'달걀귀신 소탕',giver:'board',min:1,desc:'숲에 달걀귀신이 득실댄다. 15마리를 잡아라.',objs:[{t:'kill',mob:'egg',n:15,label:'달걀귀신 처치'}],rew:{exp:60,coin:220}},
- s2:{name:'도깨비불 소방대',giver:'board',min:1,desc:'하늘을 떠도는 도깨비불 12마리를 꺼뜨려라.',objs:[{t:'kill',mob:'wisp',n:12,label:'도깨비불 처치'}],rew:{exp:60,coin:220,item:'face_heart'}},
+ s1:{name:'달걀 슬라임 소탕',giver:'board',min:1,desc:'숲에 달걀 슬라임이 득실댄다. 15마리를 잡아라.',objs:[{t:'kill',mob:'egg',n:15,label:'달걀 슬라임 처치'}],rew:{exp:60,coin:220}},
+ s2:{name:'불꽃 요정 소방대',giver:'board',min:1,desc:'하늘을 떠도는 불꽃 요정 12마리를 꺼뜨려라.',objs:[{t:'kill',mob:'wisp',n:12,label:'불꽃 요정 처치'}],rew:{exp:60,coin:220,item:'face_heart'}},
  s3:{name:'야채 조각 수집',giver:'board',min:1,desc:'몬스터가 떨어뜨리는 야채 조각 10개를 모아와라.',objs:[{t:'collect',item:'vegbit',n:10,label:'야채 조각 수집'}],rew:{exp:70,coin:260}},
  s4:{name:'근육 단련',giver:'board',min:1,desc:'스킬을 25번 사용해 근육을 단련하라.',objs:[{t:'count',key:'skill',n:25,label:'스킬 사용'}],rew:{exp:50,coin:160,item:'cape_blue'}},
  s5:{name:'체크포인트 순례',giver:'board',min:2,desc:'숲과 하늘길의 깃발(체크포인트) 3개를 밝혀라.',objs:[{t:'count',key:'flag',n:3,label:'깃발 밝히기'}],rew:{exp:50,coin:180}},
@@ -168,12 +185,12 @@ const QUESTS={
  z3:{name:'[귀문] 3단계 · 귀목 토벌대',giver:'zgate',min:40,pre:['z1'],desc:'천년 귀목을 세 번 쓰러뜨리고, 귀목이 드물게(40%) 남기는 귀목의 정수 3개를 가져와라. 그 정수로 최고의 투구를 만들어 주지.',
    objs:[{t:'boss',id:'guimok',n:3,label:'천년 귀목 처치'},{t:'collect',item:'essence',n:3,label:'귀목의 정수 (보스 40%)'}],rew:{pct:.5,coin:5000,gear:'q_helm'}},
  // ---- 일일 퀘스트 (매일 초기화 · 경험치는 레벨당 필요량의 일정 %) ----
- d1:{daily:1,name:'[일일] 달걀귀신 사냥',giver:'daily',min:1,desc:'오늘도 달걀귀신이 설친다. 20마리를 잡아라.',objs:[{t:'kill',mob:'egg',n:20,label:'달걀귀신 처치'}],rew:{pct:'d'}},
- d2:{daily:1,name:'[일일] 도깨비불 끄기',giver:'daily',min:1,desc:'도깨비불 10마리를 꺼뜨려라.',objs:[{t:'kill',mob:'wisp',n:10,label:'도깨비불 처치'}],rew:{pct:'d'}},
+ d1:{daily:1,name:'[일일] 달걀 슬라임 사냥',giver:'daily',min:1,desc:'오늘도 달걀 슬라임이 설친다. 20마리를 잡아라.',objs:[{t:'kill',mob:'egg',n:20,label:'달걀 슬라임 처치'}],rew:{pct:'d'}},
+ d2:{daily:1,name:'[일일] 불꽃 요정 끄기',giver:'daily',min:1,desc:'불꽃 요정 10마리를 꺼뜨려라.',objs:[{t:'kill',mob:'wisp',n:10,label:'불꽃 요정 처치'}],rew:{pct:'d'}},
  d3:{daily:1,name:'[일일] 야채 조각 납품',giver:'daily',min:1,desc:'야채 조각 8개를 납품하라.',objs:[{t:'collect',item:'vegbit',n:8,label:'야채 조각 수집'}],rew:{pct:'d'}},
  d4:{daily:1,name:'[일일] 근육 단련',giver:'daily',min:1,desc:'스킬을 30번 사용해 근육을 단련하라.',objs:[{t:'count',key:'skill',n:30,label:'스킬 사용'}],rew:{pct:'d'}},
  d5:{daily:1,name:'[일일] 숲 정상 정복',giver:'daily',min:1,desc:'도깨비 숲 꼭대기까지 올라라.',objs:[{t:'reach',map:'forest',label:'도깨비 숲 꼭대기 도달'}],rew:{pct:'d'}},
- hid:{name:'[숨겨진] 달걀귀신 소굴',giver:'miko',min:6,desc:'달걀귀신 소굴에 갇힌 영혼들을 구해달라고 한다. 파티원 3명(AI 동료 포함)이 필요하다.',objs:[{t:'pq',n:1,label:'파티퀘스트 클리어'}],rew:{exp:700,coin:1500,item:'hat_horns'}},
+ hid:{name:'[숨겨진] 달걀 슬라임 소굴',giver:'miko',min:6,desc:'달걀 슬라임 소굴에 갇힌 영혼들을 구해달라고 한다. 파티원 3명(AI 동료 포함)이 필요하다.',objs:[{t:'pq',n:1,label:'파티퀘스트 클리어'}],rew:{exp:700,coin:1500,item:'hat_horns'}},
 };
 const NPCS=[
  {id:'att',name:'출석부 요정 팥',x:1735,look:'att',tag:'출석 체크 · 이벤트 코인'},
@@ -191,13 +208,13 @@ const NPCS=[
  {id:'adv2',name:'숲의 스승 가지',x:0,look:'sage',tag:'2차 전직 (Lv.30)',map:'forest'},
  {id:'adv3',name:'달빛 대현자',x:0,look:'moon',tag:'3차 전직 (Lv.70)',map:'sky'},
  {id:'zgate',name:'귀문 수문장 해태',x:0,look:'zgate',tag:'귀목 원정대 (Lv.40)',maps:['cave','altar']},
- {id:'miko',name:'귀혼 무녀',x:110,look:'miko',tag:'???',hidden:true},
+ {id:'miko',name:'숨은 무녀',x:110,look:'miko',tag:'???',hidden:true},
 ];
 
 /* ---------------- save ---------------- */
 const SAVEKEY='yachae_buraki_v3',OLDKEY='yachae_buraki_v2';
 function defaultSave(jobId){
-  return {job:jobId,lvl:1,exp:0,coins:200,tier:0,inv:{},eq:{},potions:{hp:3,mp:2},q:{},flags:{},cnt:{},talked:{},cleared:{},pq:0,name:'부락리',dayKey:'',dbonus:false,duel:{w:0,l:0},ec:0,att:{last:-1,streak:0,total:0,weeks:0},enh:{atk:0,hp:0,used:0},scrolls:{},gear:{},ginv:{}};
+  return {job:jobId,lvl:1,exp:0,coins:200,tier:0,inv:{},eq:{},potions:{hp:3,mp:2},q:{},flags:{},cnt:{},talked:{},cleared:{},pq:0,name:'부락리',dayKey:'',dbonus:false,duel:{w:0,l:0},ec:0,att:{last:-1,streak:0,total:0,weeks:0},enh:{atk:0,hp:0,used:0},scrolls:{},gear:{},ginv:{},ap:{str:4,dex:4,int:4,luk:4},apFree:0,mega:{m:1,h:0},dg:{},stele:{}};
 }
 let SAVE=null;
 /* ---------------- 계정 / 클라우드 저장 (서버가 없으면 게스트 로컬 저장) ---------------- */
@@ -244,7 +261,7 @@ function setAcct(a){ACCT=a;try{a?localStorage.setItem(TOKKEY,JSON.stringify(a)):
 async function autoLogin(){
   const a=readLocal(TOKKEY);if(!a||!a.token)return;
   ACCT=a;
-  try{const me=await api('GET','/api/me');ACCT.name=me.name;await syncAfterLogin();CLOUD={ok:true,at:Date.now()}}
+  try{const me=await api('GET','/api/me');ACCT.name=me.name;await syncAfterLogin();CLOUD={ok:true,at:Date.now()};refreshMe()}
   catch(e){if(e.status===401)setAcct(null);else ACCT=null}   // 서버 없음(정적 호스팅) → 게스트
 }
 /* 로그인 창 (DOM 오버레이) */
@@ -267,7 +284,7 @@ function openAuth(onDone){
     msg('연결 중…');
     try{
       const o=await api('POST','/api/'+kind,{name,password});
-      setAcct({name:o.name,token:o.token});const how=await syncAfterLogin();CLOUD={ok:true,at:Date.now()};
+      setAcct({name:o.name,token:o.token});const how=await syncAfterLogin();CLOUD={ok:true,at:Date.now()};refreshMe();
       msg(how==='server'?'불러오기 완료!':how==='guest'?'게스트 저장을 계정으로 옮겼어요':'완료!');setTimeout(close,500);
     }catch(e){msg(e.message==='Failed to fetch'||e instanceof TypeError?'서버에 연결할 수 없어요 (게스트로 플레이)':e.message)}
   };
