@@ -1,8 +1,8 @@
 /* ============================================================
    BOSSES : zones / hostile projectiles / 3 boss AIs
    ============================================================ */
-function addZone(o){S.zones.push(Object.assign({t:0,warn:.8,act:.2,dmg:20,hit:new Set(),kind:'slam',fired:false},o))}
-function addEproj(o){S.eproj.push(Object.assign({x:0,y:0,vx:0,vy:0,r:11,dmg:16,life:5,kind:'fire',grav:0,t:0},o))}
+function addZone(o){const z=Object.assign({t:0,warn:.8,act:.2,dmg:20,hit:new Set(),kind:'slam',fired:false},o);z.dmg*=(S.L.dmul||1);S.zones.push(z)}
+function addEproj(o){const e=Object.assign({x:0,y:0,vx:0,vy:0,r:11,dmg:16,life:5,kind:'fire',grav:0,t:0},o);e.dmg*=(S.L.dmul||1);S.eproj.push(e)}
 function tp(){const a=alive();return a[Math.random()*a.length|0]||PARTY[0]}
 function updateZones(dt){
   for(const z of S.zones){
@@ -78,6 +78,7 @@ const BOSS_REW={
   eggking:{pct:.40,coin:1500,pool:['hat_crown','out_gold','aura_flame','cape_ghost']},
 };
 function mkBoss(id){
+  if(STORY_BOSS[id])return mkStoryBoss(id,STORY_BOSS[id]);
   const n=PARTY.length,sc=1+.45*(n-1),L=S.L;
   const b={kind:'boss',id,face:-1,phase:1,flash:0,stun:0,anim:'idle',wait:1,cond:null,invuln:false,dying:false,dead:false,vx:0,vy:0,airT:0,onGround:true,gy:470,t:0,alpha:1,alphaT:1,last:''};
   if(id==='dokkaebi'){Object.assign(b,{name:'도깨비 대왕',x:1020,y:470,w:104,h:165,hp:Math.round(2600*sc),spd:125,cdmg:18});b.rect=e=>({x:e.x-44,y:e.y-e.h,w:88,h:e.h});b.gen=dokkaebiBrain(b)}
@@ -85,7 +86,7 @@ function mkBoss(id){
   else if(id==='guimok'){Object.assign(b,{name:'천년 귀목',x:L.w/2+20,y:470,w:180,h:300,hp:Math.round(9000*sc),cdmg:24});b.rect=e=>({x:e.x-70,y:e.y-290,w:140,h:290});b.gen=guimokBrain(b);
     for(let i=0;i<8;i++){const side=i%2?1:-1,lv=i>>1,ax=b.x+side*(175+(lv%2)*30),ay=420-lv*65;
       spawnMob('arm',ax,ay,{bx:ax,by:ay,side,lv,hp:Math.round(900*sc),max:Math.round(900*sc),rect:e=>({x:e.x-e.w/2,y:e.y-e.h/2,w:e.w,h:e.h})})}}
-  else{Object.assign(b,{name:'달걀귀신 대왕',x:1000,y:470,w:150,h:190,hp:Math.round(3600*sc),spd:100,cdmg:16});b.rect=e=>({x:e.x-e.w*.46,y:e.y-(e.anim==='roll'?105:e.h),w:e.w*.92,h:e.anim==='roll'?105:e.h-4});b.gen=eggKingBrain(b)}
+  else{Object.assign(b,{name:'킹 달걀 슬라임',x:1000,y:470,w:150,h:190,hp:Math.round(3600*sc),spd:100,cdmg:16});b.rect=e=>({x:e.x-e.w*.46,y:e.y-(e.anim==='roll'?105:e.h),w:e.w*.92,h:e.anim==='roll'?105:e.h-4});b.gen=eggKingBrain(b)}
   if((id==='dokkaebi'&&qst('j2').s==='active')||(id==='fox'&&qst('j3').s==='active')){b.hp=Math.round(b.hp*1.6);b.trial=true;b.name+=' (시련)'}
   b.max=b.hp;return b;
 }
@@ -103,18 +104,19 @@ function bossDie(b){
   sfx('roar');S.shake=24;S.slow=1.6;G.toast(b.name+' 격파!');
 }
 function bossFinish(b){
-  b.dead=true;const rw=BOSS_REW[b.id];
-  SAVE.cleared[b.id]=true;rw.exp=Math.max(30,Math.round(need(SAVE.lvl)*rw.pct*bossPct(SAVE.lvl)));gainExp(rw.exp);addCoins(rw.coin);
+  b.dead=true;const bid=b.sid||b.id,rw=BOSS_REW[bid];
+  SAVE.cleared[bid]=true;rw.exp=Math.max(30,Math.round(need(SAVE.lvl)*rw.pct*bossPct(SAVE.lvl)));gainExp(rw.exp);addCoins(rw.coin);
   let drop=null;const free=rw.pool.filter(i=>!SAVE.inv[i]);
   if(free.length&&Math.random()<(b.id==='guimok'?.3:1)){drop=free[Math.random()*free.length|0];SAVE.inv[drop]=1}
   const extra=[];
-  for(const[gid,rate]of(GEAR_DROP[b.id]||[]))if(Math.random()<rate){const d=GEAR[gid];if(SAVE.ginv[gid]){const c=[50,150,400,1200,3000][d.gr];SAVE.coins+=c;extra.push('['+GRADE[d.gr]+'] '+d.n+' (중복 → '+c+'●)')}else{SAVE.ginv[gid]=1;extra.push('★ ['+GRADE[d.gr]+'] '+d.n+' 획득!')}}
-  if(b.id==='guimok'&&Math.random()<.4){SAVE.inv.essence=(SAVE.inv.essence||0)+1;extra.push('귀목의 정수 +1');qev('collect',{item:'essence'})}
-  qev('boss',{id:b.id});
-  if(b.id==='eggking'){SAVE.pq=(SAVE.pq||0)+1;qev('pq',{})}
+  for(const[gid,rate]of(GEAR_DROP[bid]||[]))if(Math.random()<rate*EV().drop){const d=GEAR[gid];if(SAVE.ginv[gid]){const c=[50,150,400,1200,3000][d.gr];SAVE.coins+=c;extra.push('['+GRADE[d.gr]+'] '+d.n+' (중복 → '+c+'●)')}else{SAVE.ginv[gid]=1;extra.push('★ ['+GRADE[d.gr]+'] '+d.n+' 획득!')}}
+  if(bid==='guimok'&&Math.random()<.4*EV().drop){SAVE.inv.essence=(SAVE.inv.essence||0)+1;extra.push('귀목의 정수 +1');qev('collect',{item:'essence'})}
+  qev('boss',{id:bid});
+  if(bid==='eggking'){SAVE.pq=(SAVE.pq||0)+1;qev('pq',{})}
   saveGame();
   G.clear={title:b.name+' 격파!',lines:['경험치 +'+rw.exp,'야채코인 +'+rw.coin].concat(drop?['획득: '+ITEMS[drop].n+' ['+RARITY[ITEMS[drop].r]+']']:[]).concat(extra).slice(0,5)};
   G.state='clear';
+  if(b.sid)steleCheck(STORY_BOSS[b.sid].c);
 }
 function updateBoss(dt){
   const b=S.boss;if(!b||b.dead)return;
@@ -147,7 +149,7 @@ function updateBoss(dt){
   }
   // contact
   const r=rectOf(b),cd=b.cdmg*(b.anim==='charge'||b.anim==='roll'?1.5:1);
-  if(b.anim!=='vanish'&&b.alpha>.6)for(const p of PARTY)if(!p.dead&&ov(prect(p),{x:r.x+8,y:r.y+8,w:r.w-16,h:r.h-12}))hurtPlayer(p,cd,b.x,{kb:300});
+  if(b.anim!=='vanish'&&b.alpha>.6)for(const p of PARTY)if(!p.dead&&ov(prect(p),{x:r.x+8,y:r.y+8,w:r.w-16,h:r.h-12}))hurtPlayer(p,cd*(b.sid?1:(S.L.dmul||1)),b.x,{kb:300});
   // clones
   for(const c of S.clones){c.t+=dt;
     if(c.t>.9&&!c.fired){c.fired=true;const t=nearestAlive(c.x,c.y)||PARTY[0],ang=Math.atan2(t.y-40-c.y,t.x-c.x),n=b.phase>1?7:5;sfx('fire');for(let i=0;i<n;i++){const a=ang+(i-(n-1)/2)*.2;addEproj({x:c.x,y:c.y-60,vx:Math.cos(a)*320,vy:Math.sin(a)*320,r:10,dmg:14})}}
@@ -157,6 +159,7 @@ function updateBoss(dt){
 }
 function drawBoss(g,b,t){
   if(b.dead)return;
+  if(b.hue){g.save();g.filter='hue-rotate('+b.hue+'deg) saturate(1.2)'}
   if(b.id==='guimok')drawGuimok(g,b,t);
   else if(b.id==='dokkaebi')drawDokkaebi(g,b,t);
   else if(b.id==='fox'){
@@ -165,6 +168,7 @@ function drawBoss(g,b,t){
     if(b.orbPos)for(const o of b.orbPos){const gl=g.createRadialGradient(o.x,o.y,2,o.x,o.y,26);gl.addColorStop(0,'rgba(255,160,230,.95)');gl.addColorStop(1,'rgba(255,100,200,0)');g.fillStyle=gl;g.fillRect(o.x-28,o.y-28,56,56);circ(g,o.x,o.y,7,'#fff0fa')}
   }else drawEggKing(g,b,t);
   if(b.stun>0){g.fillStyle='#ffe04a';g.font='bold 22px sans-serif';g.textAlign='center';for(let i=0;i<3;i++){const a=t*5+i*2.1;g.fillText('★',b.x+Math.cos(a)*40,b.y-b.h-8+Math.sin(a)*8)}}
+  if(b.hue)g.restore();
 }
 
 /* ---------------- 도깨비 대왕 ---------------- */
@@ -277,7 +281,7 @@ function* foxClones(b){
   yield 2.6;
 }
 
-/* ---------------- 달걀귀신 대왕 ---------------- */
+/* ---------------- 킹 달걀 슬라임 ---------------- */
 function* eggKingBrain(b){
   while(true){
     if(b.hp<=b.max*.5&&b.phase===1)yield* egPhase(b);
@@ -288,7 +292,7 @@ function* eggKingBrain(b){
   }
 }
 function* egPhase(b){
-  b.phase=2;b.invuln=true;b.vx=0;b.anim='roar';sfx('roar');S.shake=18;G.toast('달걀귀신 대왕의 껍데기가 갈라진다!');
+  b.phase=2;b.invuln=true;b.vx=0;b.anim='roar';sfx('roar');S.shake=18;G.toast('킹 달걀 슬라임의 껍데기가 갈라진다!');
   spark(b.x,b.y-100,40,'#ffd34a',420,.8,5,0,true);yield 1.6;b.invuln=false;b.anim='idle';
 }
 function* egRoll(b){

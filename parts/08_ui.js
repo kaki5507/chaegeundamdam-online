@@ -31,7 +31,7 @@ const nav=()=>({u:tap('up'),d:tap('down'),l:tap('left'),r:tap('right'),ok:tap('o
 
 /* ---------------- quest logic ---------------- */
 function qst(id){return SAVE.q[id]||(SAVE.q[id]={s:'none',p:[]})}
-function qAvail(id){const q=QUESTS[id],st=qst(id);return st.s==='none'&&SAVE.lvl>=q.min&&(q.pre||[]).every(r=>qst(r).s==='done')}
+function qAvail(id){const q=QUESTS[id],st=qst(id);return st.s==='none'&&SAVE.lvl>=q.min&&(q.pre||[]).every(r=>qst(r).s==='done')&&(!q.story||q.story===1||steleOpen(q.story-1))}
 function qAccept(id){
   const q=QUESTS[id],st=qst(id);st.s='active';
   st.p=q.objs.map(o=>o.t==='collect'?Math.min(o.n,SAVE.inv[o.item]||0):o.t==='lvl'?(SAVE.lvl>=o.n?o.n:0):o.t==='talk'?Math.min(o.n,Object.keys(SAVE.talked).length):0);
@@ -48,7 +48,8 @@ function qev(type,d){
     const st=SAVE.q[id];if(st.s!=='active')continue;const q=QUESTS[id];let ch=false;
     q.objs.forEach((o,i)=>{
       const nn=o.n||1;if(st.p[i]>=nn)return;let v=st.p[i];
-      if(type==='kill'&&o.t==='kill'&&(o.mob==='any'?d.mob!=='dummy':o.mob===d.mob))v++;
+      if(type==='kill'&&o.t==='kill'&&(o.mob==='any'?d.mob!=='dummy':o.mob===d.mob)&&(!o.map||(S&&S.id.startsWith(o.map))))v++;
+      else if(type==='dg'&&o.t==='dg'&&o.ch===d.ch)v++;
       else if(type==='boss'&&o.t==='boss'&&o.id===d.id)v=o.n>1?v+1:nn;
       else if(type==='flag'&&o.t==='flag'&&o.key===d)v=1;
       else if(type==='reach'&&o.t==='reach'&&o.map===d.map)v=1;
@@ -107,8 +108,8 @@ function questDetail(n,giver,id){
   q.objs.forEach((o,i)=>{txt_+=(st.s==='none'?'▫ ':(st.p[i]>=(o.n||1)?'✔ ':'▫ '))+o.label+(o.n>1&&st.s!=='none'?'  ('+Math.min(st.p[i],o.n)+'/'+o.n+')':(o.n>1?'  ×'+o.n:''))+'\n'});
   const r=q.rew;txt_+='\n보상: EXP '+qExp(q)+'  코인 '+qCoin(q)+'  '+(r.item?'['+ITEMS[r.item].n+']':'')+(r.gear?'  ['+GRADE[GEAR[r.gear].gr]+'] '+GEAR[r.gear].n+' ('+gearDesc(r.gear)+')':'')+(r.give?'  '+Object.keys(r.give).map(k=>ETC_NAME[k]+'×'+r.give[k]).join(' '):'')+(q.adv?'  ★'+q.adv+'차 전직':'')+(q.rep?'\n(반복 가능)':'');
   const opts=[];
-  if(st.s==='none')opts.push({t:'수락한다',fn:()=>{qAccept(id);questMenu(n,giver,'좋아, 잘 부탁하네!')}});
-  if(st.s==='ready')opts.push({t:'완료 보고',fn:()=>{const l=qTurnIn(id);openDialog(n.name,'수고했네! 퀘스트 완료!\n\n'+l.join('\n'),[{t:'확인',fn:()=>questMenu(n,giver)}])}});
+  if(st.s==='none')opts.push({t:'수락한다',fn:()=>{qAccept(id);if(q.sceneA)playScene(q.sceneA,()=>questMenu(n,giver,'부탁하네!'));else questMenu(n,giver,'좋아, 잘 부탁하네!')}});
+  if(st.s==='ready')opts.push({t:'완료 보고',fn:()=>{const l=qTurnIn(id);if(q.sceneB){playScene(q.sceneB,()=>openDialog(n.name,'퀘스트 완료!\n\n'+l.join('\n'),[{t:'확인',fn:()=>questMenu(n,giver)}]));return}openDialog(n.name,'수고했네! 퀘스트 완료!\n\n'+l.join('\n'),[{t:'확인',fn:()=>questMenu(n,giver)}])}});
   opts.push({t:'뒤로',fn:()=>questMenu(n,giver)});
   openDialog(n.name+' · '+q.name,txt_,opts);
 }
@@ -202,6 +203,7 @@ function scrollUse(n){
 function scrollApply(k){   // 주문서 1장 사용 → {ok,msg} (슬롯 없음 등은 used:false)
   const d=SCROLLS[k],e=SAVE.enh,p=PARTY[0];
   if(!(SAVE.scrolls[k]>0))return{used:false,msg:'주문서가 없다'};
+  if(d.apreset){const tot=SAVE.ap.str+SAVE.ap.dex+SAVE.ap.int+SAVE.ap.luk-16+SAVE.apFree;SAVE.ap={str:4,dex:4,int:4,luk:4};SAVE.apFree=tot;SAVE.scrolls[k]--;gearValidate();recalc(p);sfx('lvl');saveGame();return{used:true,ok:true,msg:'능력치가 초기화됐다! AP '+tot+' — O 키로 다시 분배하자'}}
   if(d.white){
     if(e.used<=0)return{used:false,msg:'복구할 슬롯이 없다. 지금 슬롯은 모두 멀쩡해!'};
     SAVE.scrolls[k]--;e.used--;sfx('lvl');spark(p.x,p.y-40,24,'#ffffff',260,.8,4,0,true);saveGame();
@@ -236,6 +238,8 @@ function talkNPC(n){
   else if(n.id==='daily')dailyMenu(n);
   else if(n.id==='duel')duelMenu(n);
   else if(n.id==='att')attMenu(n);
+  else if(n.id==='dol')dolMenu(n);
+  else if(/^c[1-6]$/.test(n.id))questMenu(n,n.id,CH[+n.id[1]].hero.n+'\n「'+CH[+n.id[1]].title+'」의 주인공.\n\n'+'비석 앞에서 ↑ 로 이 이야기의 점프맵 · 던전 · 결말에 들어갈 수 있다.');
   else if(n.id==='zgate')questMenu(n,'zgate',SAVE.lvl<40?'귀문은 Lv.40 이상만 지날 수 있다. 더 강해져서 오게.':'여기는 천년 귀목이 잠든 귀문이다.\n1) 숨겨진 길(점프맵)을 돌파하고  2) 금이빨로 귀안을 만들어  3) 제단에 바쳐 귀목을 깨워라.\n보유 귀안: '+(SAVE.inv.gwi||0)+'개 · 금이빨 '+(SAVE.inv.gtooth||0)+'개');
   else if(n.id==='cash')openShop(true);
   else if(n.id==='scroll')scrollMenu(n);
@@ -248,6 +252,7 @@ function talkNPC(n){
     else opts.push({t:'하늘길 (도깨비 대왕 격파 후 개방)',fn:()=>openDialog(n.name,'하늘길은 도깨비 대왕을 쓰러뜨려야 열리네.')});
     if(SAVE.cleared.dokkaebi)opts.push({t:'도깨비 대왕 재도전',fn:()=>{closeUI();goMap('boss1')}});
     if(SAVE.cleared.fox)opts.push({t:'구미호 재도전',fn:()=>{closeUI();goMap('boss2')}});
+    opts.push({t:SAVE.lvl>=15?'비석의 길 (스토리 던전)':'비석의 길 (Lv.15 이상)',fn:()=>{if(SAVE.lvl<15){openDialog(n.name,'비석의 길은 Lv.15 이상만 들어갈 수 있다네.');return}closeUI();goMap('stele')}});
     opts.push({t:SAVE.lvl>=40?'귀문 동굴 (파티던전)':'귀문 동굴 (Lv.40 이상)',fn:()=>{if(SAVE.lvl<40){openDialog(n.name,'귀문은 Lv.40 이상만 들어갈 수 있다네. 그 너머엔 천년 묵은 귀목이 잠들어 있지…');return}closeUI();goMap('cave')}});
     opts.push({t:'닫기',fn:closeUI});
     openDialog(n.name,'나무아미타불… 어디로 가시려는가? 마을 동쪽 포탈로도 이동할 수 있네.',opts);
@@ -263,9 +268,9 @@ function mikoMenu(n){
   const opts=[];
   const ids=['hid'].filter(k=>qst(k).s!=='none'||qAvail(k));
   ids.forEach(k=>opts.push({t:({none:'[!] ',active:'[진행중] ',ready:'[완료!] ',done:'[끝] '})[qst(k).s]+QUESTS[k].name,fn:()=>questDetail(n,'miko',k)}));
-  if(qst('hid').s==='active'||qst('hid').s==='ready'||qst('hid').s==='done'||SAVE.lvl>=6)opts.push({t:'달걀귀신 소굴로 들어간다 (파티 3명 필요)',fn:()=>enterPQ(n)});
+  if(qst('hid').s==='active'||qst('hid').s==='ready'||qst('hid').s==='done'||SAVE.lvl>=6)opts.push({t:'달걀 슬라임 소굴로 들어간다 (파티 3명 필요)',fn:()=>enterPQ(n)});
   opts.push({t:'닫기',fn:closeUI});
-  openDialog(n.name,'……찾아냈구나. 이 마을 구석까지 오는 자는 드문데.\n달걀귀신 소굴에 영혼들이 갇혀 있어. 혼자서는 열 수 없는 문… 세 명이 힘을 모아야 해.',opts);
+  openDialog(n.name,'……찾아냈구나. 이 마을 구석까지 오는 자는 드문데.\n달걀 슬라임 소굴에 영혼들이 갇혀 있어. 혼자서는 열 수 없는 문… 세 명이 힘을 모아야 해.',opts);
 }
 function enterPQ(n){
   if(PARTY.length<3){
@@ -300,7 +305,7 @@ function removeMember(p){PARTY.splice(PARTY.indexOf(p),1);PARTY.forEach((q,i)=>q
 function openShop(cash){G.ui='shop';G.shop={tab:cash?2:0,sel:0,cash:!!cash};sfx('sel')}
 function shopList(){
   if(G.shop.cash)return CASH_ITEMS.map(id=>({id,cash:1}));
-  return G.shop.tab===0?[{id:'hp',potion:true},{id:'mp',potion:true}]:SHOP_ITEMS.map(id=>({id}));
+  return G.shop.tab===0?[{id:'hp',potion:true},{id:'mp',potion:true},{id:'m',mega:1},{id:'h',mega:1}]:SHOP_ITEMS.map(id=>({id}));
 }
 function shopUpdate(){
   const nv=nav(),lst=shopList();
@@ -310,7 +315,8 @@ function shopUpdate(){
   if(nv.d)G.shop.sel=(G.shop.sel+1)%lst.length;
   if(nv.ok){
     const it=lst[G.shop.sel];
-    if(it.potion){const pr=POTION[it.id].price;if(SAVE.coins>=pr){SAVE.coins-=pr;SAVE.potions[it.id]++;sfx('pickup');G.toast(POTION[it.id].n+' 구매!')}else G.toast('코인이 부족합니다')}
+    if(it.mega){const d=MEGA[it.id],ec=d.cur==='◆',have=ec?SAVE.ec:SAVE.coins;if(have>=d.price){if(ec)SAVE.ec-=d.price;else SAVE.coins-=d.price;SAVE.mega[it.id]++;sfx('pickup');G.toast(d.n+' 구매! (Enter 채팅에서 선택)');saveGame()}else G.toast(ec?'이벤트 코인이 부족합니다':'코인이 부족합니다')}
+    else if(it.potion){const pr=POTION[it.id].price;if(SAVE.coins>=pr){SAVE.coins-=pr;SAVE.potions[it.id]++;sfx('pickup');G.toast(POTION[it.id].n+' 구매!')}else G.toast('코인이 부족합니다')}
     else if(it.cash){const d=ITEMS[it.id];if(SAVE.inv[it.id])G.toast('이미 가지고 있습니다');else if(SAVE.ec>=d.ec){SAVE.ec-=d.ec;SAVE.inv[it.id]=1;sfx('lvl');G.toast(d.n+' 구매! 옷장(I)에서 착용하세요');saveGame()}else G.toast('이벤트 코인이 부족합니다 (출석·일일 올클리어)')}
     else{const d=ITEMS[it.id];if(SAVE.inv[it.id])G.toast('이미 가지고 있습니다');else if(SAVE.coins>=d.price){SAVE.coins-=d.price;SAVE.inv[it.id]=1;sfx('lvl');G.toast(d.n+' 구매! 옷장에서 착용하세요');saveGame()}else G.toast('코인이 부족합니다')}
   }
@@ -328,7 +334,8 @@ function drawShop(g,t){
     const y=150+i*42,sel=st+i===G.shop.sel;
     g.fillStyle=sel?'rgba(255,220,120,.22)':'rgba(255,255,255,.05)';g.beginPath();g.roundRect(90,y,520,38,8);g.fill();
     if(sel){g.strokeStyle='#ffd34a';g.lineWidth=2;g.stroke()}
-    if(it.potion){const d=POTION[it.id];txt(g,d.n,110,y+25,16,'#fff');txt(g,'보유 '+SAVE.potions[it.id],430,y+25,14,'#cfd4e2','right',2);txt(g,d.price+'●',590,y+25,16,'#ffd34a','right')}
+    if(it.mega){const d=MEGA[it.id];txt(g,d.n+'  — '+d.d,110,y+25,15,'#ffb0e0');txt(g,'보유 '+SAVE.mega[it.id],520,y+25,13,'#cfd4e2','right',2);txt(g,d.price+d.cur,590,y+25,16,d.cur==='◆'?'#ff8ae0':'#ffd34a','right')}
+    else if(it.potion){const d=POTION[it.id];txt(g,d.n,110,y+25,16,'#fff');txt(g,'보유 '+SAVE.potions[it.id],430,y+25,14,'#cfd4e2','right',2);txt(g,d.price+'●',590,y+25,16,'#ffd34a','right')}
     else if(it.cash){const d=ITEMS[it.id],own=SAVE.inv[it.id];txt(g,'['+SLOTS.find(s=>s[0]===d.slot)[1]+'] '+d.n.replace('[캐시] ',''),110,y+25,16,RCOL[4]);txt(g,own?'보유중':'캐시',430,y+25,14,own?'#7aff9a':'#cfd4e2','right',2);txt(g,'◆ '+d.ec,590,y+25,16,own?'#777':'#ff8ae0','right')}
     else{const d=ITEMS[it.id],own=SAVE.inv[it.id];txt(g,'['+SLOTS.find(s=>s[0]===d.slot)[1]+'] '+d.n,110,y+25,16,RCOL[d.r]);txt(g,own?'보유중':RARITY[d.r],430,y+25,14,own?'#7aff9a':'#cfd4e2','right',2);txt(g,d.price+'●',590,y+25,16,own?'#777':'#ffd34a','right')}
   });
@@ -351,7 +358,7 @@ function invRows(){
   const t=G.inv.tab;
   if(t===0)return GSLOTS.map(([k,lb])=>({kind:'gear',slot:k,label:lb,id:SAVE.gear[k]||null})).concat(SLOTS.map((sl,i)=>({kind:'slot',i,label:sl[1],id:PARTY[0].eq[sl[0]]||null})));
   if(t===1){
-    const r=[{kind:'potion',id:'hp'},{kind:'potion',id:'mp'}];
+    const r=[{kind:'potion',id:'hp'},{kind:'potion',id:'mp'},{kind:'mega',id:'m'},{kind:'mega',id:'h'}];
     for(const k of Object.keys(SCROLLS))r.push({kind:'scroll',id:k});
     return r;
   }
@@ -363,7 +370,7 @@ function invRows(){
   r.push({kind:'misc',n:'야채코인 ●',v:SAVE.coins,d:'상점 · 주문서 구매에 쓰는 기본 화폐.'});
   r.push({kind:'misc',n:'이벤트 코인 ◆',v:SAVE.ec,d:'출석 · 일일 올클리어 · PvP 승리로 획득. 이벤트 상점(캐시 치장)에서 사용.'});
   r.push({kind:'misc',n:'보유 치장템',v:Object.keys(ITEMS).filter(k=>SAVE.inv[k]).length+' / '+Object.keys(ITEMS).length,d:'착용은 장비 탭에서 슬롯을 선택(Enter).'});
-  r.push({kind:'misc',n:'파티퀘스트 클리어',v:SAVE.pq||0,d:'달걀귀신 소굴 클리어 횟수.'});
+  r.push({kind:'misc',n:'파티퀘스트 클리어',v:SAVE.pq||0,d:'달걀 슬라임 소굴 클리어 횟수.'});
   r.push({kind:'misc',n:'결투 전적',v:(SAVE.duel?SAVE.duel.w+'승 '+SAVE.duel.l+'패':'-'),d:'낙사 결투장 기록.'});
   r.push({kind:'misc',n:'연속 출석',v:SAVE.att?SAVE.att.streak+'일 (누적 '+SAVE.att.total+')':'-',d:'7일 연속이면 캐시 치장템!'});
   return r;
@@ -380,6 +387,7 @@ function invUpdate(){
     if(r.kind==='slot'){openWardrobe();G.wd.tab=r.i}
     else if(r.kind==='gear')gearPick(r.slot);
     else if(r.kind==='potion'){usePotion(r.id)}
+    else if(r.kind==='mega'){closeUI();openChat(r.id==='m'?'mega':'hmega')}
     else if(r.kind==='scroll'){const x=scrollApply(r.id);G.toast(x.msg.split('\n')[0]+(x.used?'':''))}
   }
 }
@@ -393,6 +401,7 @@ function drawInv(g,t){
     g.fillStyle=sel?'rgba(255,220,120,.22)':'rgba(255,255,255,.05)';g.beginPath();g.roundRect(80,y,470,38,8);g.fill();if(sel){g.strokeStyle='#ffd34a';g.lineWidth=2;g.stroke()}
     if(r.kind==='gear'){const d=r.id&&GEAR[r.id];txt(g,'['+r.label+']',96,y+25,15,'#ffb060');txt(g,d?'['+GRADE[d.gr]+'] '+d.n:'(비어 있음)',178,y+25,15,d?GCOL[d.gr]:'#888');txt(g,'Enter : 장착',536,y+25,12,'#cfd4e2','right',2)}
     else if(r.kind==='slot'){txt(g,'['+r.label+']',96,y+25,15,'#9be8ff');txt(g,r.id?ITEMS[r.id].n:'(비어 있음)',170,y+25,16,r.id?RCOL[ITEMS[r.id].r]:'#888');txt(g,'Enter : 변경',536,y+25,12,'#cfd4e2','right',2)}
+    else if(r.kind==='mega'){const d=MEGA[r.id];txt(g,d.n,96,y+25,16,'#ffb0e0');txt(g,'×'+SAVE.mega[r.id],420,y+25,16,'#7aff9a','right');txt(g,'채팅 열기',536,y+25,12,'#cfd4e2','right',2)}
     else if(r.kind==='potion'){const d=POTION[r.id];txt(g,d.n,96,y+25,16,'#fff');txt(g,'×'+SAVE.potions[r.id],420,y+25,16,'#7aff9a','right');txt(g,'사용 ('+(r.id==='hp'?'1':'2')+'키)',536,y+25,12,'#cfd4e2','right',2)}
     else if(r.kind==='scroll'){const d=SCROLLS[r.id],c=SAVE.scrolls[r.id]||0;txt(g,d.n,96,y+25,15,c?'#fff':'#777');txt(g,'×'+c,420,y+25,16,c?'#7aff9a':'#777','right');txt(g,c?'사용':'',536,y+25,12,'#cfd4e2','right',2)}
     else{txt(g,r.n,96,y+25,16,'#fff');txt(g,String(r.v),536,y+25,16,'#ffd34a','right')}
@@ -410,7 +419,7 @@ function drawInv(g,t){
     L.forEach(([k,v],i)=>{const c=i%2,r=(i/2)|0,x0=c?738:588;txt(g,k,x0,372+r*22,13,'#cfd4e2','left',2);txt(g,String(v),x0+(c?138:136),372+r*22,13,'#fff','right',2)});
   }else if(G.inv.tab===1){
     txt(g,'소비 아이템',730,160,17,'#ffe9a0','center');
-    const lines=sel&&sel.kind==='potion'?(sel.id==='hp'?['HP를 40% 회복','1번 키로도 사용 가능']:['MP를 50% 회복','2번 키로도 사용 가능']):
+    const lines=sel&&sel.kind==='mega'?[MEGA[sel.id].d,'가격 '+MEGA[sel.id].price+MEGA[sel.id].cur+' (옥수수 상인)','Enter : 채팅창 열기']:sel&&sel.kind==='scroll'&&SCROLLS[sel.id].apreset?['모든 AP를 4로 되돌린다','O 키로 다시 분배','조건 안 맞는 장비는 해제됨']:sel&&sel.kind==='potion'?(sel.id==='hp'?['HP를 40% 회복','1번 키로도 사용 가능']:['MP를 50% 회복','2번 키로도 사용 가능']):
       sel&&sel.kind==='scroll'?(SCROLLS[sel.id].white?['슬롯 1칸을 복구한다','(강화 수치는 그대로)','가격 '+SCROLLS[sel.id].price+'●']:['성공률 '+Math.round(SCROLLS[sel.id].rate*100)+'%','성공 시 '+(SCROLLS[sel.id].stat==='atk'?'근육(공격력)':'체력')+' +'+SCROLLS[sel.id].pts,'슬롯 1칸 소모 (성공/실패 무관)','가격 '+SCROLLS[sel.id].price+'●','구매: 마을 어딘가의 수상한 상인']):[];
     lines.forEach((l,i)=>txt(g,l,730,210+i*26,15,'#fff','center',2));
     const e=SAVE.enh;txt(g,'남은 슬롯 '+(enhSlots()-e.used)+' / '+enhSlots(),730,420,15,'#9be8ff','center',2);
@@ -421,14 +430,18 @@ function drawInv(g,t){
   }
 }
 function gearPick(slot){
-  const own=Object.keys(GEAR).filter(k=>GEAR[k].slot===slot&&SAVE.ginv[k]).sort((a,b)=>GEAR[b].gr-GEAR[a].gr);
+  const own=Object.keys(GEAR).filter(k=>slotFits(k,slot)&&SAVE.ginv[k]).sort((a,b)=>GEAR[b].gr-GEAR[a].gr);
   const lb=GSLOTS.find(s=>s[0]===slot)[1],cur=SAVE.gear[slot];
-  const done=id=>{if(id)SAVE.gear[slot]=id;else delete SAVE.gear[slot];const p=PARTY[0],r=p.hp/p.maxhp;recalc(p);p.hp=Math.round(p.maxhp*r);sfx('pickup');saveGame();openInv(0);G.inv.sel=GSLOTS.findIndex(s=>s[0]===slot)};
-  const opts=own.map(k=>({t:(k===cur?'✔ ':'')+'['+GRADE[GEAR[k].gr]+'] '+GEAR[k].n,fn:()=>done(k)}));
+  const back=()=>{openInv(0);G.inv.sel=GSLOTS.findIndex(s=>s[0]===slot)};
+  const done=id=>{
+    if(id){const err=gearEquip(id,slot);if(err){G.toast('착용 불가: '+err);sfx('hurt');return}}else delete SAVE.gear[slot];
+    const p=PARTY[0],r=p.hp/p.maxhp;recalc(p);p.hp=Math.round(p.maxhp*r);sfx('pickup');saveGame();back()};
+  const opts=own.map(k=>{const bad=gearCheck(k).length;return{t:(k===cur?'✔ ':bad?'✖ ':'')+'['+GRADE[GEAR[k].gr]+'] '+GEAR[k].n,fn:()=>done(k)}});
   if(cur)opts.push({t:'장착 해제',fn:()=>done(null)});
-  opts.push({t:'닫기',fn:()=>{closeUI();openInv(0)}});
-  const lines=own.map(k=>'['+GRADE[GEAR[k].gr]+'] '+GEAR[k].n+(GEAR[k].quest?' (퀘스트 전용)':'')+' : '+gearDesc(k));
-  openDialog(lb+' 장착',own.length?lines.slice(0,8).join('\n'):'가진 '+lb+'이(가) 없다.\n보스를 쓰러뜨리면 낮은 확률로 장비가 떨어진다. (등급이 높을수록 희귀!)\n최고 등급은 퀘스트로만 얻을 수 있다.',opts);
+  opts.push({t:'닫기',fn:()=>{closeUI();back()}});
+  const lines=own.map(k=>{const w=gearCheck(k);return(w.length?'✖ ':'')+'['+GRADE[GEAR[k].gr]+'] '+GEAR[k].n+(GEAR[k].quest?' (퀘스트)':'')+' — '+gearDesc(k)+(w.length?'\n   └ '+w[0]:'')});
+  const hint=slot==='rh'?'사용 가능 무기: '+(JOB_WEAP[SAVE.job]||[]).map(w=>WT[w].n+(WT[w].h2?'(양손)':'')).join(', '):slot==='lh'?'왼손: '+((JOB_LH[SAVE.job]||[]).map(w=>WT[w].n).join(', ')||'이 직업은 왼손 장비 없음')+' · 양손무기 착용 중엔 사용 불가':'';
+  openDialog(lb+' 장착',(hint?hint+'\n\n':'')+(own.length?lines.slice(0,6).join('\n'):'가진 장비가 없다.\n보스를 쓰러뜨리면 낮은 확률로 장비가 떨어진다. (등급이 높을수록 희귀!)\n최고 등급은 퀘스트로만 얻을 수 있다.'),opts);
 }
 function openWardrobe(){G.ui='wardrobe';G.wd={tab:0,sel:0};sfx('sel')}
 function wdList(){const slot=SLOTS[G.wd.tab][0];return[null].concat(Object.keys(ITEMS).filter(k=>ITEMS[k].slot===slot&&SAVE.inv[k]))}
@@ -475,7 +488,7 @@ function drawHUD(g,t){
   let py=98;
   for(const q of PARTY){if(q===p)continue;
     panel(g,10,py,200,38,.6);txt(g,(S.L.pvp?(q.team===p.team?'아군 ':'상대 '):q.kind==='p2'?'2P ':'AI ')+JOB[q.job].veg+' Lv.'+q.lvl,18,py+16,12,q.dead?'#999':'#fff','left',2);
-    bar(g,18,py+21,184,8,q.dead?0:q.hp/q.maxhp,'#e8484f');if(q.dead)txt(g,'귀혼…'+Math.max(0,(q.kind==='ai'?7:6)-q.deadT).toFixed(0),200,py+16,11,'#cfe0ff','right',2);py+=42}
+    bar(g,18,py+21,184,8,q.dead?0:q.hp/q.maxhp,'#e8484f');if(q.dead)txt(g,'기절…'+Math.max(0,(q.kind==='ai'?7:6)-q.deadT).toFixed(0),200,py+16,11,'#cfe0ff','right',2);py+=42}
   // exp
   const ex=SAVE.lvl>=MAXLV?1:SAVE.exp/need(SAVE.lvl);
   bar(g,0,H-11,W,11,ex,'#ffd34a','rgba(0,0,0,.7)');txt(g,'EXP '+(SAVE.lvl>=MAXLV?'MAX':(ex*100).toFixed(2)+'%'),W/2,H-2,10,'#fff','center',2);
@@ -512,7 +525,7 @@ function drawHUD(g,t){
   // PQ status
   if(S.L.pq){
     const pq=S.pq;let s='';
-    if(S.L.pq===1)s='영혼 쿠폰 '+pq.coupons+' / 15';else if(S.L.pq===2)s='혼의 발판 '+(pq.plateOn||0)+' / 3';else if(S.L.pq===3)s='열쇠 '+pq.keys+' / 7';else s='달걀귀신 대왕 처치!';
+    if(S.L.pq===1)s='영혼 쿠폰 '+pq.coupons+' / 15';else if(S.L.pq===2)s='혼의 발판 '+(pq.plateOn||0)+' / 3';else if(S.L.pq===3)s='열쇠 '+pq.keys+' / 7';else s='킹 달걀 슬라임 처치!';
     panel(g,W/2-130,8,260,34,.72);txt(g,'파티퀘스트 '+S.L.pq+'/4 · '+s,W/2,31,15,'#c0a0ff','center');
   }
   // tutorial hint
@@ -580,11 +593,11 @@ function drawQuestLog(g,t){
 const HELP=[
   ['1P  이동','← →  /  ↑ ↓ (밧줄·포탈·NPC)'],['1P  점프','Space 또는 Alt  (↓ + 점프 : 아래로 내려가기)'],['1P  공격','Z 또는 Ctrl  (꾹 누르면 연속)'],
   ['1P  스킬','C (수련생) · 1차 X V · 2차 B · 3차 N'],['1P  물약','1 : HP  /  2 : MP'],['2P  이동','A D W S   점프 : Shift   공격 : F'],['2P  스킬','G H T Y U'],
-  ['메뉴','Q 퀘스트 · I 인벤토리 · P 일시정지 · M 음소거 · E AI 동료 배치/해제'],['밧줄','밧줄 앞에서 ↑ / ↓ , 점프+좌우로 뛰어내리기'],['팁','일일퀘스트 · PvP 결투장 · 전직(1차 마을/2차 숲 꼭대기/3차 하늘길 끝)'],
+  ['채팅','Enter : 채팅 (일반 · 확성기 · 고확성기)   O : 능력치(AP)'],['메뉴','Q 퀘스트 · I 인벤토리 · P 일시정지 · M 음소거 · E AI 동료 배치/해제'],['밧줄','밧줄 앞에서 ↑ / ↓ , 점프+좌우로 뛰어내리기'],['팁','일일퀘스트 · PvP 결투장 · 전직(1차 마을/2차 숲 꼭대기/3차 하늘길 끝)'],
 ];
 function drawHelp(g){
   g.fillStyle='rgba(8,4,16,.7)';g.fillRect(0,0,W,H);panel(g,90,50,780,440,.94);
   txt(g,'조작법',W/2,98,28,'#ffe9a0','center');
-  HELP.forEach((h,i)=>{txt(g,h[0],130,150+i*31,16,'#ffd34a');txt(g,h[1],270,150+i*31,16,'#fff')});
+  HELP.forEach((h,i)=>{txt(g,h[0],130,140+i*28,15,'#ffd34a');txt(g,h[1],270,140+i*28,15,'#fff')});
   txt(g,'아무 키나 눌러 닫기',W/2,470,14,'#cfd4e2','center',2);
 }

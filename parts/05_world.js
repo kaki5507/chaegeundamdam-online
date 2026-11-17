@@ -13,7 +13,7 @@ function buildTown(){
   L.plats.push(plat(1500,380,150,14,'o'),plat(1640,300,120,14,'o'));   // decorative hop
   L.npcs=NPCS.filter(n=>!n.map&&!n.maps).map(n=>Object.assign({gy},n));
   L.dummies=[{x:560,y:gy},{x:660,y:gy},{x:760,y:gy}];
-  L.portals=[{x:2290,y:gy,to:'forest',label:'도깨비 숲'},{x:2450,y:gy,to:'sky',label:'하늘길',lock:'dokkaebi'}];
+  L.portals=[{x:2290,y:gy,to:'forest',label:'도깨비 숲'},{x:2450,y:gy,to:'sky',label:'하늘길',lock:'dokkaebi'},{x:2560,y:gy,to:'stele',label:'비석의 길',lockLv:15}];
   return L;
 }
 
@@ -100,9 +100,9 @@ function buildArena2(){
   L.plats.push(plat(110,360,300,14,'o'),plat(870,360,300,14,'o'),plat(500,250,280,14,'o'));return L;
 }
 
-/* ---------- Party Quest : 달걀귀신 소굴 ---------- */
+/* ---------- Party Quest : 달걀 슬라임 소굴 ---------- */
 function buildPQ1(){
-  const L=arenaBase({id:'pq1',name:'소굴 1단계 · 영혼 쿠폰',sub:'달걀귀신을 잡아 영혼 쿠폰 15장을 모아라',theme:'night',music:'boss',pq:1,mscale:1.8});
+  const L=arenaBase({id:'pq1',name:'소굴 1단계 · 영혼 쿠폰',sub:'달걀 슬라임을 잡아 영혼 쿠폰 15장을 모아라',theme:'night',music:'boss',pq:1,mscale:1.8});
   L.plats.push(plat(110,350,240,14,'o'),plat(930,350,240,14,'o'),plat(520,250,240,14,'o'));
   L.spawner={max:9,every:1.5,types:['egg','egg','wisp']};
   L.portals.push({x:1200,y:470,to:'pq2',label:'다음 단계',hidden:true,pqNext:true});return L;
@@ -123,7 +123,7 @@ function buildPQ3(){
   L.portals.push({x:1200,y:470,to:'pq4',label:'보스 방',hidden:true,pqNext:true});return L;
 }
 function buildPQ4(){
-  const L=arenaBase({id:'pq4',name:'소굴 최하층 · 달걀귀신 대왕',sub:'BOSS · 파티원과 함께 쓰러뜨려라!',theme:'night',music:'boss',pq:4,boss:'eggking'});
+  const L=arenaBase({id:'pq4',name:'소굴 최하층 · 킹 달걀 슬라임',sub:'BOSS · 파티원과 함께 쓰러뜨려라!',theme:'night',music:'boss',pq:4,boss:'eggking'});
   L.plats.push(plat(130,350,220,14,'o'),plat(930,350,220,14,'o'),plat(530,250,220,14,'o'));return L;
 }
 /* ---------- PvP 결투장 : 공중 섬. 밀려 떨어지면 낙사! ---------- */

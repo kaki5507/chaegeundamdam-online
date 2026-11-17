@@ -20,6 +20,7 @@ function recalc(p){
   p.maxmp=Math.round((j.mp+(lv-1)*4)*[1,1.1,1.25,1.5][ti]);
   p.atkBase=(j.atk+(lv-1)*2.3)*[1,1.15,1.45,1.9][ti];
   p.spdMul=1;
+  if(p.kind==='p1'&&typeof SAVE!=='undefined'&&SAVE&&SAVE.ap)applyAP(p);
   if(p.kind==='p1'&&typeof SAVE!=='undefined'&&SAVE&&SAVE.gear){let a=0,h=0,m=0,sp=0;for(const sl in SAVE.gear){const id=SAVE.gear[sl];a+=gearStat(id,'atk');h+=gearStat(id,'hp');m+=gearStat(id,'mp');sp+=gearStat(id,'spd')}
     p.atkBase*=1+a/100;p.maxhp=Math.round(p.maxhp*(1+h/100));p.maxmp=Math.round(p.maxmp*(1+m/100));p.spdMul=1+sp/100}
   if(p.kind==='p1'&&typeof SAVE!=='undefined'&&SAVE&&SAVE.enh){p.maxhp=Math.round(p.maxhp*(1+SAVE.enh.hp*.015));p.atkBase*=1+SAVE.enh.atk*.012}
@@ -40,15 +41,16 @@ function inputOf(p){
 /* ---------- exp / coins ---------- */
 function gainExp(n,mob){
   const p=PARTY[0];if(!p||SAVE.lvl>=MAXLV)return;
-  if(mob)n=Math.max(1,Math.round(n*expMul(SAVE.lvl)));
+  if(mob)n=Math.max(1,Math.round(n*expMul(SAVE.lvl)*EV().exp));
   SAVE.exp+=n;ftext(p.x,p.y-78,'+'+n+' EXP','#9be8ff',14);
   while(SAVE.lvl<MAXLV&&SAVE.exp>=need(SAVE.lvl)){
     SAVE.exp-=need(SAVE.lvl);SAVE.lvl++;
-    p.lvl=SAVE.lvl;recalc(p);p.hp=p.maxhp;p.mp=p.maxmp;
+    SAVE.apFree=(SAVE.apFree||0)+5;p.lvl=SAVE.lvl;recalc(p);p.hp=p.maxhp;p.mp=p.maxmp;
     for(const q of PARTY)if(q!==p&&!q.foe){q.lvl=SAVE.lvl;q.tier=q.kind==='p1'?SAVE.tier:tierOfLv(q.lvl);recalc(q);q.hp=q.maxhp;q.mp=q.maxmp}
     sfx('lvl');ftext(p.x,p.y-110,'LEVEL UP! Lv.'+SAVE.lvl,'#ffe04a',24,1.6);spark(p.x,p.y-30,40,'#ffe04a',320,.9,4,200,true);
     const ai=[1,2,3].find(t=>SAVE.lvl===ADV_LV[t]&&SAVE.tier<t);
     G.toast('레벨 업!  Lv.'+SAVE.lvl+(ai?'  — '+ai+'차 전직 가능! ('+['','야채마을 교관','도깨비 숲 꼭대기','하늘길 끝'][ai]+')':''));
+    if(!ai)G.toast('AP +5 — O 키로 능력치를 올리세요');
     qev('lvl');
   }
   if(SAVE.lvl>=MAXLV)SAVE.exp=0;
@@ -65,7 +67,7 @@ function eachTarget(fn,owner){
 }
 const rectOf=t=>t.rect?t.rect(t):{x:t.x-t.w/2,y:t.y-t.h,w:t.w,h:t.h};
 function dealDamage(p,t,dmg,dir,o={}){
-  const crit=Math.random()<.12;
+  const crit=Math.random()<(p&&p.crit||.12);
   let d=Math.round(dmg*(.9+Math.random()*.2)*(crit?1.7:1));
   hitTarget(t,d,dir,crit,p,o);
 }
@@ -89,11 +91,13 @@ function killMob(m){
   if(m.type==='arm'){spark(m.x,m.y,30,'#ff8a3a',300,.7,5,200,true);sfx('boom');S.shake=Math.max(S.shake,14);gainExp(m.exp,true);qev('kill',{mob:'arm'});ftext(m.x,m.y-50,'귀목의 팔 파괴!','#ffb060',20);
     if(!S.mobs.some(o=>o.type==='arm'&&!o.dead&&o!==m))G.toast('팔이 모두 부서졌다! 귀목의 본체를 공격하라!');return}
   spark(m.x,m.y-12,16,m.type==='wisp'?'#7ad0ff':'#f4f0e6',230,.55,4,300,true);
+  if(m.dgMob&&S.dg)S.dg.killed++;
+  if(S.L.ch&&Math.random()<.25*EV().drop)dropItem('ci'+S.L.ch,m.x,m.y-16,1);
   gainExp(m.exp,true);S.kills=(S.kills||0)+1;
   const cn=Math.round(rnd(d.coin[0],d.coin[1])*(S.L.mscale>1?1.6:1));
   for(let i=0;i<Math.min(3,1+(cn>8?1:0)+(cn>16?1:0));i++)dropItem('coin',m.x+rnd(-14,14),(m.type==='wisp'?m.y:m.y-14),Math.max(1,Math.round(cn/Math.min(3,1+(cn>8?1:0)+(cn>16?1:0)))));
   if(Math.random()<.36&&!S.L.pq)dropItem('vegbit',m.x,m.y-16,1);
-  if(S.L.cave&&Math.random()<.20)dropItem('gtooth',m.x,m.y-16,1);
+  if(S.L.cave&&Math.random()<.20*EV().drop)dropItem('gtooth',m.x,m.y-16,1);
   if(Math.random()<.10||m.bonus)dropItem(m.bonus||Math.random()<.6?'hp':'mp',m.x,m.y-16,1);
   if(S.L.pq===1)dropItem('coupon',m.x,m.y-16,1);
   qev('kill',{mob:m.type});
@@ -110,7 +114,7 @@ function dropItem(kind,x,y,v){S.items.push({kind,x,y,vx:rnd(-80,80),vy:-rnd(200,
 function spawnMob(type,x,y,o){
   const d=MOBS[type],sc=S.L.mscale;
   const m=Object.assign({kind:'mob',type,x,y,w:d.w,h:d.h,hp:Math.round(d.hp*sc),max:Math.round(d.hp*sc),vx:0,vy:0,kbx:0,dir:Math.random()<.5?-1:1,flash:0,dead:false,
-    dmg:Math.round(d.dmg*(sc>1?1+(sc-1)*.5:1)),exp:Math.round(d.exp*(sc>1?sc*.8:1)),ph:Math.random()*6,t:0,hopT:rnd(.4,2),col:'rgba(120,220,255,',col2:'#7ad0ff',col3:'#2a6ae0'},o||{});
+    dmg:Math.round(d.dmg*(sc>1?1+(sc-1)*.5:1)),exp:Math.round(d.exp*(sc>1?Math.min(3,sc*.8):1)),ph:Math.random()*6,t:0,hopT:rnd(.4,2),col:'rgba(255,190,90,',col2:'#ffb040',col3:'#ff6a30'},o||{});
   if(type==='wisp'){m.rect=e=>({x:e.x-e.w/2,y:e.y-e.h/2,w:e.w,h:e.h});m.ox=x;m.by=y;m.range=m.range||70}
   S.mobs.push(m);return m;
 }
@@ -178,7 +182,7 @@ function pickup(it,p){
   else if(k==='mp'){const h=Math.round(p.maxmp*.4);p.mp=Math.min(p.maxmp,p.mp+h);ftext(p.x,p.y-70,'+'+h,'#6ab0ff',17)}
   else if(k==='vegbit'){SAVE.inv.vegbit=(SAVE.inv.vegbit||0)+1;ftext(it.x,it.y-20,'야채 조각','#9be8ae',13);qev('collect',{item:'vegbit'})}
   else if(k==='coupon'){S.pq.coupons++;ftext(it.x,it.y-20,'영혼 쿠폰 '+S.pq.coupons+'/15','#c0a0ff',15)}
-  else if(k==='gtooth'||k==='essence'){SAVE.inv[k]=(SAVE.inv[k]||0)+1;ftext(it.x,it.y-24,ETC_NAME[k]+' 획득!',k==='essence'?'#ff9a4a':'#ffd34a',16);qev('collect',{item:k})}
+  else if(ETC_NAME[k]){SAVE.inv[k]=(SAVE.inv[k]||0)+1;ftext(it.x,it.y-24,ETC_NAME[k]+' 획득!',k==='essence'?'#ff9a4a':'#ffd34a',16);qev('collect',{item:k})}
   else if(k==='key'){S.pq.keys++;ftext(it.x,it.y-20,'열쇠 '+S.pq.keys+'/7','#ffe04a',17)}
 }
 
@@ -190,7 +194,7 @@ function hurtPlayer(p,dmg,srcx,o){
   p.hp-=dmg;p.inv=o&&o.inv!==undefined?o.inv:1.0;p.stun=o&&o.stun||.2;p.vx=(sgn(p.x-srcx)||p.face*-1)*(o&&o.kb||240);p.vy=-(o&&o.up||300);p.rope=null;p.atkT=0;p.hitQ=-1;p.dashT=0;
   ftext(p.x,p.y-70,'-'+dmg,'#ff5a5a',20);sfx('hurt');spark(p.x,p.y-30,10,'#ff7a7a',200,.4);
   if(p.kind!=='ai'){S.shake=Math.max(S.shake,8);S.hitstop=Math.max(S.hitstop,.05)}
-  if(p.hp<=0){p.hp=0;p.dead=true;p.deadT=0;if(S.L.pvp)pvpKO(p);else p.vx=0;sfx('die');spark(p.x,p.y-30,26,'#cfe0ff',260,.9,4,-50,true);ftext(p.x,p.y-90,'귀혼이 되었다…','#cfe0ff',16,1.4)}
+  if(p.hp<=0){p.hp=0;p.dead=true;p.deadT=0;if(S.L.pvp)pvpKO(p);else p.vx=0;sfx('die');spark(p.x,p.y-30,26,'#cfe0ff',260,.9,4,-50,true);ftext(p.x,p.y-90,'기절했다…','#cfe0ff',16,1.4)}
   return true;
 }
 /* ---------- PvP ---------- */
