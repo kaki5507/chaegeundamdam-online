@@ -8,7 +8,7 @@
 ## ▶ 바로 플레이
 
 - **Render 배포 주소**: _(배포 후 여기에 URL을 적어주세요)_
-- 로컬 실행: `index.html` 을 브라우저로 열면 끝 (서버 불필요)
+- 로컬 실행: `index.html` 을 브라우저로 열면 게스트(로컬 저장)로 바로 플레이 · 계정 저장까지 쓰려면 `npm install && npm start` (아래 참고)
 
 ## ✨ 특징
 
@@ -19,6 +19,8 @@
 | 🧑‍🤝‍🧑 | 파티퀘스트 "달걀귀신 소굴" 4단계 (로컬 2P + AI 동료) |
 | 🥕 | 8개 직업 · 수련생→1차→2차→3차 전직 (전직 장소가 모두 다름) |
 | ⚔️ | 낙사 결투장 PvP + 넉백 |
+| 💾 | 이름+비밀번호 계정 · 서버(DB) 저장 — 어느 기기에서든 이어하기 |
+| 🎒 | 인벤토리 창(장비 · 소비 · 기타) |
 | 📅 | 일일 퀘스트 · 출석 체크 · 이벤트 코인 · 캐시 치장 상점 · 숨은 주문서 상인 |
 
 ## 🕹 조작법
@@ -35,6 +37,22 @@
 | 1 / 2 | HP / MP 물약 |
 | Q · I · E · P · M · H | 퀘스트 · 옷장 · AI 동료 대기 · 일시정지 · 음소거 · 도움말 |
 | 2P (WASD · Shift · F · G H T Y U) | 같은 키보드에서 2인 플레이 |
+
+## 💾 계정 & 저장 (DB)
+
+타이틀의 **로그인 / 회원가입**에서 *이름 + 비밀번호*만으로 계정을 만들면 진행 상황이 서버 DB(Postgres)에 저장되어 다른 기기·브라우저에서도 이어서 할 수 있습니다. 서버가 없거나 로그인하지 않으면 **게스트**로 이 브라우저에만 저장됩니다(게스트 저장은 가입 시 계정으로 자동 이전).
+
+![login](docs/img/14-login.png)
+
+- 비밀번호는 scrypt + 솔트로 해시해 저장 (원문 저장 안 함), 로그인 토큰은 HMAC 서명(30일)
+- 이름 2~12자(한글/영문/숫자/_), 비밀번호 4자 이상, IP별 요청 제한
+
+## 🎒 인벤토리 (I 키)
+
+장비 탭(착용 치장 5슬롯 + 능력치), 소비 탭(물약 · 강화 주문서 사용), 기타 탭(재료 · 재화 · 기록).
+
+![inventory](docs/img/12-inventory.png)
+![consumables](docs/img/13-inventory-consumables.png)
 
 ## 🥬 직업 8종
 
@@ -103,32 +121,39 @@
 
 ## 🛠 개발
 
-소스는 `head.html` + `parts/01~09_*.js` + `tail.html` 이며, `build.sh` 가 이를 합쳐 단일 `index.html` 을 만듭니다.
+소스는 `head.html` + `parts/01~09_*.js` + `tail.html` 이며, `build.sh` 가 이를 합쳐 단일 `index.html` 을 만듭니다. 계정 API 서버는 `server/` (Express + Postgres).
 
 ```bash
-./build.sh                 # index.html 생성 + 문법 검사 (Node 필요)
-pip install playwright     # (선택) 시뮬레이션 테스트
-python3 tests/test_progression_pvp.py
-python3 tests/test_attendance_cash_scrolls.py
+./build.sh                       # index.html 생성 + 문법 검사
+npm install
+npm start                        # http://localhost:3000  (DATABASE_URL 없으면 data/db.json 파일 DB 사용)
+npm run test:server              # 계정/저장 API 통합 테스트
+pip install playwright && python3 tests/test_progression_pvp.py   # (선택) 게임 시뮬레이션 테스트
 ```
 
 | 파일 | 내용 |
 |---|---|
 | `parts/01_core.js` | 입력 · WebAudio 합성 사운드/BGM · 파티클 |
 | `parts/02_art.js`, `04_art2.js` | 모든 그래픽(벡터 드로잉) · 캐릭터/치장/NPC |
-| `parts/03_data.js` | 직업 · 스킬 · 치장 · 퀘스트 · 경험치 곡선 · 저장 |
+| `parts/03_data.js` | 직업 · 스킬 · 치장 · 퀘스트 · 경험치 곡선 · 저장/계정 클라이언트 |
 | `parts/05_world.js` | 마을 · 점프맵(시드 생성) · 보스방 · 파티퀘스트 · PvP 맵 |
 | `parts/06_entities.js` | 전투 · 스킬 · 몬스터 · PvP · AI 동료 |
 | `parts/07_boss.js` | 보스 AI(제너레이터 스크립트) |
-| `parts/08_ui.js` | 퀘스트 · 대화 · 상점 · 옷장 · 출석 · 주문서 · HUD |
+| `parts/08_ui.js` | 퀘스트 · 대화 · 상점 · 인벤토리 · 출석 · 주문서 · HUD |
 | `parts/09_main.js` | 게임 루프 · 맵 로딩 · 렌더 |
+| `server/server.js`, `db.js` | 계정/저장 API · Postgres(Neon)/파일 DB 어댑터 |
 
-### ☁️ Render 배포
+### ☁️ 배포: Render(웹) + Neon(무료 Postgres)
 
-저장소 루트의 `render.yaml`(Blueprint)이 정적 사이트로 배포합니다. Render 대시보드 → **New → Blueprint** → 이 저장소 선택. 또는 **New → Static Site** 에서 Build Command 비움, Publish Directory `.` 로 설정해도 됩니다.
+1. **Neon**: [neon.com](https://neon.com) 에서 프로젝트 생성 → *Connection string* 복사 (`postgresql://…?sslmode=require`). 테이블은 서버가 첫 실행 때 자동 생성합니다.
+2. **Render**: 이 저장소를 연결해 **New → Blueprint** (루트의 `render.yaml` 사용) 또는 **New → Web Service** (Build `npm install`, Start `npm start`).
+3. 환경변수 `DATABASE_URL` 에 Neon 연결 문자열을 넣고, `SECRET` 은 자동 생성(Blueprint) 또는 임의의 긴 문자열로 설정.
+4. 이후 `main` 에 푸시하면 자동 배포됩니다. 헬스체크: `/api/health`
+
+> Neon 무료 플랜은 유휴 시 DB가 절전되어 첫 로그인이 1~2초 느릴 수 있고, Render 무료 웹 서비스도 유휴 후 첫 접속이 느립니다.
 
 ## 알려진 한계
 
-- 온라인 멀티플레이는 불가 (단일 정적 사이트) — 로컬 2P + AI 동료로 대체
+- 온라인 **실시간** 멀티플레이는 불가 — 로컬 2P + AI 동료로 대체 (계정/저장만 서버)
 - 몬스터가 레벨에 맞춰 강해지지 않아 고레벨은 쉬워짐
-- 저장은 브라우저 `localStorage`
+- 저장 데이터는 클라이언트가 보내므로 변조 방지는 하지 않음 (캐주얼 용도)
