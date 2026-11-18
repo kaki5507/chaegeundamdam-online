@@ -25,6 +25,7 @@ canvas{display:block;background:#2a1f6a;box-shadow:0 0 60px rgba(255,170,230,.35
 #touch{display:none;position:fixed;inset:0;pointer-events:none;font-family:sans-serif}
 #touch .b{position:absolute;pointer-events:auto;width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.5);color:#fff;font:bold 15px sans-serif;display:flex;align-items:center;justify-content:center;touch-action:none}
 #touch .b.on{background:rgba(255,220,120,.5)}
+@media (pointer:coarse) and (orientation:portrait){body{display:block!important}canvas#c{margin:70px auto 0!important;position:relative!important;top:0!important;transform:none!important}}
 </style></head><body>
 <canvas id="c" width="960" height="540"></canvas>
 <div id="touch">
@@ -1169,6 +1170,7 @@ function drawNPC(g,n,t,mark,faceDir){
   g.save();
   if(n.look==='fame'){drawFameSign(g,x,y,t);g.restore();return}
   if(n.swing){drawSwingNPC(g,n,t,faceDir);g.restore();return}
+  if(n.look==='taxi')drawTaxiCar(g,x,y,t);
   if(n.look==='board'){
     g.fillStyle='#5a3a1c';g.fillRect(x-40,y-92,6,92);g.fillRect(x+34,y-92,6,92);
     g.beginPath();g.roundRect(x-52,y-120,104,70,6);g.fillStyle='#8a5a30';g.fill();g.lineWidth=3;g.strokeStyle=O_;g.stroke();
@@ -1323,7 +1325,7 @@ function buildTown(){
 
 function buildForest(){
   const r=mulberry(11),Wd=1280,kinds=[],dys=[];
-  for(let i=0;i<26;i++){let k='n';if(i>3&&i%7===4)k='r';else if(i>8&&i%8===2)k='m';kinds.push(k);dys.push(k==='r'?188:k==='m'?18:Math.round(58+r()*14))}
+  for(let i=0;i<26;i++){let k='n';if(i>3&&i%7===4)k='r';else if(i>8&&i%8===2)k='m';kinds.push(k);dys.push(k==='r'?170:k==='m'?18:Math.round(50+r()*12))}
   const climb=dys.reduce((a,b)=>a+b,0)+80,Hh=climb+700,gy=Hh-70;
   const L=newL({id:'forest',name:'도깨비 숲 오르기',sub:'점프맵 · 꼭대기의 홍살문까지 올라라',theme:'forest',music:'field',w:Wd,h:Hh,spawn:{x:Wd/2,y:gy},killY:Hh+400,mscale:1});
   L.plats.push(plat(-300,gy,Wd+600,300,'s'));
@@ -1342,11 +1344,11 @@ function buildForest(){
       nx=bx;L.plats.push(plat(nx,y,w,14,'o'));
     }else{
       w=Math.round(110+r()*90);let dir=r()<.5?-1:1;if(cur.x<120)dir=1;if(cur.x+cur.w>Wd-120)dir=-1;
-      const gap=26+r()*50;nx=dir>0?cur.x+cur.w+gap:cur.x-gap-w;nx=clamp(nx,60,Wd-60-w);
+      const gap=18+r()*36;nx=dir>0?cur.x+cur.w+gap:cur.x-gap-w;nx=clamp(nx,60,Wd-60-w);
       L.plats.push(plat(nx,y,w,14,'o'));
-      if(w>=170&&i%3===2)L.spikes.push({x:nx+w/2-22,y,w:44});
+      if(w>=180&&i%6===2)L.spikes.push({x:nx+w/2-22,y,w:44});
       else if(w>=150&&r()<.5)L.mobs.push(['egg',nx+w/2,y,nx+14,nx+w-14]);
-      if(i%4===3)L.drops.push({x:nx+w/2+(r()-.5)*60,y:y-330,period:3.2+r(),ph:r()*3});
+      if(i%8===3)L.drops.push({x:nx+w/2+(r()-.5)*60,y:y-330,period:3.2+r(),ph:r()*3});
       if(i%4===1)L.mobs.push(['wisp',nx+w/2,y-100,70]);
     }
     if(i%6===5)L.flags.push({x:nx+w/2,y});
@@ -2685,6 +2687,7 @@ function duelMenu(n){
 function talkNPC(n){
   if(!SAVE.talked[n.id]){SAVE.talked[n.id]=1;qev('talk',{})}
   const p=PARTY[0];
+  if(n.id==='taxi')return taxiMenu(n);
   if(['swingkid','roofcat','balloon','lookout'].includes(n.id))return talkExtra(n);
   if(n.id==='chief'){
     const intro=qst('h4').s!=='done'?'오, 항구에서 온 모험가로구나! 야채마을에 온 걸 환영하네.':'야채 용사여, 오늘도 근육은 잘 있는가?\n소문에 마을 어딘가 높은 곳에 수상한 보따리 장수가 숨어 있다더군. 반짝이는 빛을 찾아보게나.';
@@ -3064,7 +3067,7 @@ function goMap(id,instant,end){
 }
 function loadMap(id,end){
   PARTY=PARTY.filter(p=>!p.foe);
-  const L=MAPS[id]();addExitPortal(L);
+  const L=MAPS[id]();addExitPortal(L);addTaxi(L);
   if(end&&L.endSpawn)L.spawn=L.endSpawn;
   S={L,id,t:0,time:0,mobs:[],dummies:[],boxes:[],items:[],pshots:[],eproj:[],zones:[],fx:[],clones:[],boss:null,cam:{x:0,y:0},shake:0,hitstop:0,slow:0,
      cp:{x:L.spawn.x,y:L.spawn.y},flagsOn:L.flags.map(f=>Object.assign({on:false},f)),drops:L.drops.map(d=>({x:d.x,y:d.y,period:d.period,t:d.ph,warn:0})),
@@ -3087,7 +3090,7 @@ function loadMap(id,end){
   if(L.dg)dgInit();
   if(L.hub&&!SAVE.flags.hubIntro){SAVE.flags.hubIntro=1;setTimeout(()=>{if(S&&S.id==='stele')playScene('hub')},900)}
   if(L.boss)S.boss=mkBoss(L.boss);
-  const lead=PARTY[0];S.cam.x=clamp(lead.x-W/2,0,Math.max(0,L.w-W));S.cam.y=clamp(lead.y-H*.62,0,Math.max(0,L.h-H));
+  const lead=PARTY[0];S.cam.x=clamp(lead.x-W/2,0,Math.max(0,L.w-W));S.cam.y=clamp(lead.y-H*.62,0,Math.max(0,L.h-H)+70);
   G.state='play';G.ui=null;G.dlg=null;G.banner={t:0,name:L.name,sub:L.sub};
   startMusic(L.music);
   if(L.town)saveGame();
@@ -3248,7 +3251,7 @@ function playStep(dt){
   if(near&&pressed.ArrowUp&&!lead.rope){if(near.k==='stele')steleMenu(near.st.c);else if(near.k==='altar')summonGuimok();else if(near.k==='npc')talkNPC(near.n);else if(near.k==='portal'){if(near.po.pqNext){sfx('portal');goMap(near.po.to)}else usePortal(near.po)}}
   // camera
   const cl=alive()[0]||lead;
-  const tx=clamp(cl.x-W/2+cl.face*50,0,Math.max(0,L.w-W)),ty=clamp(cl.y-H*.6,0,Math.max(0,L.h-H));
+  const tx=clamp(cl.x-W/2+cl.face*50,0,Math.max(0,L.w-W)),ty=clamp(cl.y-H*.6,0,Math.max(0,L.h-H)+70);
   const k=1-Math.pow(.0005,dt);S.cam.x=lerp(S.cam.x,tx,k);S.cam.y=lerp(S.cam.y,ty,k);
   // game over
   if(PARTY.every(p=>p.dead)&&(L.arena||L.pq)&&G.state==='play'){S.overT=(S.overT||0)+dt;if(S.overT>1.4){G.state='over'}}
@@ -3354,7 +3357,7 @@ function drawWorld(g){
     if(!vis(n.x-70,n.gy-160,140,170))continue;
     n.alpha=al;g.save();if(n.look!=='miko')g.globalAlpha=al;drawNPC(g,n,t,null,sgn(lead.x-n.x));g.restore();
     if(al>.5){const mk=npcMark(n.id),top=n.look==='board'?128:n.look==='closet'?126:n.look==='miko'?128:n.look==='fame'?156:60,ny=n.labelY?n.labelY:n.gy-top-8;
-      if(n.labelY||top>100)txt(g,n.name,n.x,ny,13,'#fff','center',3);else nameTag(g,n.x,n.gy+3,n.name,'#ffe9a0','rgba(70,40,120,.82)');drawMark(g,n.x,ny-(n.labelY||top>100?22:0),mk==='ready'?'ready':mk==='new'?'new':mk==='act'?'act':null,t);}
+      if(n.labelY||top>100)txt(g,n.name,n.x,ny,13,'#fff','center',3);else{nameTag(g,n.x,n.gy+3,n.name,'#ffe9a0','rgba(70,40,120,.82)');drawRoleTag(g,n)}drawMark(g,n.x,ny-(n.labelY||top>100?22:0),mk==='ready'?'ready':mk==='new'?'new':mk==='act'?'act':null,t);}
   }
   if(L.harbor)drawHarborDecor(g,L,t,cam);
   if(L.houses)drawTownDecor(g,L,t,cam);
@@ -4169,11 +4172,11 @@ function buildTown2(){
   // 지붕 산책로 (집 지붕 위를 걸을 수 있다)
   const HS=HOUSES.map(h=>Object.assign({},h,{x:h.x+OFF}));
   for(const h of HS)L.plats.push(plat(h.x+10,gy-h.h-26,h.w-20,14,'o',{roof:1}));
-  L.ropes.push({x:HS[0].x+HS[0].w-30,y1:gy-HS[0].h-26,y2:gy},{x:HS[2].x+30,y1:gy-HS[2].h-26,y2:gy});
+  for(const h of HS)L.ropes.push({x:h.x+h.w-30,y1:gy-h.h-26,y2:gy});
   // 큰 나무 가지 (그네가 매달린 곳)
   L.plats.push(plat(200,240,240,16,'o',{branch:1}),plat(80,350,110,14,'o'));L.ropes.push({x:430,y1:240,y2:gy});
   // 열기구로 가는 구름 계단
-  const bx=2265+OFF+300;L.plats.push(plat(bx+155,300,110,14,'o',{cloud:1}),plat(bx+295,220,110,14,'o',{cloud:1}),plat(bx+135,150,120,14,'o',{cloud:1}),plat(bx-75,120,150,14,'o',{basket:1}));
+  const bx=2265+OFF+300;L.ropes.push({x:bx+215,y1:300,y2:gy});L.plats.push(plat(bx+155,300,110,14,'o',{cloud:1}),plat(bx+295,220,110,14,'o',{cloud:1}),plat(bx+135,150,120,14,'o',{cloud:1}),plat(bx-75,120,150,14,'o',{basket:1}));
   const roof=HS[0];
   L.npcs.push(Object.assign({},NPCS.find(n=>n.id==='roofcat'),{x:roof.x+roof.w/2,gy:gy-roof.h-26}));
   L.npcs.push(Object.assign({},NPCS.find(n=>n.id==='swingkid'),{x:320,gy}));
@@ -4395,18 +4398,24 @@ function drawTitle(g,t){
    ============================================================ */
 /* ---------- 사냥터 ---------- */
 const HUNTS=[
- {id:'h1',name:'꽃잎 언덕',lv:'Lv.5~15',min:5,theme:'forest',ms:1,hue:0,sub:'벚꽃잎이 흩날리는 첫 사냥터'},
- {id:'h2',name:'반딧불 숲',lv:'Lv.15~30',min:15,theme:'bamboo',ms:2.4,hue:80,sub:'밤마다 반딧불이 춤추는 대나무 숲'},
- {id:'h3',name:'솜사탕 구름 목장',lv:'Lv.30~50',min:30,theme:'sky',ms:4.5,hue:300,sub:'구름 양떼가 뛰노는 하늘 목장'},
- {id:'h4',name:'별빛 호수',lv:'Lv.50~70',min:50,theme:'night',ms:7,hue:200,sub:'별이 내려앉은 고요한 호숫가'},
- {id:'h5',name:'달그림자 계곡',lv:'Lv.70~',min:70,theme:'origin',ms:10,hue:260,sub:'꿈과 현실의 경계, 가장 깊은 계곡'},
+ {id:'h1',name:'꽃잎 언덕',lv:'Lv.5~15',min:5,theme:'forest',ms:1,hue:0,sub:'벚꽃잎이 흩날리는 첫 사냥터',mobs:['bunny','egg']},
+ {id:'h2',name:'반딧불 숲',lv:'Lv.12~25',min:12,theme:'bamboo',ms:2,hue:80,sub:'밤마다 반딧불이 춤추는 대나무 숲',mobs:['bunny','egg','wisp']},
+ {id:'h6',name:'무지개 폭포',lv:'Lv.20~35',min:20,theme:'sea',ms:3,hue:170,sub:'물보라에 무지개가 걸리는 폭포 아래',mobs:['egg','bunny','jelly']},
+ {id:'h3',name:'솜사탕 구름 목장',lv:'Lv.30~45',min:30,theme:'sky',ms:4.5,hue:300,sub:'구름 양떼가 뛰노는 하늘 목장',mobs:['sheep','jelly']},
+ {id:'h7',name:'사탕 동굴',lv:'Lv.40~55',min:40,theme:'mask',ms:6,hue:330,sub:'달콤한 사탕 종유석이 반짝이는 동굴',mobs:['sheep','egg','owl']},
+ {id:'h4',name:'별빛 호수',lv:'Lv.50~65',min:50,theme:'night',ms:7.5,hue:200,sub:'별이 내려앉은 고요한 호숫가',mobs:['jelly','owl','sheep']},
+ {id:'h8',name:'오로라 설원',lv:'Lv.60~75',min:60,theme:'snow',ms:9,hue:180,sub:'오로라가 춤추는 하얀 눈밭',mobs:['sheep','owl']},
+ {id:'h5',name:'달그림자 계곡',lv:'Lv.70~',min:70,theme:'origin',ms:11,hue:260,sub:'꿈과 현실의 경계, 가장 깊은 계곡',mobs:['owl','jelly','sheep']},
 ];
 function buildHunt(i){
   const H=HUNTS[i],gy=470,Wd=2800,r=mulberry(4000+i*17);
   const L=newL({id:H.id,name:H.name,sub:H.lv+' · '+H.sub,theme:H.theme,music:i>=3?'sky':'field',w:Wd,h:540,mscale:H.ms,mhue:H.hue,hunt:i+1,spawn:{x:140,y:gy}});
   L.plats.push(plat(-300,gy,Wd+600,300,'s'));
   // 메이플식 층 구조 : 긴 발판 + 밧줄
-  const tiers=[[360,[[260,520],[960,560],[1700,620]]],[250,[[560,520],[1300,560],[2020,520]]],[140,[[880,460],[1640,480]]]];
+  const LAYOUTS=[[[360,[[260,520],[960,560],[1700,620]]],[250,[[560,520],[1300,560],[2020,520]]],[140,[[880,460],[1640,480]]]],
+    [[370,[[160,700],[1100,700],[2000,600]]],[270,[[420,500],[1250,420],[1900,520]]],[170,[[700,600],[1500,640]]],[90,[[1100,420]]]],
+    [[360,[[120,420],[700,480],[1300,480],[1900,520]]],[260,[[380,560],[1100,600],[1850,560]]],[150,[[640,520],[1420,600]]]]];
+  const tiers=LAYOUTS[i%3];
   for(const[y,list]of tiers)for(const[x,w]of list){
     L.plats.push(plat(x,y,w,16,'o'));
     L.ropes.push({x:x+40+Math.round(r()*(w-80)),y1:y,y2:gy});
@@ -4734,9 +4743,8 @@ const MOB_DRAW={
     for(const s of[-1,1]){circ(g,s*5.5,-11,5,'#fff',O_,1.4);circ(g,s*5.5,-11,2.6,'#ffd34a');circ(g,s*5.5,-11,1.3,'#2a1a30');poly(g,[s*3,-20,s*10,-23,s*8,-17],'#a898d8',O_,1.2)}
     poly(g,[-2,-7,2,-7,0,-4],'#ffb040',O_,1);circ(g,9,-24,2,'#fff6c8');g.restore()},
 };
-const HUNT_MOBS=[['bunny','egg'],['bunny','egg','wisp'],['sheep','sheep','jelly'],['jelly','owl','sheep'],['owl','jelly','sheep']];
 const _buildHunt=buildHunt;
-buildHunt=function(i){const L=_buildHunt(i),ty=HUNT_MOBS[i];let gi=0,fi=0;const gr=ty.filter(k=>!MOBS[k].fly),fl=ty.filter(k=>MOBS[k].fly).concat(['wisp']);
+buildHunt=function(i){const L=_buildHunt(i),ty=HUNTS[i].mobs;let gi=0,fi=0;const gr=ty.filter(k=>!MOBS[k].fly),fl=ty.filter(k=>MOBS[k].fly).concat(['wisp']);
   for(const m of L.mobs){if(m[0]==='egg')m[0]=gr[(gi++)%gr.length];else m[0]=fl[(fi++)%fl.length]}return L};
 HUNTS.forEach((h,i)=>{MAPS[h.id]=()=>buildHunt(i)});
 function spawnTpl(i){
@@ -4753,4 +4761,64 @@ gainExp=function(n,mob){const lv=SAVE.lvl;_gainExp(n,mob);if(SAVE.lvl>lv&&PARTY[
   for(let k=0;k<4;k++)fxPush({k:'ring',x:p.x,y:p.y-18,col:'#ffe04a',max:.8,delay:k*.12,r:90+k*30});
   fxPush({k:'pillar',x:p.x,y:p.y,col:'#ffe680',max:1.2});fxPush({k:'circle',x:p.x,y:p.y,col:'#ffd34a',max:1.2,r:60});
   G.bigBanner={t0:G.t,title:'✦ LEVEL UP ✦',sub:'Lv.'+SAVE.lvl+' 달성!  AP +5 (O 키)',col:'#ffe04a'}}};
+/* ============================================================
+   ACCESS : 구름 택시 · NPC 역할 표시 · 모바일 물약/퀵슬롯 터치 · 마을 높은 곳 길
+   ============================================================ */
+/* ---------- 구름 택시 (마을 · 사냥터 어디서나) ---------- */
+NPC_LOOK_X.taxi={job:'gunner',eq:{hat:'hat_helm',outfit:'out_vest'},n:'구름 택시 기사 뭉치',fid:1};
+function taxiDests(){
+  const d=[{id:'harbor',n:'⛵ 새싹 항구',c:50},{id:'town',n:'🏘 야채마을',c:50,min:1,end:false}];
+  d.push({id:'stele',n:'🪨 비석의 길',c:200,min:15});
+  for(const h of HUNTS)d.push({id:h.id,n:'🌾 '+h.name+'  ('+h.lv+')',c:100+h.min*6,min:h.min});
+  d.push({id:'forest',n:'🌲 도깨비 숲 입구',c:120});
+  if(SAVE.cleared.forest)d.push({id:'forest',n:'⛩ 도깨비 숲 꼭대기',c:400,end:true});
+  if(SAVE.cleared.dokkaebi)d.push({id:'sky',n:'☁ 하늘길 입구',c:300});
+  if(SAVE.cleared.sky)d.push({id:'sky',n:'🌙 하늘길 끝 (달빛 신당 앞)',c:600,end:true});
+  d.push({id:'cave',n:'🌋 귀문 동굴',c:800,min:40});
+  return d.filter(x=>x.id!==S.id||x.end);
+}
+function taxiMenu(n){
+  const opts=taxiDests().map(d=>{const lock=d.min&&SAVE.lvl<d.min;return{t:(lock?'🔒 ':'')+d.n+'  — '+d.c+'●',fn:()=>{
+    if(lock){G.toast('Lv.'+d.min+'부터 갈 수 있어요');return}
+    if(SAVE.coins<d.c){G.toast('코인이 부족해요 ('+d.c+'●)');return}
+    SAVE.coins-=d.c;closeUI();sfx('portal');goMap(d.id,false,!!d.end);G.toast('뭉게뭉게~ 구름 택시 출발!')}}});
+  opts.push({t:'닫기',fn:closeUI});
+  openDialog(n.name,'어디든 구름 타고 슝~ 데려다줄게! 사냥터, 마을, 던전 입구 어디든!\n(한 번 가 본 꼭대기는 바로 갈 수 있어)  보유 ● '+SAVE.coins,opts);
+}
+function addTaxi(L){
+  const ok=L.town||L.hunt||L.hub||L.id==='forest'||L.id==='sky';
+  if(!ok||(L.npcs||[]).some(n=>n.id==='taxi'))return;
+  if(L.harbor&&SAVE.lvl<5)return;
+  const sx=(L.spawn?L.spawn.x:200)+(L.hunt?240:L.id==='town'?-140:120),gy=L.spawn?L.spawn.y:470;
+  L.npcs=L.npcs||[];L.npcs.push({id:'taxi',name:'구름 택시',x:Math.max(60,sx),gy,look:'taxi',tag:'순간이동 · 택시'});
+}
+function drawTaxiCar(g,x,y,t){
+  const b=Math.sin(t*2)*2;g.save();g.translate(x+34,y-6+b);
+  puff(g,0,0,22,'#ffffff',O_);g.fillStyle='rgba(200,220,255,.6)';g.beginPath();g.arc(-8,4,9,0,6.28);g.fill();
+  g.fillStyle='#ffd34a';g.beginPath();g.roundRect(-14,-30,28,14,5);g.fill();g.strokeStyle=O_;g.lineWidth=1.6;g.stroke();
+  txt(g,'TAXI',0,-19,9,'#5a3a00','center',0);g.restore();
+}
+
+/* ---------- NPC 역할 표시 (이름표 아래) ---------- */
+const ROLE={chief:'메인 퀘스트',daily:'일일 퀘스트',shop:'물약 · 치장 상점',cash:'캐시 상점 (◆)',board:'퀘스트 게시판',party:'파티 모집',att:'출석 체크',coach:'1차 전직',adv2:'2차 전직',adv3:'3차 전직',
+  duel:'PvP 결투장',portal:'포탈 · 사냥터 이동',closet:'옷장 · 표정',miko:'숨겨진 퀘스트',scroll:'강화 주문서',fame:'랭킹',taxi:'순간이동 택시',captain:'튜토리얼 · 퀘스트',fisher:'퀘스트',baker:'퀘스트',
+  kid:'대화',dol:'스토리 · 비석',swingkid:'퀘스트',roofcat:'대화',balloon:'대화',lookout:'대화',zgate:'파티던전',adv:'전직'};
+const roleOf=n=>ROLE[n.id]||(/^c[1-6]$/.test(n.id)?'스토리 퀘스트':n.tag||'');
+function drawRoleTag(g,n){const r=roleOf(n);if(!r)return;g.font=F(10);const w=g.measureText(r).width+10;g.fillStyle='rgba(255,240,252,.9)';g.beginPath();g.roundRect(n.x-w/2,n.gy+20,w,13,6);g.fill();txt(g,r,n.x,n.gy+30,10,'#8a4ac0','center',0)}
+
+/* ---------- 모바일 : 물약 버튼 · 퀵슬롯 탭 ---------- */
+(function mobileExtras(){
+  const box=document.getElementById('touch');if(!box)return;
+  for(const[k,label,pos,col]of[['Digit1','HP','right:150px;top:10px','rgba(255,110,140,.45)'],['Digit2','MP','right:206px;top:10px','rgba(110,150,255,.45)'],['Enter','💬','right:262px;top:10px','rgba(255,255,255,.18)'],['KeyO','AP','right:318px;top:10px','rgba(140,255,170,.3)']]){
+    const b=document.createElement('div');b.className='b';b.dataset.k=k;b.textContent=label;b.style.cssText=pos+';width:48px;height:48px;background:'+col;
+    const on=e=>{e.preventDefault();keys[k]=true;pressed[k]=true;b.classList.add('on');initAudio()};const off=e=>{e.preventDefault();keys[k]=false;b.classList.remove('on')};
+    b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('pointerleave',off);box.appendChild(b);
+  }
+  // 캔버스 하단 퀵슬롯을 직접 눌러도 사용
+  cv.addEventListener('pointerdown',e=>{
+    if(G.state!=='play'||G.ui)return;const rc=cv.getBoundingClientRect(),x=(e.clientX-rc.left)*W/rc.width,y=(e.clientY-rc.top)*H/rc.height;
+    if(y<H-62||y>H-8||x<480)return;const i=Math.floor((x-480)/48);if(i<0||i>6)return;
+    const code=i<5?'Key'+SK_LABEL[i]:(i===5?'Digit1':'Digit2');pressed[code]=true;keys[code]=true;setTimeout(()=>{keys[code]=false},120);
+  });
+})();
 </script></body></html>
