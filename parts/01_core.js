@@ -10,6 +10,8 @@ function resize(){
   const f=Math.min(innerWidth/W,innerHeight/H),d=Math.min(window.devicePixelRatio||1,window.DPR_CAP||2);
   cv.style.width=Math.floor(W*f)+'px';cv.style.height=Math.floor(H*f)+'px';
   cv.width=Math.round(W*f*d);cv.height=Math.round(H*f*d);SC=f*d;
+  // 세로 화면(폰)에선 글자를 키운다
+  const port=innerHeight>innerWidth&&matchMedia('(pointer:coarse)').matches;window.TSC=port?Math.min(1.35,.86*Math.max(1,600/(W*f))):.86;window.WZ=port?1.4:1;
 }
 addEventListener('resize',resize);resize();
 

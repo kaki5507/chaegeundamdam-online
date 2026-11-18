@@ -210,7 +210,7 @@ function playStep(dt){
   if(near&&pressed.ArrowUp&&!lead.rope){if(near.k==='stele')steleMenu(near.st.c);else if(near.k==='altar')summonGuimok();else if(near.k==='npc')talkNPC(near.n);else if(near.k==='portal'){if(near.po.pqNext){sfx('portal');goMap(near.po.to)}else usePortal(near.po)}}
   // camera
   const cl=alive()[0]||lead;
-  const tx=clamp(cl.x-W/2+cl.face*50,0,Math.max(0,L.w-W)),ty=clamp(cl.y-H*.6,0,Math.max(0,L.h-H)+70);
+  const WZ=window.WZ||1,VW=W/WZ,VH=H/WZ,tx=clamp(cl.x-VW/2+cl.face*50/WZ,0,Math.max(0,L.w-VW)),ty=clamp(cl.y-VH*.6,0,Math.max(0,L.h-VH)+70/WZ);
   const k=1-Math.pow(.0005,dt);S.cam.x=lerp(S.cam.x,tx,k);S.cam.y=lerp(S.cam.y,ty,k);
   // game over
   if(PARTY.every(p=>p.dead)&&(L.arena||L.pq)&&G.state==='play'){S.overT=(S.overT||0)+dt;if(S.overT>1.4){G.state='over'}}
@@ -294,7 +294,7 @@ function drawWorld(g){
   drawBG(g,bg,cam.x,cam.y,Math.max(0,L.h-H));
   g.save();
   const sx=S.shake?rnd(-S.shake,S.shake)*.5:0,sy=S.shake?rnd(-S.shake,S.shake)*.5:0;
-  g.translate(-Math.round(cam.x)+sx,-Math.round(cam.y)+sy);
+  g.scale(window.WZ||1,window.WZ||1);g.translate(-Math.round(cam.x)+sx,-Math.round(cam.y)+sy);
   const vx0=cam.x-80,vx1=cam.x+W+80,vy0=cam.y-80,vy1=cam.y+H+80;
   const vis=(x,y,w,h)=>x+w>vx0&&x<vx1&&y+h>vy0&&y<vy1;
   if(!L.town&&!L.pvp)drawWalls(g,L,T,cam);

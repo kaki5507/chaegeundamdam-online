@@ -2,7 +2,7 @@
    QUESTS / DIALOG / SHOP / WARDROBE / HUD / MENUS
    ============================================================ */
 const FONT='"Jua","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR","Nanum Gothic",sans-serif';
-const F=(s,w='normal')=>`${w} ${Math.round(s*.86*10)/10}px ${FONT}`;
+const F=(s,w='normal')=>`${w} ${Math.round(s*(window.TSC||.86)*10)/10}px ${FONT}`;
 function txt(g,s,x,y,size=16,col='#fff',al='left',o=3){
   g.font=F(size);g.textAlign=al;g.textBaseline='alphabetic';
   if(o){g.lineWidth=o;g.strokeStyle='rgba(58,32,86,.95)';g.lineJoin='round';g.strokeText(s,x,y)}

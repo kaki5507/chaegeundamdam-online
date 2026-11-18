@@ -112,10 +112,9 @@ drawPlat=function(g,pl,T,bg,t){if(!PT.drawing&&PT.stat.has(pl)&&PT.L===S.L)retur
 /* ---------- 이름표 : 글자 그림 캐시 ---------- */
 const TAGC=new Map();
 function tagSprite(s,size,col,bg,h,rad){
-  const k=s+'|'+size+'|'+col+'|'+bg+'|'+SC;let c=TAGC.get(k);if(c)return c;
+  const k=s+'|'+size+'|'+col+'|'+bg+'|'+SC+'|'+window.TSC;let c=TAGC.get(k);if(c)return c;
   const m=document.createElement('canvas').getContext('2d');m.font=F(size);const w=m.measureText(s).width+10;
-  c=document.createElement('canvas');c.width=Math.ceil(w*SC);c.height=Math.ceil(h*SC);const x=c.getContext('2d');x.scale(SC,SC);
-  x.fillStyle=bg;x.beginPath();x.roundRect(0,0,w,h,rad);x.fill();txt(x,s,w/2,h-(h===15?3.5:3),size,col,'center',0);c.w=w;c.h=h;
+  h=Math.round(h*Math.max(1,window.TSC/.86));c=document.createElement('canvas');c.width=Math.ceil(w*SC);c.height=Math.ceil(h*SC);const x=c.getContext('2d');x.scale(SC,SC);x.fillStyle=bg;x.beginPath();x.roundRect(0,0,w,h,rad);x.fill();txt(x,s,w/2,h-(h===15?3.5:3),size,col,'center',0);c.w=w;c.h=h;
   if(TAGC.size>400)TAGC.clear();TAGC.set(k,c);return c;
 }
 nameTag=function(g,x,y,s,col,bg){const c=tagSprite(String(s),11,col||'#fff',bg||'rgba(90,60,150,.75)',15,7);g.drawImage(c,x-c.w/2,y,c.w,c.h)};
