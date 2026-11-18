@@ -146,6 +146,7 @@ function updateMobs(dt){
     const mr=rectOf(m);
     for(const p of PARTY){if(!p.dead&&ov(mr,prect(p)))hurtPlayer(p,m.dmg,m.x)}
   }
+  for(const m of S.mobs)if(m.dead&&m.tpl!=null&&!m.queued){m.queued=1;(S.resp=S.resp||[]).push({i:m.tpl,t:RESP_T*(S.L.hunt?.8:1)})}
   S.mobs=S.mobs.filter(m=>!m.dead);
   for(const d of S.dummies){d.flash-=dt;d.shake-=dt;if(d.hp>0){d.regen-=dt;if(d.regen<=0&&d.hp<d.max)d.hp=Math.min(d.max,d.hp+60*dt)}else{d.respawn-=dt;if(d.respawn<=0)d.hp=d.max}}
   for(const b of S.boxes)b.flash-=dt;

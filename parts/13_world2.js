@@ -88,6 +88,7 @@ function buildTown2(){
   L.npcs.push(Object.assign({},NPCS.find(n=>n.id==='roofcat'),{x:roof.x+roof.w/2,gy:gy-roof.h-26}));
   L.npcs.push(Object.assign({},NPCS.find(n=>n.id==='swingkid'),{x:320,gy}));
   L.npcs.push(Object.assign({},NPCS.find(n=>n.id==='balloon'),{x:bx,gy:120}));
+  L.portals.unshift({x:40,y:gy,to:'h1',label:'꽃잎 언덕 (사냥터)',lockLv:5});
   L.houses=HS;L.bigTree={x:320,y:gy};L.balloon={x:bx,y:120};
   return L;
 }

@@ -26,14 +26,14 @@ function goMap(id,instant,end){
 }
 function loadMap(id,end){
   PARTY=PARTY.filter(p=>!p.foe);
-  const L=MAPS[id]();
+  const L=MAPS[id]();addExitPortal(L);
   if(end&&L.endSpawn)L.spawn=L.endSpawn;
   S={L,id,t:0,time:0,mobs:[],dummies:[],boxes:[],items:[],pshots:[],eproj:[],zones:[],fx:[],clones:[],boss:null,cam:{x:0,y:0},shake:0,hitstop:0,slow:0,
      cp:{x:L.spawn.x,y:L.spawn.y},flagsOn:L.flags.map(f=>Object.assign({on:false},f)),drops:L.drops.map(d=>({x:d.x,y:d.y,period:d.period,t:d.ph,warn:0})),
      bg:getBG(L.theme),kills:0,pq:null,spT:0,npcs:L.npcs};
   parts.length=0;texts.length=0;
   const fire=Object.assign(L.theme==='lava'?{col:'rgba(255,140,60,',col2:'#ff9a40',col3:'#c03010'}:{},L.mhue?{hue:L.mhue}:{});
-  for(const m of L.mobs){if(m[0]==='egg')spawnMob('egg',m[1],m[2],Object.assign({min:m[3],max:m[4]},L.mhue?{hue:L.mhue}:{}));else spawnMob('wisp',m[1],m[2],Object.assign({range:m[3]},fire))}
+  S.resp=[];L.mobs.forEach((m,k)=>spawnTpl(k));
   for(const d of L.dummies)S.dummies.push({kind:'dummy',x:d.x,y:d.y,w:36,h:92,hp:150,max:150,shake:0,flash:0,regen:0,respawn:0});
   for(const b of L.boxes)S.boxes.push(Object.assign({kind:'box',w:44,h:44,dead:false},b));
   if(L.pq){
@@ -112,6 +112,7 @@ function nearInteract(){
   return null;
 }
 function usePortal(po){
+  if(po.to==='__exit')return exitDungeon();
   if(po.lockLv&&SAVE.lvl<po.lockLv){G.toast(po.boat?'배는 Lv.5부터 탈 수 있어요 — 항구에서 조금 더 수련해요!':'Lv.'+po.lockLv+' 이상만 갈 수 있다');return}
   if(po.boat){SAVE.flags.leftHarbor=1;saveGame()}
   if(po.lock&&!SAVE.cleared[po.lock]){G.toast('아직 갈 수 없다… ('+MOBNAME(po.lock)+'을(를) 쓰러뜨려야 한다)');return}
@@ -154,6 +155,7 @@ function step(dt){
     else if(G.ui==='qlog'){if(pressed.KeyQ||pressed.Escape||pressed.Enter)closeUI()}
     else if(G.ui==='help'){if(Object.keys(pressed).length)closeUI()}
     else if(G.ui==='pause'){const nv=nav();if(nv.u||nv.d){G.psel=1-(G.psel||0);sfx('sel')}if(pressed.KeyP||pressed.Escape){closeUI()}else if(nv.ok){if(G.psel){saveGame();stopMusic();G.state='title';G.ui=null;S=null}else closeUI()}}
+    if(G.state==='play'&&S&&G.ui!=='scene')playStep(dt);   // 온라인 게임: UI 를 열어도 세계는 멈추지 않는다
     return;
   }
   if(pressed.KeyP||pressed.Escape){G.ui='pause';G.psel=0;return}
@@ -180,7 +182,7 @@ function playStep(dt){
   S.t+=dt;S.time+=dt;G.banner&&(G.banner.t+=dt);
   updatePlats(L,dt,S.t);
   for(const p of PARTY)updatePlayer(p,dt);
-  updateMobs(dt);updateItems(dt);updatePshots(dt);updateEproj(dt);updateZones(dt);updateBoss(dt);storyStep(dt);presenceStep(dt);
+  updateMobs(dt);updateItems(dt);updatePshots(dt);updateEproj(dt);updateZones(dt);updateBoss(dt);storyStep(dt);presenceStep(dt);respawnStep(dt);fxStep(dt);
   // totems
   for(const d of S.drops){
     d.t+=dt;const ph=d.t%d.period;d.warn=ph>d.period-.75?1:0;
@@ -318,6 +320,7 @@ function drawWorld(g){
   }
   if(L.harbor)drawHarborDecor(g,L,t,cam);
   if(L.houses)drawTownDecor(g,L,t,cam);
+  if(L.sign)drawHuntSign(g,L,t);
   if(L.steles)for(const st of L.steles)if(vis(st.x-140,st.y-240,280,290))drawStele(g,st,t,S.near&&S.near.st===st);
   if(L.altar)drawAltar(g,L.altar,t,SAVE.inv.gwi>0&&!S.boss);
   for(const d of S.dummies)drawDummy(g,d,t);
@@ -335,20 +338,20 @@ function drawWorld(g){
     if(m.hp<m.max){g.fillStyle='rgba(0,0,0,.6)';g.fillRect(m.x-16,(m.type==='wisp'?m.y-36:m.y-46),32,5);g.fillStyle='#ff5a5a';g.fillRect(m.x-15,(m.type==='wisp'?m.y-35:m.y-45),30*m.hp/m.max,3)}}
   if(S.boss)drawBoss(g,S.boss,t);
   for(const m of S.mobs)if(m.type==='arm'&&!m.dead)drawArm(g,m,t);
-  drawPeers(g,t);
+  drawPeers(g,t);drawTrails(g,t);
   // party
   const order=PARTY.slice().reverse();
   for(const p of order){
     if(p.dead){g.save();g.globalAlpha=.45;drawVeggie(g,JOB[p.job],{sc:WSC,fid:p.fid,x:p.x,y:p.y-30+Math.sin(t*3)*6,face:p.face,t:p.t,st:'idle',eq:p.eq,tier:p.tier,alpha:.45});g.restore();continue}
     const st=p.stun>0?'hurt':p.skillT>0&&p.atkT<=0?'skill':p.atkT>0?'atk':p.rope?'climb':!p.onGround?'air':Math.abs(p.vx)>30?'run':'idle';
     const blink=p.inv>0&&Math.floor(p.inv*14)%2===0&&p.stun<=0;
-    drawVeggie(g,JOB[p.job],{sc:WSC,fid:p.fid,x:p.x,y:p.y,face:p.face,t:p.t,st,ap:p.atkDur?1-p.atkT/p.atkDur:0,combo:p.combo,buff:!!p.buff,eq:p.eq,tier:p.tier,alpha:blink?.45:1});
+    drawVeggie(g,JOB[p.job],{sc:WSC,fid:p.fid,x:p.x,y:p.y-(p.skillT>0?Math.sin(clamp(1-p.skillT/.38,0,1)*Math.PI)*9:0),face:p.face,t:p.t,st,ap:p.atkDur?1-p.atkT/p.atkDur:0,combo:p.combo,buff:!!p.buff,eq:p.eq,tier:p.tier,alpha:blink?.45:1});
     if(p.shieldT>0){g.strokeStyle=`rgba(150,230,255,${.5+.3*Math.sin(t*10)})`;g.lineWidth=3;g.beginPath();g.arc(p.x,p.y-18,24,0,6.28);g.stroke();g.fillStyle='rgba(150,230,255,.12)';g.fill()}
     if(L.pvp){txt(g,(p===lead?'1P':p.kind==='p2'?'2P':p.team===lead.team?'아군':'상대'),p.x,p.y-50,12,p.team===lead.team?'#7aff9a':'#ff8a8a','center',3);bar(g,p.x-18,p.y-46,36,5,p.hp/p.maxhp,'#e8484f')}
     else if(p!==lead){txt(g,(p.kind==='p2'?'2P':'AI')+(p.hold?' ■':''),p.x,p.y-50,12,p.kind==='p2'?'#ffb84a':'#9be8ff','center',3);bar(g,p.x-18,p.y-46,36,5,p.hp/p.maxhp,'#e8484f')}
     else txt(g,'1P',p.x,p.y-50,12,'#7aff9a','center',3);
   }
-  drawSelfTag(g);
+  drawSelfTag(g);drawFX2(g,t);
   for(const s of S.pshots)drawPshot(g,s,t);
   for(const e of S.eproj)drawEproj(g,e,t);
   for(const z of S.zones)drawZone(g,z,t);
@@ -384,7 +387,7 @@ function render(){
     if(G.banner&&G.banner.t<3.2&&!G.ui){const a=Math.min(1,G.banner.t*2,(3.2-G.banner.t)*2);g.globalAlpha=clamp(a,0,1);
       panel(g,W/2-270,86,540,70,.78);txt(g,G.banner.name,W/2,122,30,'#ffe9a0','center');txt(g,G.banner.sub,W/2,146,15,'#cfd4e2','center',2);g.globalAlpha=1}
     if(G.ui==='dialog')drawDialog(g,t);else if(G.ui==='shop')drawShop(g,t);else if(G.ui==='wardrobe')drawWardrobe(g,t);else if(G.ui==='inv')drawInv(g,t);else if(G.ui==='stat')drawStat(g,t);else if(G.ui==='fame')drawFame(g,t);else if(G.ui==='scene')drawScene(g,t);else if(G.ui==='qlog')drawQuestLog(g,t);else if(G.ui==='help')drawHelp(g);
-    else if(G.ui==='pause'){g.fillStyle='rgba(8,4,16,.6)';g.fillRect(0,0,W,H);txt(g,'일시정지',W/2,200,36,'#ffe9a0','center');['계속하기','저장하고 타이틀로'].forEach((s,i)=>{const y=240+i*50,sel=(G.psel||0)===i;g.fillStyle=sel?'rgba(255,220,120,.3)':'rgba(255,255,255,.08)';g.beginPath();g.roundRect(W/2-140,y,280,40,10);g.fill();txt(g,s,W/2,y+27,19,sel?'#ffe9a0':'#fff','center')})}
+    else if(G.ui==='pause'){g.fillStyle='rgba(8,4,16,.6)';g.fillRect(0,0,W,H);txt(g,'메뉴 (게임은 계속 진행 중)',W/2,200,30,'#ffe9a0','center');['계속하기','저장하고 타이틀로'].forEach((s,i)=>{const y=240+i*50,sel=(G.psel||0)===i;g.fillStyle=sel?'rgba(255,220,120,.3)':'rgba(255,255,255,.08)';g.beginPath();g.roundRect(W/2-140,y,280,40,10);g.fill();txt(g,s,W/2,y+27,19,sel?'#ffe9a0':'#fff','center')})}
     if(S.pvp&&S.pvp.over){g.fillStyle='rgba(8,4,16,.55)';g.fillRect(0,0,W,H);const win=S.pvp.winner===0;txt(g,win?'승리!':'패배…',W/2,230,56,win?'#ffe04a':'#ff8a8a','center');txt(g,S.pvp.score[0]+' : '+S.pvp.score[1]+'   (전적 '+SAVE.duel.w+'승 '+SAVE.duel.l+'패)',W/2,276,22,'#fff','center');if(S.pvp.t>1.2)txt(g,'Enter : 마을로',W/2,320,20,'#cfd4e2','center',2)}
     if(G.state==='over'){g.fillStyle='rgba(20,0,10,.7)';g.fillRect(0,0,W,H);txt(g,'기절했다…',W/2,230,48,'#ff8a8a','center');txt(g,'Enter : 다시 도전      Esc : 마을로',W/2,290,20,'#fff','center')}
     if(G.state==='clear'&&G.clear){g.fillStyle='rgba(8,4,16,.6)';g.fillRect(0,0,W,H);panel(g,W/2-250,120,500,300,.94);txt(g,G.clear.title,W/2,184,36,'#ffe04a','center');G.clear.lines.forEach((l,i)=>txt(g,l,W/2,236+i*34,20,'#fff','center'));txt(g,'Enter : 돌아가기',W/2,392,17,'#cfd4e2','center',2)}

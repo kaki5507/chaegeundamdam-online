@@ -2,7 +2,7 @@
    QUESTS / DIALOG / SHOP / WARDROBE / HUD / MENUS
    ============================================================ */
 const FONT='"Jua","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR","Nanum Gothic",sans-serif';
-const F=(s,w='normal')=>`${w} ${s}px ${FONT}`;
+const F=(s,w='normal')=>`${w} ${Math.round(s*.86*10)/10}px ${FONT}`;
 function txt(g,s,x,y,size=16,col='#fff',al='left',o=3){
   g.font=F(size);g.textAlign=al;g.textBaseline='alphabetic';
   if(o){g.lineWidth=o;g.strokeStyle='rgba(58,32,86,.95)';g.lineJoin='round';g.strokeText(s,x,y)}
@@ -261,6 +261,7 @@ function talkNPC(n){
     else opts.push({t:'하늘길 (도깨비 대왕 격파 후 개방)',fn:()=>openDialog(n.name,'하늘길은 도깨비 대왕을 쓰러뜨려야 열리네.')});
     if(SAVE.cleared.dokkaebi)opts.push({t:'도깨비 대왕 재도전',fn:()=>{closeUI();goMap('boss1')}});
     if(SAVE.cleared.fox)opts.push({t:'구미호 재도전',fn:()=>{closeUI();goMap('boss2')}});
+    opts.push({t:'사냥터로 가기 …',fn:()=>openDialog(n.name,'어느 사냥터로 보내 줄까? 레벨에 맞는 곳이 경험치가 좋다네.',HUNTS.map(h=>({t:h.name+'  ('+h.lv+')'+(SAVE.lvl<h.min?' 🔒':''),fn:()=>{if(SAVE.lvl<h.min){G.toast(h.name+'은(는) Lv.'+h.min+'부터 갈 수 있어요');return}closeUI();goMap(h.id)}})).concat([{t:'닫기',fn:closeUI}]))});
     opts.push({t:'새싹 항구 (배 타고 돌아가기)',fn:()=>{closeUI();goMap('harbor')}});
     opts.push({t:SAVE.lvl>=15?'비석의 길 (스토리 던전)':'비석의 길 (Lv.15 이상)',fn:()=>{if(SAVE.lvl<15){openDialog(n.name,'비석의 길은 Lv.15 이상만 들어갈 수 있다네.');return}closeUI();goMap('stele')}});
     opts.push({t:SAVE.lvl>=40?'귀문 동굴 (파티던전)':'귀문 동굴 (Lv.40 이상)',fn:()=>{if(SAVE.lvl<40){openDialog(n.name,'귀문은 Lv.40 이상만 들어갈 수 있다네. 그 너머엔 천년 묵은 귀목이 잠들어 있지…');return}closeUI();goMap('cave')}});
@@ -520,7 +521,7 @@ function drawHUD(g,t){
   for(const[i,k,c]of[[0,'hp','#ff4a5a'],[1,'mp','#4a8aff']]){const y=H-76+i*27;panel(g,px,y,62,24,.7);circ(g,px+14,y+12,7,c,O_,1.5);txt(g,(i+1)+' ×'+SAVE.potions[k],px+26,y+17,13,'#fff','left',2)}
   // top right
   txt(g,S.L.name,W-14,28,17,'#ffe9a0','right');txt(g,'● '+SAVE.coins,W-14,50,15,'#ffd34a','right');txt(g,'◆ '+SAVE.ec,W-14,67,13,'#ff8ae0','right',2);if(ONLINE_N)txt(g,'🟢 접속 '+ONLINE_N+'명',W-60,67,12,'#9cffb0','right',2);
-  txt(g,'H 도움말 · Q 퀘스트 · I 인벤토리 · P 일시정지 · M 음소거',W-14,H-20,11,'rgba(255,255,255,.55)','right',2);
+  txt(g,'H 도움말 · Q 퀘스트 · I 인벤토리 · P 메뉴 · M 음소거',W-14,H-20,11,'rgba(255,255,255,.55)','right',2);
   // quest tracker
   let qy=78;const act=Object.keys(SAVE.q).filter(k=>SAVE.q[k].s==='active'||SAVE.q[k].s==='ready').slice(0,3);
   for(const k of act){
@@ -603,7 +604,7 @@ function drawQuestLog(g,t){
 const HELP=[
   ['1P  이동','← →  /  ↑ ↓ (밧줄·포탈·NPC)'],['1P  점프','Space 또는 Alt  (↓ + 점프 : 아래로 내려가기)'],['1P  공격','Z 또는 Ctrl  (꾹 누르면 연속)'],
   ['1P  스킬','C (수련생) · 1차 X V · 2차 B · 3차 N'],['1P  물약','1 : HP  /  2 : MP'],['2P  이동','A D W S   점프 : Shift   공격 : F'],['2P  스킬','G H T Y U'],
-  ['채팅','Enter : 채팅 (일반 · 확성기 · 고확성기)   O : 능력치(AP)'],['메뉴','Q 퀘스트 · I 인벤토리 · P 일시정지 · M 음소거 · E AI 동료 배치/해제'],['밧줄','밧줄 앞에서 ↑ / ↓ , 점프+좌우로 뛰어내리기'],['팁','일일퀘스트 · PvP 결투장 · 전직(1차 마을/2차 숲 꼭대기/3차 하늘길 끝)'],
+  ['채팅','Enter : 채팅 (일반 · 확성기 · 고확성기)   O : 능력치(AP)'],['메뉴','Q 퀘스트 · I 인벤토리 · P 메뉴 · M 음소거 · E AI 동료 배치/해제'],['밧줄','밧줄 앞에서 ↑ / ↓ , 점프+좌우로 뛰어내리기'],['팁','일일퀘스트 · PvP 결투장 · 전직(1차 마을/2차 숲 꼭대기/3차 하늘길 끝)'],
 ];
 function drawHelp(g){
   g.fillStyle='rgba(8,4,16,.7)';g.fillRect(0,0,W,H);panel(g,90,50,780,440,.94);
