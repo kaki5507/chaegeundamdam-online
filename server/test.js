@@ -48,8 +48,27 @@ const srv = app.listen(0, async () => {
     a.send(JSON.stringify({ t: 'hello', token: tok })); await new Promise(r => setTimeout(r, 200));
     a.send(JSON.stringify({ t: 'st', map: 'town', x: 100, y: 470, f: 1, s: 'run', j: 'mage', lv: 7 }));
     b.send(JSON.stringify({ t: 'st', map: 'town', x: 300, y: 470, f: -1, s: 'idle', j: 'rogue', lv: 3 }));
-    const got = await new Promise(r => b.on('message', d => { const o = JSON.parse(d); if (o.peers.length) r(o); }));
+    const got = await new Promise(r => b.on('message', d => { const o = JSON.parse(d); if (o.t === 'peers' && o.peers.length) r(o); }));
     assert.equal(got.peers[0].name, '근육맨'); assert.equal(got.peers[0].j, 'mage'); assert.equal(got.online, 2);
+    // 저녁 이벤트 : 레이드 · 쟁탈전
+    const wait = (w, f) => new Promise(r => { const h = d => { const o = JSON.parse(d); if (f(o)) { w.off('message', h); r(o); } }; w.on('message', h); });
+    [s] = await j('POST', '/api/admin/live', { kind: 'raid', minutes: 5 }, tok); assert.equal(s, 403);
+    [s] = await j('POST', '/api/admin/live', { kind: 'raid', minutes: 5 }, at); assert.equal(s, 200);
+    const ev1 = await wait(b, o => o.t === 'ev' && o.raid.open); assert.equal(ev1.raid.hp, 150000);
+    a.send(JSON.stringify({ t: 'st', map: 'ev_raid', x: 100, y: 470 })); b.send(JSON.stringify({ t: 'st', map: 'ev_raid', x: 200, y: 470 }));
+    await new Promise(r => setTimeout(r, 120));
+    a.send(JSON.stringify({ t: 'rd', d: 60000 })); b.send(JSON.stringify({ t: 'rd', d: 60000 }));
+    const ev2 = await wait(b, o => o.t === 'ev' && o.raid.n === 2); assert.equal(ev2.raid.max, 270000); assert.equal(ev2.raid.hp, 150000);
+    const endP = wait(b, o => o.t === 'raidEnd');
+    for (let i = 0; i < 3; i++) { a.send(JSON.stringify({ t: 'rd', d: 60000 })); b.send(JSON.stringify({ t: 'rd', d: 60000 })); await new Promise(r => setTimeout(r, 1050)); }
+    const end = await endP; assert.ok(['근육맨', end.winner].includes(end.winner) && end.wid);
+    [s] = await j('POST', '/api/admin/live', { kind: 'arena', minutes: 5 }, at); assert.equal(s, 200);
+    a.send(JSON.stringify({ t: 'st', map: 'ev_arena', x: 1600, y: 470, pt: 'AA' })); b.send(JSON.stringify({ t: 'st', map: 'ev_arena', x: 1590, y: 470, pt: 'BB' }));
+    const con = await wait(b, o => o.t === 'ev' && o.arena.open && o.arena.contested); assert.ok(con.arena.contested);
+    const hurt = wait(b, o => o.t === 'hurt'); const idB = (await new Promise(r => { b.send(JSON.stringify({ t: 'whoami' })); wait(b, o => o.t === 'you').then(r); })).id;
+    a.send(JSON.stringify({ t: 'hit', to: idB, d: 50, dir: 1 })); assert.equal((await hurt).d, 50);
+    b.send(JSON.stringify({ t: 'st', map: 'ev_arena', x: 1590, y: 470, pt: 'AA' }));
+    const hold = await wait(b, o => o.t === 'ev' && o.arena.hold > 0.5 && !o.arena.contested); assert.equal(hold.arena.tname, 'AA 팀');
     a.close(); b.close();
     console.log('SERVER TESTS OK');
   } catch (e) { console.error('FAIL', e); process.exitCode = 1; } finally { srv.close(); setTimeout(() => process.exit(), 100); }

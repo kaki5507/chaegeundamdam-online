@@ -116,6 +116,7 @@ function spawnMob(type,x,y,o){
   const d=MOBS[type],sc=S.L.mscale;
   const m=Object.assign({kind:'mob',type,x,y,w:d.w,h:d.h,hp:Math.round(d.hp*sc),max:Math.round(d.hp*sc),vx:0,vy:0,kbx:0,dir:Math.random()<.5?-1:1,flash:0,dead:false,
     dmg:Math.round(d.dmg*(sc>1?1+(sc-1)*.5:1)),exp:Math.round(d.exp*(sc>1?Math.min(3,sc*.8):1)),ph:Math.random()*6,t:0,hopT:rnd(.4,2),col:'rgba(255,190,90,',col2:'#ffb040',col3:'#ff6a30'},o||{});
+  if(o&&o.min!==undefined){m.pmin=o.min;m.pmax=o.max;m.max=m.hp}
   if(d.fly){m.rect=e=>({x:e.x-e.w/2,y:e.y-e.h/2,w:e.w,h:e.h});m.ox=x;m.by=y;m.range=m.range||70}
   S.mobs.push(m);return m;
 }
@@ -133,7 +134,7 @@ function updateMobs(dt){
       m.x=m.ox+Math.sin(m.t*.9+m.ph)*m.range*(tg?.4:1)+m.kbx*.1;m.y=m.by+Math.sin(m.t*1.9+m.ph)*14;
     }else{
       if(m.chase){const tg=nearestAlive(m.x,m.y-20);if(tg)m.dir=sgn(tg.x-m.x)}
-      else{if(m.min!==undefined){if(m.x<m.min)m.dir=1;if(m.x>m.max)m.dir=-1}}
+      else{if(m.pmin!==undefined){if(m.x<m.pmin)m.dir=1;if(m.x>m.pmax)m.dir=-1}}
       m.vx=m.dir*(m.chase?(m.type==='baby'?105:80):46)+m.kbx;
       m.vy+=GRAV*dt;m.hopT-=dt;
       if(m.onGround&&m.hopT<=0){m.vy=-(m.chase?560:340);m.hopT=rnd(1.1,2.3)}
@@ -275,10 +276,11 @@ function updatePlayer(p,dt){
   else p.vx=approach(p.vx,0,500*dt);
   // ----- jump -----
   if(I.jT)p.jbuf=.12;else p.jbuf-=dt;
-  p.coyote=p.onGround?.09:p.coyote-dt;
+  p.coyote=p.onGround?.09:p.coyote-dt;if(p.onGround||p.rope)p.sj=0;
   if(p.jbuf>0&&!stunned){
     if(I.d&&p.onGround&&p.ground&&p.ground.t==='o'&&!p.ground.big){p.drop=.28;p.y+=3;p.vy=80;p.jbuf=0;p.coyote=0;p.onGround=false}
     else if(p.coyote>0){p.vy=-JOB[p.job].jump;p.jbuf=0;p.coyote=0;p.onGround=false;sfx('jump');dust(p.x,p.y,4);if(p===PARTY[0])qev('flag','jump')}
+    else if((p.tier|0)>=2&&!p.rope&&!p.sj&&!p.onGround&&p.drop<=0)superJump(p);
   }
   if(!I.jH&&p.vy<-230&&!p.dashT&&!p.rope)p.vy=-230;
   p.drop-=dt;

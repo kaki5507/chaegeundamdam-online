@@ -130,6 +130,22 @@ app.post('/api/admin/event', auth, async (req, res) => {
   pushMsg({ kind: 'event', name: '운영자', text: what + ' 이벤트가 실행됐다! (' + minutes + '분) ' + EVENT.msg, ch: 'all' });
   res.json({ ok: true, event: EVENT });
 });
+/* ---------- 저녁 이벤트 (KST) : 20:00 축제 보스 레이드 · 20:30 명예의 전당 쟁탈전 ---------- */
+const LIVE = { force: { raid: 0, arena: 0 }, forceAt: { raid: 0, arena: 0 }, raid: null, arena: null, was: { raid: false, arena: false } };
+const kstNow = () => { const ms = Date.now() + 9 * 3600e3; return { min: Math.floor(ms / 60000) % 1440, day: Math.floor(ms / 864e5) }; };
+const WIN = { raid: [1200, 1225], arena: [1230, 1240] };
+const RAID_BOSSES = ['dokkaebi', 'eggking', 'fox'];
+function liveOpen(kind) { if (LIVE.force[kind] > Date.now()) return true; const m = kstNow().min; return m >= WIN[kind][0] && m < WIN[kind][1]; }
+function liveUntil(kind) { if (LIVE.force[kind] > Date.now()) return LIVE.force[kind]; const k = kstNow(); return Date.now() - (Date.now() % 60000) + (WIN[kind][1] - k.min) * 60000; }
+app.post('/api/admin/live', auth, (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: '운영자만 열 수 있습니다.' });
+  const b = req.body || {}, kind = b.kind === 'arena' ? 'arena' : 'raid';
+  if (b.off) { LIVE.force[kind] = 0; if (kind === 'raid') LIVE.raid = null; else LIVE.arena = null; return res.json({ ok: true }); }
+  const minutes = Math.min(120, Math.max(1, +b.minutes || 15));
+  LIVE.force[kind] = Date.now() + minutes * 60000; LIVE.forceAt[kind] = Date.now();
+  if (kind === 'raid') LIVE.raid = null; else LIVE.arena = null;
+  res.json({ ok: true, until: LIVE.force[kind] });
+});
 app.get('/api/save', auth, async (req, res) => {
   try { const s = await db.getSave(req.user); res.json(s ? { save: s.data, updated: s.updated } : { save: null }); }
   catch (e) { console.error(e); res.status(500).json({ error: '서버 오류' }); }
@@ -167,16 +183,85 @@ function attachPresence(server) {
   wss.on('connection', ws => {
     ws.id = 'u' + (++seq); ws.alive = true; ws.st = null; ws.name = '손님' + (1000 + (seq % 9000));
     ws.on('pong', () => { ws.alive = true; });
+    try { ws.send(JSON.stringify({ t: 'you', id: ws.id })); } catch {}
+    ws.rb = { t: 0, n: 0 }; ws.hb = { t: 0, n: 0 };
     ws.on('message', raw => {
       let m; try { m = JSON.parse(raw); } catch { return; }
       if (m.t === 'hello') { const n = verify(m.token); if (n) db.getUser(n).then(u => { if (u) { ws.name = u.display; ws.user = n; } }).catch(() => {}); return; }
       if (m.t === 'st') {
         ws.st = { id: ws.id, name: ws.name, map: String(m.map || '').slice(0, 20), x: num(m.x, -500, 20000), y: num(m.y, -2000, 5000), f: m.f < 0 ? -1 : 1,
           s: String(m.s || 'idle').slice(0, 8), j: String(m.j || 'warrior').slice(0, 10), ti: num(m.ti, 0, 3) | 0, fi: num(m.fi, 0, 99) | 0, lv: num(m.lv, 1, 100) | 0,
-          eq: m.eq && typeof m.eq === 'object' ? Object.fromEntries(Object.entries(m.eq).slice(0, 5).map(([k, v]) => [String(k).slice(0, 8), String(v).slice(0, 20)])) : {}, at: Date.now() };
+          eq: m.eq && typeof m.eq === 'object' ? Object.fromEntries(Object.entries(m.eq).slice(0, 5).map(([k, v]) => [String(k).slice(0, 8), String(v).slice(0, 20)])) : {}, h: num(m.h, 0, 100) | 0, pt: String(m.pt || '').slice(0, 10), dd: m.dd ? 1 : 0, at: Date.now() };
+        return;
+      }
+      if (m.t === 'whoami') { try { ws.send(JSON.stringify({ t: 'you', id: ws.id })); } catch {} return; }
+      if (m.t === 'rd') { raidDamage(ws, m); return; }
+      if (m.t === 'hit' || m.t === 'heal') {
+        if (!ws.st || ws.st.map !== 'ev_arena') return;
+        const now = Date.now(); if (now - ws.hb.t > 1000) ws.hb = { t: now, n: 0 }; if (++ws.hb.n > 20) return;
+        let tg = null; for (const c of wss.clients) if (c.id === m.to) { tg = c; break; }
+        if (!tg || tg.readyState !== 1 || !tg.st || tg.st.map !== 'ev_arena') return;
+        const same = !!ws.st.pt && ws.st.pt === tg.st.pt;
+        if (m.t === 'hit' && !same) tg.send(JSON.stringify({ t: 'hurt', d: num(m.d, 1, 30000) | 0, dir: m.dir < 0 ? -1 : 1, from: ws.id, fname: ws.name }));
+        if (m.t === 'heal' && same) tg.send(JSON.stringify({ t: 'healed', v: num(m.v, 0, 1), fname: ws.name }));
       }
     });
   });
+  const bcast = o => { const s = JSON.stringify(o); for (const c of wss.clients) if (c.readyState === 1) c.send(s); };
+  function raidDamage(ws, m) {
+    const R = LIVE.raid; if (!R || R.dead || !ws.st || ws.st.map !== 'ev_raid') return;
+    const now = Date.now(); if (now - ws.rb.t > 1000) ws.rb = { t: now, n: 0 };
+    const d = Math.min(num(m.d, 0, 60000), Math.max(0, 150000 - ws.rb.n)); if (d <= 0) return; ws.rb.n += d;
+    if (!R.att.has(ws.id)) { R.max += 60000; R.hp += 60000; }
+    const a = R.att.get(ws.id) || { d: 0, name: ws.name }; a.d += d; a.name = ws.name; R.att.set(ws.id, a);
+    R.hp -= d;
+    if (R.hp <= 0) {
+      R.hp = 0; R.dead = true;
+      const alive = [...wss.clients].filter(c => c.readyState === 1 && R.att.has(c.id));
+      const pool = alive.length ? alive.map(c => c.id) : [...R.att.keys()];
+      const wid = pool[Math.floor(Math.random() * pool.length)], w = R.att.get(wid);
+      R.winner = w.name; R.wid = wid;
+      bcast({ t: 'raidEnd', key: R.key, wid, winner: w.name, boss: R.boss });
+      pushMsg({ kind: 'event', name: '축제 보스', text: '거대 보스 격파! 참가 ' + R.att.size + '명 · 전리품은 ' + w.name + ' 님에게!', ch: 'all' });
+    }
+  }
+  function liveTick(dt) {
+    for (const kind of ['raid', 'arena']) {
+      const open = liveOpen(kind);
+      if (open && !LIVE.was[kind]) pushMsg({ kind: 'event', name: '이벤트', text: kind === 'raid' ? '🐉 축제 보스 레이드가 열렸다! 오른쪽 위 [이벤트] 버튼으로 입장!' : '🏛 명예의 전당 쟁탈전이 열렸다! 30초 버티면 우승!', ch: 'all' });
+      LIVE.was[kind] = open;
+    }
+    if (!liveOpen('raid')) LIVE.raid = null;
+    else if (!LIVE.raid) { const k = kstNow(); LIVE.raid = { key: k.day + '-' + (LIVE.force.raid > Date.now() ? LIVE.forceAt.raid : 0), boss: RAID_BOSSES[k.day % 3], max: 150000, hp: 150000, att: new Map(), dead: false }; }
+    if (!liveOpen('arena')) { LIVE.arena = null; return; }
+    const A = LIVE.arena || (LIVE.arena = { round: 1, hold: 0, tkey: '', tname: '', contested: false, brk: 0 });
+    if (A.brk > 0) { A.brk -= dt; if (A.brk <= 0) { A.brk = 0; A.round++; A.hold = 0; A.tkey = ''; A.tname = ''; } return; }
+    const now = Date.now(), inMap = [...wss.clients].filter(c => c.readyState === 1 && c.st && c.st.map === 'ev_arena' && now - c.st.at < 3000);
+    const keyOfC = c => c.st.pt ? 'p:' + c.st.pt : 's:' + c.id;
+    const occ = inMap.filter(c => !c.st.dd && Math.abs(c.st.x - 1600) < 150 && c.st.y > 380);
+    const teams = new Set(occ.map(keyOfC));
+    if (teams.size === 1) {
+      const tk = [...teams][0];
+      if (tk !== A.tkey) { A.tkey = tk; A.hold = 0; A.tname = tk.startsWith('p:') ? tk.slice(2) + ' 팀' : occ[0].st.name; }
+      A.hold += dt; A.contested = false;
+      if (A.hold >= 30) {
+        const win = inMap.filter(c => keyOfC(c) === tk);
+        bcast({ t: 'arenaWin', tname: A.tname, wids: win.map(c => c.id), names: win.map(c => c.st.name) });
+        pushMsg({ kind: 'event', name: '명예의 전당', text: '🏆 ' + A.tname + ' 우승! (' + win.map(c => c.st.name).join(', ') + ') 명예 메달 획득!', ch: 'all' });
+        A.brk = 8; A.hold = 30;
+      }
+    } else if (teams.size > 1) A.contested = true;
+    else { A.contested = false; A.hold = Math.max(0, A.hold - dt * .5); if (A.hold === 0) { A.tkey = ''; A.tname = ''; } }
+  }
+  let evT = 0;
+  setInterval(() => {
+    liveTick(.1);
+    if (++evT % 4) return;
+    const R = LIVE.raid, A = LIVE.arena;
+    bcast({ t: 'ev', now: Date.now(),
+      raid: R ? { open: 1, key: R.key, boss: R.boss, hp: R.hp, max: R.max, n: R.att.size, dead: R.dead, winner: R.winner || '', until: liveUntil('raid') } : { open: 0 },
+      arena: A ? { open: 1, round: A.round, hold: +A.hold.toFixed(1), tkey: A.tkey, tname: A.tname, contested: A.contested, brk: +A.brk.toFixed(1), until: liveUntil('arena') } : { open: 0 } });
+  }, 100).unref();
   // 10Hz 로 같은 맵 사람들 위치 전송
   setInterval(() => {
     const byMap = new Map(); let online = 0;
@@ -192,3 +277,4 @@ function attachPresence(server) {
 }
 module.exports = app;
 module.exports.attachPresence = attachPresence;
+module.exports.LIVE = LIVE;

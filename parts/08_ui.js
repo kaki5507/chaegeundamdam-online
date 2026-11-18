@@ -496,7 +496,7 @@ function drawHUD(g,t){
     panel(g,10,py,200,38,.6);txt(g,(S.L.pvp?(q.team===p.team?'아군 ':'상대 '):q.kind==='p2'?'2P ':'AI ')+JOB[q.job].veg+' Lv.'+q.lvl,18,py+16,12,q.dead?'#999':'#fff','left',2);
     bar(g,18,py+21,184,8,q.dead?0:q.hp/q.maxhp,'#e8484f');if(q.dead)txt(g,'기절…'+Math.max(0,(q.kind==='ai'?7:6)-q.deadT).toFixed(0),200,py+16,11,'#cfe0ff','right',2);py+=42}
   // quest tracker
-  let qy=10;const act=Object.keys(SAVE.q).filter(k=>SAVE.q[k].s==='active'||SAVE.q[k].s==='ready').slice(0,3);
+  let qy=48;const act=Object.keys(SAVE.q).filter(k=>SAVE.q[k].s==='active'||SAVE.q[k].s==='ready').slice(0,3);
   for(const k of act){
     const q=QUESTS[k],st=SAVE.q[k];
     const lines=q.objs.map((o,i)=>(st.p[i]>=(o.n||1)?'✔ ':'· ')+o.label+(o.n>1?' '+Math.min(st.p[i],o.n)+'/'+o.n:''));

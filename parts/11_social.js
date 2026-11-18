@@ -144,7 +144,7 @@ function adminMenu(){
     {t:'드롭률 2배 · 1시간',fn:()=>go({exp:1,drop:2,minutes:60,msg:'장비가 쏟아진다!'})},
     {t:'경험치·드롭 2배 · 2시간',fn:()=>go({exp:2,drop:2,minutes:120,msg:'주말 특별 이벤트'})},
     {t:'경험치 3배 · 30분',fn:()=>go({exp:3,drop:1,minutes:30,msg:'번개 이벤트!'})},
-    {t:'이벤트 종료',fn:()=>go({off:true})},{t:'닫기',fn:closeUI}]);
+    {t:'이벤트 종료',fn:()=>go({off:true})},{t:'🐉 보스 레이드 지금 열기 (20분)',fn:async()=>{closeUI();try{await api('POST','/api/admin/live',{kind:'raid',minutes:20});sysChat('레이드를 열었습니다')}catch(e){sysChat(e.message)}}},{t:'🏛 쟁탈전 지금 열기 (10분)',fn:async()=>{closeUI();try{await api('POST','/api/admin/live',{kind:'arena',minutes:10});sysChat('쟁탈전을 열었습니다')}catch(e){sysChat(e.message)}}},{t:'닫기',fn:closeUI}]);
 }
 function drawSocial(g,t){
   // 채팅 로그 (왼쪽 아래)

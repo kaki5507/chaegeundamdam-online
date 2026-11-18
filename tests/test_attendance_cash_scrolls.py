@@ -8,7 +8,7 @@ async def main():
         pg.on('pageerror',lambda e: errs.append('PAGEERR '+str(e)))
         pg.on('console',lambda m: errs.append(m.text) if m.type=='error' else None)
         await pg.goto('file://'+__import__('os').path.abspath('index.html')); await pg.wait_for_timeout(300)
-        print(await pg.evaluate("""()=>{const g=__game;g.newGame('mage');
+        print(await pg.evaluate("""()=>{const g=__game;g.newGame('mage');g.goMap('town',true);
           const n=S.L.npcs.find(x=>x.id==='att');const out=[];
           for(let d=0;d<8;d++){ if(d>0)SAVE.att.last=dayNum()-1; checkIn(n); out.push(SAVE.att.streak+':ec'+SAVE.ec+':'+G.dlg.text.split('\\n').slice(2).join('/')); }
           return out}"""))
