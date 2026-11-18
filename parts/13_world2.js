@@ -21,7 +21,7 @@ function presenceStep(dt){
   if(!WSK||WSK.readyState!==1||!S||!PARTY[0]||G.state!=='play')return;
   _stT-=dt;if(_stT>0)return;_stT=.1;
   const p=PARTY[0];
-  WSK.send(JSON.stringify({t:'st',map:S.id,x:Math.round(p.x),y:Math.round(p.y),f:p.face,s:stateOf(p),j:SAVE.job,ti:SAVE.tier,fi:SAVE.fid|0,lv:SAVE.lvl,eq:p.eq,h:Math.round(p.hp/p.maxhp*100),pt:EVPT||'',dd:p.dead?1:0}));
+  WSK.send(JSON.stringify({t:'st',map:S.id,x:Math.round(p.x),y:Math.round(p.y),f:p.face,s:stateOf(p),j:SAVE.job,ti:SAVE.tier,fi:SAVE.fid|0,lv:SAVE.lvl,eq:p.eq,h:Math.round(p.hp/p.maxhp*100),pt:EVPT||'',dd:p.dead?1:0,w:typeof sigOf==='function'?sigOf():0}));
 }
 const myName=()=>ACCT?ACCT.name:'나';
 function nameTag(g,x,y,s,col,bg){g.font=F(11);const w=g.measureText(s).width+10;g.fillStyle=bg||'rgba(90,60,150,.75)';g.beginPath();g.roundRect(x-w/2,y,w,15,7);g.fill();txt(g,s,x,y+11.5,11,col||'#fff','center',0)}

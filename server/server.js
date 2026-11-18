@@ -197,7 +197,7 @@ function attachPresence(server) {
       if (m.t === 'st') {
         ws.st = { id: ws.id, name: ws.name, map: String(m.map || '').slice(0, 20), x: num(m.x, -500, 20000), y: num(m.y, -2000, 5000), f: m.f < 0 ? -1 : 1,
           s: String(m.s || 'idle').slice(0, 8), j: String(m.j || 'warrior').slice(0, 10), ti: num(m.ti, 0, 3) | 0, fi: num(m.fi, 0, 99) | 0, lv: num(m.lv, 1, 100) | 0,
-          eq: m.eq && typeof m.eq === 'object' ? Object.fromEntries(Object.entries(m.eq).slice(0, 5).map(([k, v]) => [String(k).slice(0, 8), String(v).slice(0, 20)])) : {}, h: num(m.h, 0, 100) | 0, pt: String(m.pt || '').slice(0, 10), dd: m.dd ? 1 : 0, at: Date.now() };
+          eq: m.eq && typeof m.eq === 'object' ? Object.fromEntries(Object.entries(m.eq).slice(0, 5).map(([k, v]) => [String(k).slice(0, 8), String(v).slice(0, 20)])) : {}, h: num(m.h, 0, 100) | 0, pt: String(m.pt || '').slice(0, 10), dd: m.dd ? 1 : 0, w: num(m.w, 0, 2) | 0, at: Date.now() };
         return;
       }
       if (m.t === 'whoami') { try { ws.send(JSON.stringify({ t: 'you', id: ws.id })); } catch {} return; }
