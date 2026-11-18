@@ -73,6 +73,12 @@ const srv = app.listen(0, async () => {
     a.send(JSON.stringify({ t: 'hit', to: idB, d: 50, dir: 1 })); assert.equal((await hurt).d, 50);
     b.send(JSON.stringify({ t: 'st', map: 'ev_arena', x: 1590, y: 470, pt: 'AA' }));
     const hold = await wait(b, o => o.t === 'ev' && o.arena.hold > 0.5 && !o.arena.contested); assert.equal(hold.arena.tname, 'AA 팀');
+    // 온라인 파티 : 버프·경험치 나눔
+    a.send(JSON.stringify({ t: 'st', map: 'h1', x: 100, y: 470, pt: 'PP' })); b.send(JSON.stringify({ t: 'st', map: 'h1', x: 200, y: 470, pt: 'PP' }));
+    await new Promise(r => setTimeout(r, 150));
+    const pb = wait(b, o => o.t === 'pb'); a.send(JSON.stringify({ t: 'pb', k: 'warrior:함성', x: 100, y: 470, b: { atk: 9, dur: 12, n: '전투 함성' } }));
+    const pbo = await pb; assert.equal(pbo.b.atk, 1.6); assert.equal(pbo.b.n, '전투 함성');
+    const kx = wait(b, o => o.t === 'kx'); a.send(JSON.stringify({ t: 'kx', e: 40, x: 100 })); assert.equal((await kx).e, 40);
     a.close(); b.close();
     console.log('SERVER TESTS OK');
   } catch (e) { console.error('FAIL', e); process.exitCode = 1; } finally { srv.close(); setTimeout(() => process.exit(), 100); }

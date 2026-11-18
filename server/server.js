@@ -202,6 +202,22 @@ function attachPresence(server) {
       }
       if (m.t === 'whoami') { try { ws.send(JSON.stringify({ t: 'you', id: ws.id })); } catch {} return; }
       if (m.t === 'rd') { raidDamage(ws, m); return; }
+      if (m.t === 'pb' || m.t === 'kx') {
+        if (!ws.st || !ws.st.pt) return;
+        const now = Date.now(); if (now - ws.hb.t > 1000) ws.hb = { t: now, n: 0 }; if (++ws.hb.n > 20) return;
+        const o = m.t === 'pb'
+          ? { t: 'pb', k: String(m.k || '').slice(0, 30), x: num(m.x, -1e4, 1e5), y: num(m.y, -1e4, 1e5), fname: ws.name,
+              b: { atk: num(m.b && m.b.atk, 1, 1.6), spd: num(m.b && m.b.spd, 1, 1.4), def: num(m.b && m.b.def, 0, .5), mpr: num(m.b && m.b.mpr, 0, 6), dur: num(m.b && m.b.dur, 1, 15), n: String(m.b && m.b.n || '').slice(0, 12) } }
+          : { t: 'kx', e: Math.round(num(m.e, 0, 1e7)), x: num(m.x, -1e4, 1e5), fname: ws.name };
+        const s2 = JSON.stringify(o);
+        for (const c of wss.clients) if (c !== ws && c.readyState === 1 && c.st && c.st.pt === ws.st.pt && c.st.map === ws.st.map) c.send(s2);
+        return;
+      }
+      if (m.t === 'heal' && ws.st && ws.st.map !== 'ev_arena') {
+        let tg = null; for (const c of wss.clients) if (c.id === m.to) { tg = c; break; }
+        if (tg && tg.readyState === 1 && tg.st && ws.st.pt && tg.st.pt === ws.st.pt && tg.st.map === ws.st.map) tg.send(JSON.stringify({ t: 'healed', v: num(m.v, 0, .8), fname: ws.name }));
+        return;
+      }
       if (m.t === 'hit' || m.t === 'heal') {
         if (!ws.st || ws.st.map !== 'ev_arena') return;
         const now = Date.now(); if (now - ws.hb.t > 1000) ws.hb = { t: now, n: 0 }; if (++ws.hb.n > 20) return;
