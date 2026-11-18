@@ -14,34 +14,34 @@ const dailyPct=l=>l<10?.08:l<30?.05:l<50?.03:l<70?.02:.005;
 const tierOfLv=l=>l>=ADV_LV[3]?3:l>=ADV_LV[2]?2:l>=ADV_LV[1]?1:0;
 const bossPct=l=>l<50?1:l<70?.6:.2;
 const GIVER_NAME={zgate:'귀문 수문장',chief:'촌장님',board:'게시판',coach:'전직 교관',miko:'숨은 무녀',adv2:'숲의 스승',adv3:'달빛 대현자',daily:'일일 의뢰인'};
-const jline=(j,t)=>t<=0?'수련생 '+j.veg:j.line[t-1];
+const jline=(j,t)=>t<=0?'초보자':j.line[t-1];
 const SK_KEYS=['sk1','sk2','sk3','sk4','sk5'];   // X C V B N
 const SK_LABEL=['X','C','V','B','N'];
 const SK_TIER=[1,0,1,2,3];                         // 해당 스킬이 열리는 전직 단계 (C 는 수련생부터)
 const SKIN='#eaa571',SKIN2='#c17e4e';
 const JOBS=[
- {id:'warrior',veg:'브로콜리',role:'전사',head:'broc',line:['부락 파이터','근육 용사','대근육신'],hp:130,mp:60,atk:14,spd:232,jump:640,short:'#d8344a',band:'#ffdd33',col:'#3fae49',proj:'broc',
+ {id:'warrior',veg:'브로콜리',role:'전사',head:'broc',line:['전사','용사','검성'],hp:130,mp:60,atk:14,spd:232,jump:640,short:'#d8344a',band:'#ffdd33',col:'#3fae49',proj:'broc',
   bio:'균형 잡힌 근력의 정석. 근접 연타와 광역 폭발.',basic:{k:'melee',range:86,cd:.34,m:1},
-  sk:[{n:'근육 폭발',k:'burst',r:150,m:2.6,mp:22,cd:5,col:'#ffe08a'},{n:'야채 투척',k:'fan',cnt:1,m:1.5,mp:7,cd:.55,spd:560,pierce:1},{n:'부락 모드',k:'buff',atk:1.5,spd:1.15,dur:9,mp:40,cd:28},{n:'대지 가르기',k:'quake',m:2.4,mp:32,cd:8},{n:'울트라 부락 폭발',k:'burst',r:330,m:7,mp:70,cd:18,col:'#fff2a0'}]},
- {id:'archer',veg:'당근',role:'궁수',head:'carrot',line:['당근 헌터','당근 레인저','당근 저격수'],hp:106,mp:72,atk:12,spd:262,jump:672,short:'#2f6bd8',band:'#ffffff',col:'#ff8a1f',proj:'carrot',
+  sk:[{n:'돌진 베기',k:'lunge',m:2.2,mp:20,cd:4,t:.24,v:800,col:'#ffe08a',fin:{r:130,m:1.5}},{n:'야채 투척',k:'fan',cnt:1,m:1.5,mp:7,cd:.55,spd:560,pierce:1},{n:'부락 모드',k:'buff',atk:1.5,spd:1.15,dur:9,mp:40,cd:28},{n:'대지 가르기',k:'quake',m:2.4,mp:32,cd:8},{n:'울트라 부락 폭발',k:'burst',r:330,m:7,mp:70,cd:18,col:'#fff2a0'}]},
+ {id:'archer',veg:'당근',role:'궁수',head:'carrot',line:['궁수','레인저','신궁'],hp:106,mp:72,atk:12,spd:262,jump:672,short:'#2f6bd8',band:'#ffffff',col:'#ff8a1f',proj:'carrot',
   bio:'눈이 좋은 원거리 딜러. 빠르고 멀리 쏜다.',basic:{k:'shoot',cd:.3,m:.9,spd:720,life:.9,ammo:'carrot'},
-  sk:[{n:'당근 화살비',k:'rain',cnt:9,m:1.1,mp:25,cd:6,aoe:46,rw:220,off:150},{n:'관통 사격',k:'fan',cnt:1,m:2.3,mp:12,cd:1.4,spd:950,pierce:6},{n:'집중',k:'buff',atk:1.4,spd:1.2,dur:8,mp:35,cd:25},{n:'삼연사',k:'fan',cnt:3,sp:.2,m:1.5,mp:22,cd:4,spd:800,pierce:1},{n:'당근 유성우',k:'rain',cnt:24,m:1.6,mp:75,cd:20,aoe:60,rw:320,off:60}]},
- {id:'guardian',veg:'무',role:'수호자',head:'radish',line:['무 가드','무 수호자','대무 장군'],hp:178,mp:50,atk:17,spd:208,jump:620,short:'#2a2a33',band:'#e83a3a',col:'#f2f0e8',proj:'radish',
+  sk:[{n:'백스텝 삼연사',k:'backshot',cnt:3,sp:.16,m:1.5,mp:16,cd:3,spd:900,pierce:2},{n:'관통 사격',k:'fan',cnt:1,m:2.3,mp:12,cd:1.4,spd:950,pierce:6},{n:'집중',k:'buff',atk:1.4,spd:1.2,dur:8,mp:35,cd:25},{n:'화살비',k:'rain',cnt:14,m:1.3,mp:28,cd:6,aoe:50,rw:240,off:150},{n:'당근 유성우',k:'rain',cnt:24,m:1.6,mp:75,cd:20,aoe:60,rw:320,off:60}]},
+ {id:'guardian',veg:'무',role:'수호자',head:'radish',line:['수호자','방패기사','철벽 장군'],hp:178,mp:50,atk:17,spd:208,jump:620,short:'#2a2a33',band:'#e83a3a',col:'#f2f0e8',proj:'radish',
   bio:'느리지만 쓰러지지 않는다. 방패와 지진.',basic:{k:'melee',range:80,cd:.5,m:1.3},
-  sk:[{n:'지진',k:'quake',m:2.2,mp:28,cd:7},{n:'무 방패',k:'shield',dur:3,mp:25,cd:14},{n:'분노',k:'buff',atk:1.6,spd:1,def:.5,dur:10,mp:40,cd:30},{n:'돌진 박치기',k:'dash',m:3,mp:30,cd:8},{n:'대지의 심판',k:'burst',r:380,m:8,mp:80,cd:20,col:'#ffffff'}]},
- {id:'mage',veg:'양파',role:'마법사',head:'onion',line:['양파 마법사','눈물 현자','대눈물 마도사'],hp:100,mp:110,atk:13,spd:222,jump:640,short:'#5a3a9a',band:'#7ad0ff',col:'#e0a860',proj:'orb',
+  sk:[{n:'방패 돌진',k:'lunge',m:2.4,mp:22,cd:5,t:.2,v:660,col:'#e8f0ff',fin:{r:110,m:1.8},guard:.6},{n:'무 방패',k:'shield',dur:3,mp:25,cd:14},{n:'분노',k:'buff',atk:1.6,spd:1,def:.5,dur:10,mp:40,cd:30},{n:'지진',k:'quake',m:3,mp:30,cd:7},{n:'대지의 심판',k:'burst',r:380,m:8,mp:80,cd:20,col:'#ffffff'}]},
+ {id:'mage',veg:'양파',role:'마법사',head:'onion',line:['마법사','위저드','대마법사'],hp:100,mp:110,atk:13,spd:222,jump:640,short:'#5a3a9a',band:'#7ad0ff',col:'#e0a860',proj:'orb',
   bio:'눈물 마법. 유도 탄과 광역 폭풍.',basic:{k:'shoot',cd:.42,m:1,spd:430,life:1.3,ammo:'orb',homing:1},
-  sk:[{n:'눈물 폭풍',k:'rain',cnt:14,m:.9,mp:30,cd:6,aoe:44,rw:260,off:0},{n:'눈물 화살',k:'fan',cnt:1,m:2.5,mp:14,cd:1.2,spd:820,pierce:4,ammo:'orb'},{n:'마나 폭주',k:'buff',atk:1.5,spd:1.05,mpr:4,dur:10,mp:30,cd:28},{n:'눈물 분수',k:'fan',cnt:5,sp:.9,m:1.2,mp:30,cd:6,spd:380,homing:1,ammo:'orb',life:1.8},{n:'대양파 메테오',k:'rain',cnt:12,m:4.2,mp:95,cd:22,aoe:100,rw:280,off:100}]},
- {id:'fighter',veg:'고추',role:'화염 격투가',head:'chili',line:['매운 고추','불꽃 고추','화염제왕'],hp:118,mp:62,atk:15,spd:246,jump:650,short:'#2a2a33',band:'#ffb020',col:'#e02a2a',proj:'chili',
+  sk:[{n:'순간이동 마탄',k:'lunge',blink:1,m:1.2,mp:20,cd:3.5,t:.1,v:1700,col:'#b8a0ff',fin:{r:140,m:2.1},start:{r:90,m:.8}},{n:'눈물 화살',k:'fan',cnt:1,m:2.5,mp:14,cd:1.2,spd:820,pierce:4,ammo:'orb'},{n:'마나 폭주',k:'buff',atk:1.5,spd:1.05,mpr:4,dur:10,mp:30,cd:28},{n:'마력 폭풍',k:'rain',cnt:18,m:1.0,mp:32,cd:6,aoe:46,rw:260,off:0},{n:'대양파 메테오',k:'rain',cnt:12,m:4.2,mp:95,cd:22,aoe:100,rw:280,off:100}]},
+ {id:'fighter',veg:'고추',role:'격투가',head:'chili',line:['격투가','권사','권왕'],hp:118,mp:62,atk:15,spd:246,jump:650,short:'#2a2a33',band:'#ffb020',col:'#e02a2a',proj:'chili',
   bio:'빠른 연타와 불꽃 돌진. 한 번 붙으면 끝장.',basic:{k:'melee',range:92,cd:.28,m:.95,fire:1},
-  sk:[{n:'화염 폭발',k:'burst',r:175,m:3,mp:26,cd:5,col:'#ff8a30'},{n:'불 돌진',k:'dash',m:2.2,mp:18,cd:4},{n:'매운 맛 폭주',k:'buff',atk:1.6,spd:1.2,dur:8,mp:40,cd:28},{n:'화염 방사',k:'fan',cnt:5,sp:.5,m:1.0,mp:28,cd:5,spd:520,life:.45,pierce:9,ammo:'fire'},{n:'지옥 불기둥',k:'burst',r:350,m:8,mp:80,cd:20,col:'#ff5a20'}]},
- {id:'rogue',veg:'가지',role:'암살자',head:'eggplant',line:['보라 가지','암야 가지','그림자 대가지'],hp:108,mp:66,atk:13,spd:272,jump:690,short:'#1a1a28',band:'#c05aff',col:'#8a52b8',proj:'star',
+  sk:[{n:'화염 연타 돌격',k:'lunge',m:1.5,mp:22,cd:4.5,t:.22,v:840,col:'#ff8a30',fin:{r:120,m:1.0,hits:4}},{n:'화염 폭발',k:'burst',r:150,m:2.2,mp:16,cd:4,col:'#ff8a30'},{n:'매운 맛 폭주',k:'buff',atk:1.6,spd:1.2,dur:8,mp:40,cd:28},{n:'화염 방사',k:'fan',cnt:5,sp:.5,m:1.0,mp:28,cd:5,spd:520,life:.45,pierce:9,ammo:'fire'},{n:'지옥 불기둥',k:'burst',r:350,m:8,mp:80,cd:20,col:'#ff5a20'}]},
+ {id:'rogue',veg:'가지',role:'암살자',head:'eggplant',line:['암살자','그림자 검객','그림자 군주'],hp:108,mp:66,atk:13,spd:272,jump:690,short:'#1a1a28',band:'#c05aff',col:'#8a52b8',proj:'star',
   bio:'가장 빠른 칼잡이. 그림자 베기와 암기.',basic:{k:'melee',range:68,cd:.2,m:.62},
-  sk:[{n:'그림자 베기',k:'dash',m:3.2,mp:22,cd:5},{n:'암기 투척',k:'fan',cnt:3,sp:.28,m:1.1,mp:10,cd:.8,spd:760,ammo:'star'},{n:'암야',k:'buff',atk:1.3,spd:1.35,def:.3,dur:8,mp:36,cd:26},{n:'분신 난무',k:'burst',r:150,m:4.2,mp:30,cd:7,col:'#c05aff'},{n:'그림자 대폭풍',k:'burst',r:340,m:7.5,mp:75,cd:19,col:'#a040ff'}]},
- {id:'gunner',veg:'옥수수',role:'팝콘 거너',head:'corn',line:['옥수수 사수','팝콘 거너','콘 캐논'],hp:112,mp:70,atk:12,spd:238,jump:640,short:'#3a5a2a',band:'#ffffff',col:'#ffd83a',proj:'kernel',
+  sk:[{n:'그림자 질주',k:'lunge',blink:1,m:2.6,mp:20,cd:4,t:.16,v:1250,col:'#c05aff',fin:{r:100,m:1.2,hits:2}},{n:'암기 투척',k:'fan',cnt:3,sp:.28,m:1.1,mp:10,cd:.8,spd:760,ammo:'star'},{n:'암야',k:'buff',atk:1.3,spd:1.35,def:.3,dur:8,mp:36,cd:26},{n:'분신 난무',k:'burst',r:150,m:4.2,mp:30,cd:7,col:'#c05aff'},{n:'그림자 대폭풍',k:'burst',r:340,m:7.5,mp:75,cd:19,col:'#a040ff'}]},
+ {id:'gunner',veg:'옥수수',role:'거너',head:'corn',line:['거너','건슬링어','캐논 마스터'],hp:112,mp:70,atk:12,spd:238,jump:640,short:'#3a5a2a',band:'#ffffff',col:'#ffd83a',proj:'kernel',
   bio:'알알이 쏟아지는 연사. 팝콘 폭격.',basic:{k:'shoot',cd:.16,m:.52,spd:820,life:.7,ammo:'kernel'},
-  sk:[{n:'팝콘 폭탄',k:'rain',cnt:7,m:1.6,mp:26,cd:5,aoe:72,rw:180,off:170,ammo:'popcorn'},{n:'콘 캐논',k:'fan',cnt:1,m:3.4,mp:20,cd:2,spd:700,pierce:5,ammo:'popcorn'},{n:'팝콘 파티',k:'heal',m:.3,mp:40,cd:25},{n:'콘 기관총',k:'fan',cnt:7,sp:.3,m:.75,mp:26,cd:4,spd:860,ammo:'kernel'},{n:'대팝콘 핵',k:'burst',r:390,m:8.5,mp:90,cd:22,col:'#fff0b0'}]},
- {id:'priest',veg:'마늘',role:'성직자',head:'garlic',line:['마늘 사제','성스러운 마늘','마늘 성자'],hp:122,mp:100,atk:12,spd:226,jump:640,short:'#e8e0c8',band:'#ffd34a',col:'#f6f2e6',proj:'holy',
+  sk:[{n:'반동 캐논',k:'recoil',m:3.2,mp:20,cd:3,spd:780,pierce:5,ammo:'popcorn'},{n:'팝콘 폭탄',k:'rain',cnt:5,m:1.5,mp:14,cd:3,aoe:70,rw:150,off:170,ammo:'popcorn'},{n:'팝콘 파티',k:'heal',m:.3,mp:40,cd:25},{n:'콘 기관총',k:'fan',cnt:7,sp:.3,m:.75,mp:26,cd:4,spd:860,ammo:'kernel'},{n:'대팝콘 핵',k:'burst',r:390,m:8.5,mp:90,cd:22,col:'#fff0b0'}]},
+ {id:'priest',veg:'마늘',role:'성직자',head:'garlic',line:['성직자','사제','대주교'],hp:122,mp:100,atk:12,spd:226,jump:640,short:'#e8e0c8',band:'#ffd34a',col:'#f6f2e6',proj:'holy',
   bio:'아군을 살리는 힐러. 파티의 든든한 기둥.',basic:{k:'shoot',cd:.4,m:.9,spd:520,life:.8,ammo:'holy',homing:1},
   sk:[{n:'마늘 힐',k:'heal',m:.35,mp:28,cd:6},{n:'정화의 빛',k:'burst',r:210,m:2.4,mp:22,cd:6,col:'#fff7c0'},{n:'마늘 결계',k:'shield',dur:2.6,party:1,mp:30,cd:16},{n:'성스러운 일격',k:'fan',cnt:1,m:3.1,mp:22,cd:3,spd:760,pierce:4,ammo:'holy'},{n:'대사면',k:'heal',m:.8,mp:90,cd:26,burst:{r:340,m:5}}]},
 ];

@@ -162,7 +162,7 @@ drawTitle=function(g,t){
     const cx=W/2-150,cy=410;g.save();const gl=g.createRadialGradient(cx,cy-60,10,cx,cy-60,150);gl.addColorStop(0,'rgba(255,236,170,.5)');gl.addColorStop(1,'rgba(255,236,170,0)');g.fillStyle=gl;g.fillRect(cx-150,cy-210,300,260);g.restore();
     g.fillStyle='rgba(140,120,80,.55)';g.beginPath();g.ellipse(cx,cy+4,90,16,0,0,6.28);g.fill();g.strokeStyle='rgba(240,210,130,.9)';g.lineWidth=2;g.stroke();
     if(sv){const j=JOB[sv.job];drawVeggie(g,j,{x:cx,y:cy,face:1,t,st:'idle',fid:sv.fid==null?3:sv.fid,tier:sv.tier||0,sc:1.7,eq:sv.eq||{}});
-      panel(g,cx-130,cy+26,260,62,.75);txt(g,(ACCT?ACCT.name:'오프라인')+'  ·  Lv.'+sv.lvl,cx,cy+50,19,'#fff','center',3);txt(g,j.veg+' · '+jline(j,sv.tier||0),cx,cy+76,14,'#f0d890','center',2)}
+      panel(g,cx-130,cy+26,260,62,.75);txt(g,(ACCT?ACCT.name:'오프라인')+'  ·  Lv.'+sv.lvl,cx,cy+50,19,'#fff','center',3);txt(g,jline(j,sv.tier||0),cx,cy+76,14,'#f0d890','center',2)}
     else{txt(g,'?',cx,cy-50,90,'rgba(255,255,255,.75)','center',4);panel(g,cx-130,cy+26,260,62,.75);txt(g,(ACCT?ACCT.name:'오프라인')+' 님',cx,cy+50,19,'#fff','center',3);txt(g,'아직 캐릭터가 없어요',cx,cy+76,14,'#f0d890','center',2)}
     const lab={start:sv?'▶ 게임 시작':'✦ 캐릭터 만들기',logout:'로그아웃',new:'새 캐릭터 (개발)'};
     opts.forEach((o,i)=>{const b=charBtn(i),sel=G.sel===i;g.save();g.shadowColor=sel?'rgba(255,190,240,.95)':'transparent';g.shadowBlur=sel?20:0;

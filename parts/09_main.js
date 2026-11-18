@@ -271,7 +271,7 @@ function drawSelect(g,t){
     g.save();g.beginPath();g.rect(x+6,y+6,196,120);g.clip();
     const gl=g.createRadialGradient(x+104,y+100,10,x+104,y+100,90);gl.addColorStop(0,j.col+'55');gl.addColorStop(1,j.col+'00');g.fillStyle=gl;g.fillRect(x,y,208,178);
     drawVeggie(g,j,{x:x+104,y:y+122,face:1,t:t+i,st:sel?'skill':'idle',tier:0,fid:G.fsel|0});g.restore();
-    txt(g,j.veg+' '+j.role,x+104,y+148,17,'#fff','center');txt(g,'수련생→'+j.line.join('→'),x+104,y+168,10,'#ffe9a0','center',2);
+    txt(g,j.role,x+104,y+148,17,'#fff','center');txt(g,'초보자→'+j.line.join('→'),x+104,y+168,10,'#ffe9a0','center',2);
   });
   const j=JOBS[G.jsel];panel(g,36,448,888,82,.85);
   txt(g,j.bio,54,478,16,'#fff');

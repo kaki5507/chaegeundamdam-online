@@ -143,7 +143,7 @@ function advMenu(n){
   const a=ADV_INFO[n.id],j=JOB[SAVE.job],opts=[],qid=a.qid,st=qst(qid).s;
   if(st!=='none'||qAvail(qid))opts.push({t:({none:'[!] ',active:'[진행중] ',ready:'[완료!] ',done:'[끝] '})[st]+QUESTS[qid].name,fn:()=>questDetail(n,n.id,qid)});
   opts.push({t:'내 직업 · 스킬 보기',fn:()=>jobInfoDialog(n)});opts.push({t:'닫기',fn:closeUI});
-  let msg='현재: '+j.veg+' · '+jline(j,SAVE.tier)+' ('+SAVE.tier+'차)\n\n';
+  let msg='현재: '+jline(j,SAVE.tier)+' ('+SAVE.tier+'차)\n\n';
   if(SAVE.tier>=a.t)msg+='이미 '+a.t+'차 전직을 마쳤구나. 더 높은 곳을 노려라!';
   else if(SAVE.tier<a.t-1)msg+='아직 이르다. 먼저 '+(a.t-1)+'차 전직부터 마쳐라.';
   else if(SAVE.lvl<ADV_LV[a.t])msg+=a.t+'차 전직은 Lv.'+ADV_LV[a.t]+' 부터다. (현재 Lv.'+SAVE.lvl+')';
@@ -274,7 +274,7 @@ function talkNPC(n){
 function jobInfoDialog(n){
   const j=JOB[SAVE.job];let t='';
   j.sk.forEach((s,i)=>{t+=(SAVE.tier>=SK_TIER[i]?'':'🔒')+'['+SK_LABEL[i]+'] '+s.n+'  (MP '+s.mp+' · 쿨 '+s.cd+'s)'+(SK_TIER[i]>=1?'  ← '+SK_TIER[i]+'차':'  (수련생)')+'\n'});
-  openDialog(n.name,j.veg+' '+j.role+' : 수련생 → '+j.line.join(' → ')+'\n'+j.bio+'\n\n'+t,[{t:'뒤로',fn:()=>talkNPC(n)}]);
+  openDialog(n.name,j.role+' : 초보자 → '+j.line.join(' → ')+'\n'+j.bio+'\n\n'+t,[{t:'뒤로',fn:()=>talkNPC(n)}]);
 }
 function mikoMenu(n){
   const opts=[];
@@ -301,7 +301,7 @@ function partyMenu(n){
   openDialog(n.name,'파티를 꾸려보자! 현재 '+PARTY.length+'명.\n온라인 접속은 못 하지만, 한 키보드에서 둘이 같이 하거나 AI 동료와 함께할 수 있어.\n\n· AI 동료는 따라다니며 싸우고, 사제는 치유해 준다\n· 파티퀘스트에서 E 키 : AI 동료를 발판 위로 보내 대기시키기',opts);
 }
 function jobPick(title,fn){
-  openDialog(title,'직업을 고르세요.',JOBS.map(j=>({t:j.veg+' · '+j.role,fn:()=>{closeUI();fn(j.id)}})).concat([{t:'취소',fn:closeUI}]));
+  openDialog(title,'직업을 고르세요.',JOBS.map(j=>({t:j.role,fn:()=>{closeUI();fn(j.id)}})).concat([{t:'취소',fn:closeUI}]));
 }
 function addMember(kind,jobId){
   const lead=PARTY[0],lv=SAVE.lvl,p=mkPlayer(kind,jobId,lv);
@@ -309,7 +309,7 @@ function addMember(kind,jobId){
   p.slot=PARTY.length;p.x=lead.x-lead.face*40;p.y=lead.y;p.face=lead.face;
   const pool=Object.keys(ITEMS).filter(k=>!ITEMS[k].cash);if(kind==='ai'||kind==='p2'){for(const s of['hat','face','outfit','cape','aura']){if(Math.random()<(s==='aura'?.25:.5)){const c=pool.filter(k=>ITEMS[k].slot===s);p.eq[s]=c[Math.random()*c.length|0]}}}
   PARTY.push(p);spark(p.x,p.y-30,16,'#cfe0ff',200,.5,3,0,true);sfx('portal');
-  G.toast((kind==='ai'?'AI 동료':kind==='p2'?'2P':'')+' '+JOB[jobId].veg+' '+jline(JOB[jobId],p.tier)+' 합류!');
+  G.toast((kind==='ai'?'AI 동료':kind==='p2'?'2P':'')+' '+jline(JOB[jobId],p.tier)+' 합류!');
 }
 function removeMember(p){PARTY.splice(PARTY.indexOf(p),1);PARTY.forEach((q,i)=>q.slot=i)}
 
@@ -493,7 +493,7 @@ function drawHUD(g,t){
   // party
   let py=mmB;
   for(const q of PARTY){if(q===p)continue;
-    panel(g,10,py,200,38,.6);txt(g,(S.L.pvp?(q.team===p.team?'아군 ':'상대 '):q.kind==='p2'?'2P ':'AI ')+JOB[q.job].veg+' Lv.'+q.lvl,18,py+16,12,q.dead?'#999':'#fff','left',2);
+    panel(g,10,py,200,38,.6);txt(g,(S.L.pvp?(q.team===p.team?'아군 ':'상대 '):q.kind==='p2'?'2P ':'AI ')+JOB[q.job].role+' Lv.'+q.lvl,18,py+16,12,q.dead?'#999':'#fff','left',2);
     bar(g,18,py+21,184,8,q.dead?0:q.hp/q.maxhp,'#e8484f');if(q.dead)txt(g,'기절…'+Math.max(0,(q.kind==='ai'?7:6)-q.deadT).toFixed(0),200,py+16,11,'#cfe0ff','right',2);py+=42}
   // quest tracker
   let qy=48;const act=Object.keys(SAVE.q).filter(k=>SAVE.q[k].s==='active'||SAVE.q[k].s==='ready').slice(0,3);

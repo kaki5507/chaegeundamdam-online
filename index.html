@@ -819,34 +819,34 @@ const dailyPct=l=>l<10?.08:l<30?.05:l<50?.03:l<70?.02:.005;
 const tierOfLv=l=>l>=ADV_LV[3]?3:l>=ADV_LV[2]?2:l>=ADV_LV[1]?1:0;
 const bossPct=l=>l<50?1:l<70?.6:.2;
 const GIVER_NAME={zgate:'귀문 수문장',chief:'촌장님',board:'게시판',coach:'전직 교관',miko:'숨은 무녀',adv2:'숲의 스승',adv3:'달빛 대현자',daily:'일일 의뢰인'};
-const jline=(j,t)=>t<=0?'수련생 '+j.veg:j.line[t-1];
+const jline=(j,t)=>t<=0?'초보자':j.line[t-1];
 const SK_KEYS=['sk1','sk2','sk3','sk4','sk5'];   // X C V B N
 const SK_LABEL=['X','C','V','B','N'];
 const SK_TIER=[1,0,1,2,3];                         // 해당 스킬이 열리는 전직 단계 (C 는 수련생부터)
 const SKIN='#eaa571',SKIN2='#c17e4e';
 const JOBS=[
- {id:'warrior',veg:'브로콜리',role:'전사',head:'broc',line:['부락 파이터','근육 용사','대근육신'],hp:130,mp:60,atk:14,spd:232,jump:640,short:'#d8344a',band:'#ffdd33',col:'#3fae49',proj:'broc',
+ {id:'warrior',veg:'브로콜리',role:'전사',head:'broc',line:['전사','용사','검성'],hp:130,mp:60,atk:14,spd:232,jump:640,short:'#d8344a',band:'#ffdd33',col:'#3fae49',proj:'broc',
   bio:'균형 잡힌 근력의 정석. 근접 연타와 광역 폭발.',basic:{k:'melee',range:86,cd:.34,m:1},
-  sk:[{n:'근육 폭발',k:'burst',r:150,m:2.6,mp:22,cd:5,col:'#ffe08a'},{n:'야채 투척',k:'fan',cnt:1,m:1.5,mp:7,cd:.55,spd:560,pierce:1},{n:'부락 모드',k:'buff',atk:1.5,spd:1.15,dur:9,mp:40,cd:28},{n:'대지 가르기',k:'quake',m:2.4,mp:32,cd:8},{n:'울트라 부락 폭발',k:'burst',r:330,m:7,mp:70,cd:18,col:'#fff2a0'}]},
- {id:'archer',veg:'당근',role:'궁수',head:'carrot',line:['당근 헌터','당근 레인저','당근 저격수'],hp:106,mp:72,atk:12,spd:262,jump:672,short:'#2f6bd8',band:'#ffffff',col:'#ff8a1f',proj:'carrot',
+  sk:[{n:'돌진 베기',k:'lunge',m:2.2,mp:20,cd:4,t:.24,v:800,col:'#ffe08a',fin:{r:130,m:1.5}},{n:'야채 투척',k:'fan',cnt:1,m:1.5,mp:7,cd:.55,spd:560,pierce:1},{n:'부락 모드',k:'buff',atk:1.5,spd:1.15,dur:9,mp:40,cd:28},{n:'대지 가르기',k:'quake',m:2.4,mp:32,cd:8},{n:'울트라 부락 폭발',k:'burst',r:330,m:7,mp:70,cd:18,col:'#fff2a0'}]},
+ {id:'archer',veg:'당근',role:'궁수',head:'carrot',line:['궁수','레인저','신궁'],hp:106,mp:72,atk:12,spd:262,jump:672,short:'#2f6bd8',band:'#ffffff',col:'#ff8a1f',proj:'carrot',
   bio:'눈이 좋은 원거리 딜러. 빠르고 멀리 쏜다.',basic:{k:'shoot',cd:.3,m:.9,spd:720,life:.9,ammo:'carrot'},
-  sk:[{n:'당근 화살비',k:'rain',cnt:9,m:1.1,mp:25,cd:6,aoe:46,rw:220,off:150},{n:'관통 사격',k:'fan',cnt:1,m:2.3,mp:12,cd:1.4,spd:950,pierce:6},{n:'집중',k:'buff',atk:1.4,spd:1.2,dur:8,mp:35,cd:25},{n:'삼연사',k:'fan',cnt:3,sp:.2,m:1.5,mp:22,cd:4,spd:800,pierce:1},{n:'당근 유성우',k:'rain',cnt:24,m:1.6,mp:75,cd:20,aoe:60,rw:320,off:60}]},
- {id:'guardian',veg:'무',role:'수호자',head:'radish',line:['무 가드','무 수호자','대무 장군'],hp:178,mp:50,atk:17,spd:208,jump:620,short:'#2a2a33',band:'#e83a3a',col:'#f2f0e8',proj:'radish',
+  sk:[{n:'백스텝 삼연사',k:'backshot',cnt:3,sp:.16,m:1.5,mp:16,cd:3,spd:900,pierce:2},{n:'관통 사격',k:'fan',cnt:1,m:2.3,mp:12,cd:1.4,spd:950,pierce:6},{n:'집중',k:'buff',atk:1.4,spd:1.2,dur:8,mp:35,cd:25},{n:'화살비',k:'rain',cnt:14,m:1.3,mp:28,cd:6,aoe:50,rw:240,off:150},{n:'당근 유성우',k:'rain',cnt:24,m:1.6,mp:75,cd:20,aoe:60,rw:320,off:60}]},
+ {id:'guardian',veg:'무',role:'수호자',head:'radish',line:['수호자','방패기사','철벽 장군'],hp:178,mp:50,atk:17,spd:208,jump:620,short:'#2a2a33',band:'#e83a3a',col:'#f2f0e8',proj:'radish',
   bio:'느리지만 쓰러지지 않는다. 방패와 지진.',basic:{k:'melee',range:80,cd:.5,m:1.3},
-  sk:[{n:'지진',k:'quake',m:2.2,mp:28,cd:7},{n:'무 방패',k:'shield',dur:3,mp:25,cd:14},{n:'분노',k:'buff',atk:1.6,spd:1,def:.5,dur:10,mp:40,cd:30},{n:'돌진 박치기',k:'dash',m:3,mp:30,cd:8},{n:'대지의 심판',k:'burst',r:380,m:8,mp:80,cd:20,col:'#ffffff'}]},
- {id:'mage',veg:'양파',role:'마법사',head:'onion',line:['양파 마법사','눈물 현자','대눈물 마도사'],hp:100,mp:110,atk:13,spd:222,jump:640,short:'#5a3a9a',band:'#7ad0ff',col:'#e0a860',proj:'orb',
+  sk:[{n:'방패 돌진',k:'lunge',m:2.4,mp:22,cd:5,t:.2,v:660,col:'#e8f0ff',fin:{r:110,m:1.8},guard:.6},{n:'무 방패',k:'shield',dur:3,mp:25,cd:14},{n:'분노',k:'buff',atk:1.6,spd:1,def:.5,dur:10,mp:40,cd:30},{n:'지진',k:'quake',m:3,mp:30,cd:7},{n:'대지의 심판',k:'burst',r:380,m:8,mp:80,cd:20,col:'#ffffff'}]},
+ {id:'mage',veg:'양파',role:'마법사',head:'onion',line:['마법사','위저드','대마법사'],hp:100,mp:110,atk:13,spd:222,jump:640,short:'#5a3a9a',band:'#7ad0ff',col:'#e0a860',proj:'orb',
   bio:'눈물 마법. 유도 탄과 광역 폭풍.',basic:{k:'shoot',cd:.42,m:1,spd:430,life:1.3,ammo:'orb',homing:1},
-  sk:[{n:'눈물 폭풍',k:'rain',cnt:14,m:.9,mp:30,cd:6,aoe:44,rw:260,off:0},{n:'눈물 화살',k:'fan',cnt:1,m:2.5,mp:14,cd:1.2,spd:820,pierce:4,ammo:'orb'},{n:'마나 폭주',k:'buff',atk:1.5,spd:1.05,mpr:4,dur:10,mp:30,cd:28},{n:'눈물 분수',k:'fan',cnt:5,sp:.9,m:1.2,mp:30,cd:6,spd:380,homing:1,ammo:'orb',life:1.8},{n:'대양파 메테오',k:'rain',cnt:12,m:4.2,mp:95,cd:22,aoe:100,rw:280,off:100}]},
- {id:'fighter',veg:'고추',role:'화염 격투가',head:'chili',line:['매운 고추','불꽃 고추','화염제왕'],hp:118,mp:62,atk:15,spd:246,jump:650,short:'#2a2a33',band:'#ffb020',col:'#e02a2a',proj:'chili',
+  sk:[{n:'순간이동 마탄',k:'lunge',blink:1,m:1.2,mp:20,cd:3.5,t:.1,v:1700,col:'#b8a0ff',fin:{r:140,m:2.1},start:{r:90,m:.8}},{n:'눈물 화살',k:'fan',cnt:1,m:2.5,mp:14,cd:1.2,spd:820,pierce:4,ammo:'orb'},{n:'마나 폭주',k:'buff',atk:1.5,spd:1.05,mpr:4,dur:10,mp:30,cd:28},{n:'마력 폭풍',k:'rain',cnt:18,m:1.0,mp:32,cd:6,aoe:46,rw:260,off:0},{n:'대양파 메테오',k:'rain',cnt:12,m:4.2,mp:95,cd:22,aoe:100,rw:280,off:100}]},
+ {id:'fighter',veg:'고추',role:'격투가',head:'chili',line:['격투가','권사','권왕'],hp:118,mp:62,atk:15,spd:246,jump:650,short:'#2a2a33',band:'#ffb020',col:'#e02a2a',proj:'chili',
   bio:'빠른 연타와 불꽃 돌진. 한 번 붙으면 끝장.',basic:{k:'melee',range:92,cd:.28,m:.95,fire:1},
-  sk:[{n:'화염 폭발',k:'burst',r:175,m:3,mp:26,cd:5,col:'#ff8a30'},{n:'불 돌진',k:'dash',m:2.2,mp:18,cd:4},{n:'매운 맛 폭주',k:'buff',atk:1.6,spd:1.2,dur:8,mp:40,cd:28},{n:'화염 방사',k:'fan',cnt:5,sp:.5,m:1.0,mp:28,cd:5,spd:520,life:.45,pierce:9,ammo:'fire'},{n:'지옥 불기둥',k:'burst',r:350,m:8,mp:80,cd:20,col:'#ff5a20'}]},
- {id:'rogue',veg:'가지',role:'암살자',head:'eggplant',line:['보라 가지','암야 가지','그림자 대가지'],hp:108,mp:66,atk:13,spd:272,jump:690,short:'#1a1a28',band:'#c05aff',col:'#8a52b8',proj:'star',
+  sk:[{n:'화염 연타 돌격',k:'lunge',m:1.5,mp:22,cd:4.5,t:.22,v:840,col:'#ff8a30',fin:{r:120,m:1.0,hits:4}},{n:'화염 폭발',k:'burst',r:150,m:2.2,mp:16,cd:4,col:'#ff8a30'},{n:'매운 맛 폭주',k:'buff',atk:1.6,spd:1.2,dur:8,mp:40,cd:28},{n:'화염 방사',k:'fan',cnt:5,sp:.5,m:1.0,mp:28,cd:5,spd:520,life:.45,pierce:9,ammo:'fire'},{n:'지옥 불기둥',k:'burst',r:350,m:8,mp:80,cd:20,col:'#ff5a20'}]},
+ {id:'rogue',veg:'가지',role:'암살자',head:'eggplant',line:['암살자','그림자 검객','그림자 군주'],hp:108,mp:66,atk:13,spd:272,jump:690,short:'#1a1a28',band:'#c05aff',col:'#8a52b8',proj:'star',
   bio:'가장 빠른 칼잡이. 그림자 베기와 암기.',basic:{k:'melee',range:68,cd:.2,m:.62},
-  sk:[{n:'그림자 베기',k:'dash',m:3.2,mp:22,cd:5},{n:'암기 투척',k:'fan',cnt:3,sp:.28,m:1.1,mp:10,cd:.8,spd:760,ammo:'star'},{n:'암야',k:'buff',atk:1.3,spd:1.35,def:.3,dur:8,mp:36,cd:26},{n:'분신 난무',k:'burst',r:150,m:4.2,mp:30,cd:7,col:'#c05aff'},{n:'그림자 대폭풍',k:'burst',r:340,m:7.5,mp:75,cd:19,col:'#a040ff'}]},
- {id:'gunner',veg:'옥수수',role:'팝콘 거너',head:'corn',line:['옥수수 사수','팝콘 거너','콘 캐논'],hp:112,mp:70,atk:12,spd:238,jump:640,short:'#3a5a2a',band:'#ffffff',col:'#ffd83a',proj:'kernel',
+  sk:[{n:'그림자 질주',k:'lunge',blink:1,m:2.6,mp:20,cd:4,t:.16,v:1250,col:'#c05aff',fin:{r:100,m:1.2,hits:2}},{n:'암기 투척',k:'fan',cnt:3,sp:.28,m:1.1,mp:10,cd:.8,spd:760,ammo:'star'},{n:'암야',k:'buff',atk:1.3,spd:1.35,def:.3,dur:8,mp:36,cd:26},{n:'분신 난무',k:'burst',r:150,m:4.2,mp:30,cd:7,col:'#c05aff'},{n:'그림자 대폭풍',k:'burst',r:340,m:7.5,mp:75,cd:19,col:'#a040ff'}]},
+ {id:'gunner',veg:'옥수수',role:'거너',head:'corn',line:['거너','건슬링어','캐논 마스터'],hp:112,mp:70,atk:12,spd:238,jump:640,short:'#3a5a2a',band:'#ffffff',col:'#ffd83a',proj:'kernel',
   bio:'알알이 쏟아지는 연사. 팝콘 폭격.',basic:{k:'shoot',cd:.16,m:.52,spd:820,life:.7,ammo:'kernel'},
-  sk:[{n:'팝콘 폭탄',k:'rain',cnt:7,m:1.6,mp:26,cd:5,aoe:72,rw:180,off:170,ammo:'popcorn'},{n:'콘 캐논',k:'fan',cnt:1,m:3.4,mp:20,cd:2,spd:700,pierce:5,ammo:'popcorn'},{n:'팝콘 파티',k:'heal',m:.3,mp:40,cd:25},{n:'콘 기관총',k:'fan',cnt:7,sp:.3,m:.75,mp:26,cd:4,spd:860,ammo:'kernel'},{n:'대팝콘 핵',k:'burst',r:390,m:8.5,mp:90,cd:22,col:'#fff0b0'}]},
- {id:'priest',veg:'마늘',role:'성직자',head:'garlic',line:['마늘 사제','성스러운 마늘','마늘 성자'],hp:122,mp:100,atk:12,spd:226,jump:640,short:'#e8e0c8',band:'#ffd34a',col:'#f6f2e6',proj:'holy',
+  sk:[{n:'반동 캐논',k:'recoil',m:3.2,mp:20,cd:3,spd:780,pierce:5,ammo:'popcorn'},{n:'팝콘 폭탄',k:'rain',cnt:5,m:1.5,mp:14,cd:3,aoe:70,rw:150,off:170,ammo:'popcorn'},{n:'팝콘 파티',k:'heal',m:.3,mp:40,cd:25},{n:'콘 기관총',k:'fan',cnt:7,sp:.3,m:.75,mp:26,cd:4,spd:860,ammo:'kernel'},{n:'대팝콘 핵',k:'burst',r:390,m:8.5,mp:90,cd:22,col:'#fff0b0'}]},
+ {id:'priest',veg:'마늘',role:'성직자',head:'garlic',line:['성직자','사제','대주교'],hp:122,mp:100,atk:12,spd:226,jump:640,short:'#e8e0c8',band:'#ffd34a',col:'#f6f2e6',proj:'holy',
   bio:'아군을 살리는 힐러. 파티의 든든한 기둥.',basic:{k:'shoot',cd:.4,m:.9,spd:520,life:.8,ammo:'holy',homing:1},
   sk:[{n:'마늘 힐',k:'heal',m:.35,mp:28,cd:6},{n:'정화의 빛',k:'burst',r:210,m:2.4,mp:22,cd:6,col:'#fff7c0'},{n:'마늘 결계',k:'shield',dur:2.6,party:1,mp:30,cd:16},{n:'성스러운 일격',k:'fan',cnt:1,m:3.1,mp:22,cd:3,spd:760,pierce:4,ammo:'holy'},{n:'대사면',k:'heal',m:.8,mp:90,cd:26,burst:{r:340,m:5}}]},
 ];
@@ -1778,12 +1778,12 @@ function updatePlayer(p,dt){
   if(I.fd)p.face=I.fd;
   // ----- dash skill -----
   if(p.dashT>0){
-    p.dashT-=dt;p.vx=p.face*720;p.vy=0;p.inv=Math.max(p.inv,.1);
+    p.dashT-=dt;p.vx=(p.dashDir||p.face)*(p.dashV||720);p.vy=0;p.inv=Math.max(p.inv,.1);
     moveBody(L,p,dt);
     const r=prect(p);r.x-=14;r.w+=28;
-    eachTarget(t=>{if(!p.dashHit.has(t)&&ov(r,rectOf(t))){p.dashHit.add(t);dealDamage(p,t,atkOf(p)*p.dashM,p.face)}},p);
+    if(!p.dashNoHit)eachTarget(t=>{if(!p.dashHit.has(t)&&ov(r,rectOf(t))){p.dashHit.add(t);dealDamage(p,t,atkOf(p)*p.dashM,p.face)}},p);
     if(Math.random()<.8)parts.push({x:p.x-p.face*10,y:p.y-rnd(8,44),vx:0,vy:0,life:.3,max:.3,size:rnd(4,8),col:JOB[p.job].col,grav:0,glow:true});
-    if(p.dashT<=0)p.vx*=.3;
+    if(p.dashT<=0){p.vx*=.3;p.dashV=0;p.dashDir=0;p.dashNoHit=0;if(p.dashEnd){const f=p.dashEnd;p.dashEnd=null;f()}}
     return finishPlayer(p,dt,I);
   }
   // ----- rope -----
@@ -2011,7 +2011,7 @@ function pvpAI(p,dt){
   if(!p.onGround&&p.y>S.L.h-20&&p.jT<=0){I.jT=1;I.jH=1;p.jT=.5}
   if(p.aiT<=0){p.aiT=.35;for(let i=4;i>=0;i--){
     if(!unlocked(p,i)||p.cds[i]>0||p.mp<j.sk[i].mp+4)continue;const sk=j.sk[i];let use=false;
-    if(sk.k==='burst')use=ed<sk.r*.8;else if(sk.k==='fan'||sk.k==='rain'||sk.k==='quake')use=ed<460;else if(sk.k==='dash')use=ed>90&&ed<300;
+    if(sk.k==='burst')use=ed<sk.r*.8;else if(sk.k==='fan'||sk.k==='rain'||sk.k==='quake')use=ed<460;else if(sk.k==='backshot'||sk.k==='recoil')use=ed<420;else if(sk.k==='dash'||sk.k==='lunge')use=ed>60&&ed<300;
     else if(sk.k==='buff')use=!p.buff&&ed<420;else if(sk.k==='shield')use=p.hp<p.maxhp*.5;else if(sk.k==='heal')use=p.hp<p.maxhp*.5;
     if(use&&Math.random()<.5){I.s[i]=1;break}}}
 }
@@ -2045,7 +2045,7 @@ function aiThink(p,dt){
           let use=false;
           if(sk.k==='burst')use=td<sk.r*.85;
           else if(sk.k==='fan'||sk.k==='rain'||sk.k==='quake')use=td<420&&(sk.mp>8||Math.random()<.4);
-          else if(sk.k==='dash')use=td>100&&td<300;
+          else if(sk.k==='dash'||sk.k==='lunge')use=td>60&&td<300;else if(sk.k==='backshot'||sk.k==='recoil')use=td<400;
           else if(sk.k==='buff')use=!p.buff&&td<400;
           else if(sk.k==='shield')use=p.hp<p.maxhp*.55;
           else if(sk.k==='heal')use=PARTY.some(q=>!q.dead&&q.hp<q.maxhp*.55);
@@ -2607,7 +2607,7 @@ function advMenu(n){
   const a=ADV_INFO[n.id],j=JOB[SAVE.job],opts=[],qid=a.qid,st=qst(qid).s;
   if(st!=='none'||qAvail(qid))opts.push({t:({none:'[!] ',active:'[진행중] ',ready:'[완료!] ',done:'[끝] '})[st]+QUESTS[qid].name,fn:()=>questDetail(n,n.id,qid)});
   opts.push({t:'내 직업 · 스킬 보기',fn:()=>jobInfoDialog(n)});opts.push({t:'닫기',fn:closeUI});
-  let msg='현재: '+j.veg+' · '+jline(j,SAVE.tier)+' ('+SAVE.tier+'차)\n\n';
+  let msg='현재: '+jline(j,SAVE.tier)+' ('+SAVE.tier+'차)\n\n';
   if(SAVE.tier>=a.t)msg+='이미 '+a.t+'차 전직을 마쳤구나. 더 높은 곳을 노려라!';
   else if(SAVE.tier<a.t-1)msg+='아직 이르다. 먼저 '+(a.t-1)+'차 전직부터 마쳐라.';
   else if(SAVE.lvl<ADV_LV[a.t])msg+=a.t+'차 전직은 Lv.'+ADV_LV[a.t]+' 부터다. (현재 Lv.'+SAVE.lvl+')';
@@ -2738,7 +2738,7 @@ function talkNPC(n){
 function jobInfoDialog(n){
   const j=JOB[SAVE.job];let t='';
   j.sk.forEach((s,i)=>{t+=(SAVE.tier>=SK_TIER[i]?'':'🔒')+'['+SK_LABEL[i]+'] '+s.n+'  (MP '+s.mp+' · 쿨 '+s.cd+'s)'+(SK_TIER[i]>=1?'  ← '+SK_TIER[i]+'차':'  (수련생)')+'\n'});
-  openDialog(n.name,j.veg+' '+j.role+' : 수련생 → '+j.line.join(' → ')+'\n'+j.bio+'\n\n'+t,[{t:'뒤로',fn:()=>talkNPC(n)}]);
+  openDialog(n.name,j.role+' : 초보자 → '+j.line.join(' → ')+'\n'+j.bio+'\n\n'+t,[{t:'뒤로',fn:()=>talkNPC(n)}]);
 }
 function mikoMenu(n){
   const opts=[];
@@ -2765,7 +2765,7 @@ function partyMenu(n){
   openDialog(n.name,'파티를 꾸려보자! 현재 '+PARTY.length+'명.\n온라인 접속은 못 하지만, 한 키보드에서 둘이 같이 하거나 AI 동료와 함께할 수 있어.\n\n· AI 동료는 따라다니며 싸우고, 사제는 치유해 준다\n· 파티퀘스트에서 E 키 : AI 동료를 발판 위로 보내 대기시키기',opts);
 }
 function jobPick(title,fn){
-  openDialog(title,'직업을 고르세요.',JOBS.map(j=>({t:j.veg+' · '+j.role,fn:()=>{closeUI();fn(j.id)}})).concat([{t:'취소',fn:closeUI}]));
+  openDialog(title,'직업을 고르세요.',JOBS.map(j=>({t:j.role,fn:()=>{closeUI();fn(j.id)}})).concat([{t:'취소',fn:closeUI}]));
 }
 function addMember(kind,jobId){
   const lead=PARTY[0],lv=SAVE.lvl,p=mkPlayer(kind,jobId,lv);
@@ -2773,7 +2773,7 @@ function addMember(kind,jobId){
   p.slot=PARTY.length;p.x=lead.x-lead.face*40;p.y=lead.y;p.face=lead.face;
   const pool=Object.keys(ITEMS).filter(k=>!ITEMS[k].cash);if(kind==='ai'||kind==='p2'){for(const s of['hat','face','outfit','cape','aura']){if(Math.random()<(s==='aura'?.25:.5)){const c=pool.filter(k=>ITEMS[k].slot===s);p.eq[s]=c[Math.random()*c.length|0]}}}
   PARTY.push(p);spark(p.x,p.y-30,16,'#cfe0ff',200,.5,3,0,true);sfx('portal');
-  G.toast((kind==='ai'?'AI 동료':kind==='p2'?'2P':'')+' '+JOB[jobId].veg+' '+jline(JOB[jobId],p.tier)+' 합류!');
+  G.toast((kind==='ai'?'AI 동료':kind==='p2'?'2P':'')+' '+jline(JOB[jobId],p.tier)+' 합류!');
 }
 function removeMember(p){PARTY.splice(PARTY.indexOf(p),1);PARTY.forEach((q,i)=>q.slot=i)}
 
@@ -2957,7 +2957,7 @@ function drawHUD(g,t){
   // party
   let py=mmB;
   for(const q of PARTY){if(q===p)continue;
-    panel(g,10,py,200,38,.6);txt(g,(S.L.pvp?(q.team===p.team?'아군 ':'상대 '):q.kind==='p2'?'2P ':'AI ')+JOB[q.job].veg+' Lv.'+q.lvl,18,py+16,12,q.dead?'#999':'#fff','left',2);
+    panel(g,10,py,200,38,.6);txt(g,(S.L.pvp?(q.team===p.team?'아군 ':'상대 '):q.kind==='p2'?'2P ':'AI ')+JOB[q.job].role+' Lv.'+q.lvl,18,py+16,12,q.dead?'#999':'#fff','left',2);
     bar(g,18,py+21,184,8,q.dead?0:q.hp/q.maxhp,'#e8484f');if(q.dead)txt(g,'기절…'+Math.max(0,(q.kind==='ai'?7:6)-q.deadT).toFixed(0),200,py+16,11,'#cfe0ff','right',2);py+=42}
   // quest tracker
   let qy=48;const act=Object.keys(SAVE.q).filter(k=>SAVE.q[k].s==='active'||SAVE.q[k].s==='ready').slice(0,3);
@@ -3322,7 +3322,7 @@ function drawSelect(g,t){
     g.save();g.beginPath();g.rect(x+6,y+6,196,120);g.clip();
     const gl=g.createRadialGradient(x+104,y+100,10,x+104,y+100,90);gl.addColorStop(0,j.col+'55');gl.addColorStop(1,j.col+'00');g.fillStyle=gl;g.fillRect(x,y,208,178);
     drawVeggie(g,j,{x:x+104,y:y+122,face:1,t:t+i,st:sel?'skill':'idle',tier:0,fid:G.fsel|0});g.restore();
-    txt(g,j.veg+' '+j.role,x+104,y+148,17,'#fff','center');txt(g,'수련생→'+j.line.join('→'),x+104,y+168,10,'#ffe9a0','center',2);
+    txt(g,j.role,x+104,y+148,17,'#fff','center');txt(g,'초보자→'+j.line.join('→'),x+104,y+168,10,'#ffe9a0','center',2);
   });
   const j=JOBS[G.jsel];panel(g,36,448,888,82,.85);
   txt(g,j.bio,54,478,16,'#fff');
@@ -5061,7 +5061,7 @@ const JTOWNS=[
 JTOWNS.forEach((d,k)=>{d.id='jt_'+d.job;d.hunts.forEach((h,i)=>{h.id='jh_'+d.job+(i+1);h.town=d.id;h.idx=i;h.ms=Math.max(1.3,h.min*.15)})});
 const JT_OF=job=>JTOWNS.find(d=>d.job===job);
 // 교관 NPC 모습
-for(const d of JTOWNS){const j=JOB[d.job];NPC_LOOK_X['jt_'+d.job]={job:d.job,eq:{hat:'hat_helm',outfit:'out_dobok',cape:'cape_red'},n:j.veg+' '+j.role+' 교관',fid:3};NPC_LOOK_X['jl_'+d.job]={job:d.job,eq:{hat:'hat_flower',outfit:'out_vest'},n:d.local.n,fid:7}}
+for(const d of JTOWNS){const j=JOB[d.job];NPC_LOOK_X['jt_'+d.job]={job:d.job,eq:{hat:'hat_helm',outfit:'out_dobok',cape:'cape_red'},n:j.role+' 교관',fid:3};NPC_LOOK_X['jl_'+d.job]={job:d.job,eq:{hat:'hat_flower',outfit:'out_vest'},n:d.local.n,fid:7}}
 GIVER_NAME.coach='내 직업 마을의 전직 교관';
 QUESTS.j1.desc='수련생 시절은 끝! 내 직업 마을의 전직 교관이 내는 시험이다. 몬스터 20마리를 쓰러뜨리고 스킬을 10번 써서 실력을 증명하라. 통과하면 1차 전직!';
 // 야채마을 1차 교관 → 전직 안내원
@@ -5071,7 +5071,7 @@ ROLE.jguide='직업 마을 안내 · 전직';ROLE.jtm='다른 직업 교관';ROL
 /* ---------- 직업 마을 맵 ---------- */
 function buildJobTown(d){
   const gy=470,Wd=3200,mine=SAVE&&SAVE.job===d.job;
-  const L=newL({id:d.id,name:d.name,sub:JOB[d.job].veg+' '+JOB[d.job].role+'의 마을 · '+d.sub,theme:d.theme,music:'field',w:Wd,h:540,town:true,jt:d.job,spawn:{x:220,y:gy}});
+  const L=newL({id:d.id,name:d.name,sub:JOB[d.job].role+'의 마을 · '+d.sub,theme:d.theme,music:'field',w:Wd,h:540,town:true,jt:d.job,spawn:{x:220,y:gy}});
   L.plats.push(plat(-300,gy,Wd+600,300,'s'));
   const HX=[[420,240,140],[1080,220,120],[2050,280,160],[2620,230,130]];
   L.houses=HX.map(([x,w,h],i)=>({x,w,h,roof:d.houses[i][0],wall:d.houses[i][1]}));
@@ -5080,13 +5080,13 @@ function buildJobTown(d){
   const lx=1620;L.landmark={k:d.lm,x:lx,y:gy};
   L.plats.push(plat(lx-110,300,220,16,'o',{lm:1}),plat(lx-70,165,140,16,'o',{lm:1}));L.ropes.push({x:lx-80,y1:300,y2:gy});
   L.npcs=[
-    mine?{id:'coach',name:JOB[d.job].veg+' '+JOB[d.job].role+' 교관',x:820,gy,look:'jt_'+d.job,tag:'1차 전직 (Lv.10)'}:{id:'jtm',name:JOB[d.job].veg+' '+JOB[d.job].role+' 교관',x:820,gy,look:'jt_'+d.job,town:d.id},
+    mine?{id:'coach',name:JOB[d.job].role+' 교관',x:820,gy,look:'jt_'+d.job,tag:'1차 전직 (Lv.10)'}:{id:'jtm',name:JOB[d.job].role+' 교관',x:820,gy,look:'jt_'+d.job,town:d.id},
     {id:'shop',name:'마을 상점',x:1400,gy,look:'shop',tag:'상점'},
     {id:'jlocal',name:d.local.n,x:2400,gy,look:'jl_'+d.job,town:d.id},
     {id:'chest',name:'별빛 보물상자',x:lx,gy:165,look:'chest',town:d.id},
   ];
   L.portals=[{x:60,y:gy,to:'town',label:'← 야채마을'},{x:Wd-70,y:gy,to:d.hunts[0].id,label:d.hunts[0].name+' →',lockLv:Math.max(1,d.hunts[0].min-4)}];
-  L.sign={x:330,y:gy,t:d.name,s:JOB[d.job].veg+' · '+JOB[d.job].role+'의 마을'};
+  L.sign={x:330,y:gy,t:d.name,s:JOB[d.job].role+'의 마을'};
   return L;
 }
 function buildJobHunt(h){
@@ -5208,16 +5208,16 @@ function jobTownTaxi(d,free){const c=free?0:150;if(SAVE.coins<c){G.toast('코인
 function guideMenu(n){
   const mine=JT_OF(SAVE.job);
   const opts=[{t:'⭐ 내 직업 마을 「'+mine.name+'」 로 데려다줘 (무료)',fn:()=>jobTownTaxi(mine,true)}];
-  for(const d of JTOWNS)if(d!==mine)opts.push({t:JOB[d.job].veg+' '+JOB[d.job].role+'의 마을 「'+d.name+'」 — 150●',fn:()=>jobTownTaxi(d,false)});
+  for(const d of JTOWNS)if(d!==mine)opts.push({t:JOB[d.job].role+'의 마을 「'+d.name+'」 — 150●',fn:()=>jobTownTaxi(d,false)});
   opts.push({t:'닫기',fn:closeUI});
-  openDialog(n.name,'모험가는 Lv.10 이 되면 자기 직업 마을에서 1차 전직을 해!\n'+JOB[SAVE.job].veg+' '+JOB[SAVE.job].role+'인 너는 「'+mine.name+'」 의 교관을 찾아가.\n\n· 마을마다 분위기가 다른 사냥터가 2곳씩 있어.\n· 2차 전직을 하면 공중에서 한 번 더 뛰는 슈퍼점프를 배워. 높은 곳의 보물상자를 찾아봐!',opts);
+  openDialog(n.name,'모험가는 Lv.10 이 되면 자기 직업 마을에서 1차 전직을 해!\n'+JOB[SAVE.job].role+'인 너는 「'+mine.name+'」 의 교관을 찾아가.\n\n· 마을마다 분위기가 다른 사냥터가 2곳씩 있어.\n· 2차 전직을 하면 공중에서 한 번 더 뛰는 슈퍼점프를 배워. 높은 곳의 보물상자를 찾아봐!',opts);
 }
 const _talkNPCJ=talkNPC;
 talkNPC=function(n){
   if(n.id==='jguide'){if(!SAVE.talked[n.id]){SAVE.talked[n.id]=1;qev('talk',{})}return guideMenu(n)}
   if(n.id==='chest')return openChest(n);
   if(n.id==='jtm'){const d=JTOWNS.find(x=>x.id===n.town),mine=JT_OF(SAVE.job);
-    return openDialog(n.name,'어서 와! 여긴 '+JOB[d.job].veg+' '+JOB[d.job].role+'들의 마을 「'+d.name+'」이야.\n너는 '+JOB[SAVE.job].veg+' '+JOB[SAVE.job].role+'구나! 네 전직 교관은 「'+mine.name+'」 에 있어.\n\n구경은 얼마든지 해도 좋아. 사냥터도 마음껏 써!',[{t:'내 직업 마을로 데려다줘 (무료)',fn:()=>jobTownTaxi(mine,true)},{t:'닫기',fn:closeUI}])}
+    return openDialog(n.name,'어서 와! 여긴 '+JOB[d.job].role+'들의 마을 「'+d.name+'」이야.\n너는 '+JOB[SAVE.job].role+'구나! 네 전직 교관은 「'+mine.name+'」 에 있어.\n\n구경은 얼마든지 해도 좋아. 사냥터도 마음껏 써!',[{t:'내 직업 마을로 데려다줘 (무료)',fn:()=>jobTownTaxi(mine,true)},{t:'닫기',fn:closeUI}])}
   if(n.id==='jlocal'){if(!SAVE.talked['jl_'+n.town]){SAVE.talked['jl_'+n.town]=1;qev('talk',{})}const d=JTOWNS.find(x=>x.id===n.town);n.li=((n.li|0)+1)%d.local.lines.length;
     return openDialog(n.name,d.local.lines[n.li],[{t:'또 얘기해줘',fn:()=>talkNPC(n)},{t:'닫기',fn:closeUI}])}
   return _talkNPCJ(n);
@@ -5231,7 +5231,7 @@ advMenu=function(n){
   const a=ADV_INFO.coach,j=JOB[SAVE.job],opts=[],st=qst('j1').s;
   if(st!=='none'||qAvail('j1'))opts.push({t:({none:'[!] ',active:'[진행중] ',ready:'[완료!] ',done:'[끝] '})[st]+QUESTS.j1.name,fn:()=>questDetail(n,'coach','j1')});
   opts.push({t:'내 직업 · 스킬 보기',fn:()=>jobInfoDialog(n)});opts.push({t:'닫기',fn:closeUI});
-  let msg='현재: '+j.veg+' · '+jline(j,SAVE.tier)+' ('+SAVE.tier+'차)\n\n';
+  let msg='현재: '+jline(j,SAVE.tier)+' ('+SAVE.tier+'차)\n\n';
   if(SAVE.tier>=1)msg+='이미 1차 전직을 마쳤구나! 2차 전직은 Lv.30, 도깨비 숲 꼭대기의 스승에게 가라.\n2차가 되면 공중에서 한 번 더 뛰는 「슈퍼점프」를 쓸 수 있다!';
   else if(SAVE.lvl<ADV_LV[1])msg+='1차 전직은 Lv.'+ADV_LV[1]+' 부터다. (현재 Lv.'+SAVE.lvl+')\n옆 사냥터에서 조금 더 수련하고 와!';
   else msg+='준비가 됐군. '+j.role+'의 길에 들어설 시험을 받아보겠나?';
@@ -5793,7 +5793,7 @@ drawTitle=function(g,t){
     const cx=W/2-150,cy=410;g.save();const gl=g.createRadialGradient(cx,cy-60,10,cx,cy-60,150);gl.addColorStop(0,'rgba(255,236,170,.5)');gl.addColorStop(1,'rgba(255,236,170,0)');g.fillStyle=gl;g.fillRect(cx-150,cy-210,300,260);g.restore();
     g.fillStyle='rgba(140,120,80,.55)';g.beginPath();g.ellipse(cx,cy+4,90,16,0,0,6.28);g.fill();g.strokeStyle='rgba(240,210,130,.9)';g.lineWidth=2;g.stroke();
     if(sv){const j=JOB[sv.job];drawVeggie(g,j,{x:cx,y:cy,face:1,t,st:'idle',fid:sv.fid==null?3:sv.fid,tier:sv.tier||0,sc:1.7,eq:sv.eq||{}});
-      panel(g,cx-130,cy+26,260,62,.75);txt(g,(ACCT?ACCT.name:'오프라인')+'  ·  Lv.'+sv.lvl,cx,cy+50,19,'#fff','center',3);txt(g,j.veg+' · '+jline(j,sv.tier||0),cx,cy+76,14,'#f0d890','center',2)}
+      panel(g,cx-130,cy+26,260,62,.75);txt(g,(ACCT?ACCT.name:'오프라인')+'  ·  Lv.'+sv.lvl,cx,cy+50,19,'#fff','center',3);txt(g,jline(j,sv.tier||0),cx,cy+76,14,'#f0d890','center',2)}
     else{txt(g,'?',cx,cy-50,90,'rgba(255,255,255,.75)','center',4);panel(g,cx-130,cy+26,260,62,.75);txt(g,(ACCT?ACCT.name:'오프라인')+' 님',cx,cy+50,19,'#fff','center',3);txt(g,'아직 캐릭터가 없어요',cx,cy+76,14,'#f0d890','center',2)}
     const lab={start:sv?'▶ 게임 시작':'✦ 캐릭터 만들기',logout:'로그아웃',new:'새 캐릭터 (개발)'};
     opts.forEach((o,i)=>{const b=charBtn(i),sel=G.sel===i;g.save();g.shadowColor=sel?'rgba(255,190,240,.95)':'transparent';g.shadowBlur=sel?20:0;
@@ -5851,4 +5851,90 @@ openChat=function(mode){
   d.querySelector('#cb_s').onclick=send;d.querySelector('#cb_x').onclick=close;
   setTimeout(()=>inp.focus(),30);
 };
+/* ============================================================
+   JOBS : 1차 전직 공격 스킬 — 직업 컨셉별 움직이는 스킬
+   lunge(돌진·순간이동) · backshot(뒤로 뛰며 연사) · recoil(반동 대포)
+   ============================================================ */
+// 잠깐 뒤에 실행되는 일 (연타 등)
+let TQ=[];
+function tqStep(dt){if(!TQ.length)return;for(const q of TQ)q.t-=dt;const due=TQ.filter(q=>q.t<=0);TQ=TQ.filter(q=>q.t>0);for(const q of due)try{q.fn()}catch(e){}}
+{const _rs=respawnStep;respawnStep=function(dt){_rs(dt);tqStep(dt)}}
+{const _lm=loadMap;loadMap=function(id,end){TQ=[];_lm(id,end)}}
+function areaHit(p,cx,cy,r,m,col){
+  S.fx.push({k:'ring',x:cx,y:cy,r,t:0,max:.35,col:col||'#fff'});spark(cx,cy,14,col||'#fff',r*1.4,.4,3,60,true);
+  eachTarget(t=>{const q=rectOf(t);if(Math.hypot(q.x+q.w/2-cx,q.y+q.h/2-cy)<r+q.w/2)dealDamage(p,t,atkOf(p)*m,sgn(q.x-cx)||p.face)},p);
+}
+const SKX={
+  lunge(p,sk){
+    sfx('skill');ftext(p.x,p.y-96,sk.n,'#ffe9a0',15,.9);
+    if(sk.start)areaHit(p,p.x,p.y-20,sk.start.r,sk.start.m,sk.col);
+    if(sk.blink){for(let i=0;i<14;i++)parts.push({x:p.x+rnd(-12,12),y:p.y-rnd(4,44),vx:rnd(-40,40),vy:rnd(-60,-10),life:.45,max:.45,size:rnd(3,7),col:sk.col,grav:0,glow:true})}
+    if(sk.guard)p.shieldT=Math.max(p.shieldT||0,sk.guard);
+    p.dashT=sk.t||.22;p.dashV=sk.v||760;p.dashDir=p.face;p.dashHit=new Set();p.dashM=sk.m;p.dashNoHit=0;p.trailT=.3;
+    if(typeof fxPush==='function')fxPush({k:'swing',x:p.x+p.face*30,y:p.y-22,col:sk.col,max:.25,f:p.face,r:60});
+    p.dashEnd=()=>{if(!sk.fin)return;const cx=p.x+p.face*36,cy=p.y-20,n=sk.fin.hits||1;S.shake=Math.max(S.shake,8);
+      for(let k=0;k<n;k++)TQ.push({t:k*.09,fn:()=>{if(!p.dead){areaHit(p,p.x+p.face*36,p.y-20,sk.fin.r,sk.fin.m,sk.col);sfx(k===n-1?'boom':'hit')}}});
+      if(sk.blink)for(let i=0;i<12;i++)parts.push({x:p.x+rnd(-14,14),y:p.y-rnd(4,44),vx:rnd(-80,80),vy:rnd(-80,0),life:.4,max:.4,size:rnd(3,6),col:sk.col,grav:0,glow:true})};
+  },
+  backshot(p,sk){
+    sfx('throw');ftext(p.x,p.y-96,sk.n,'#ffe9a0',15,.9);
+    const j=JOB[p.job],n=sk.cnt||3,dmg=atkOf(p)*sk.m;
+    for(let k=0;k<n;k++){const a=(n>1?(k/(n-1)-.5)*sk.sp:0),ang=(p.face>0?0:Math.PI)+a*(p.face>0?1:-1);
+      S.pshots.push({owner:p,x:p.x+p.face*18,y:p.y-22,vx:Math.cos(ang)*sk.spd,vy:Math.sin(ang)*sk.spd,w:18,h:18,dmg,pierce:sk.pierce||0,life:1,kind:sk.ammo||j.proj,grav:0,hit:new Set(),rot:0,delay:k*.06,big:false})}
+    // 뒤로 껑충 (얼굴은 앞을 본 채)
+    p.dashT=.16;p.dashV=640;p.dashDir=-p.face;p.dashNoHit=1;p.dashHit=new Set();p.dashM=0;p.vy=-180;dust(p.x,p.y,6);
+  },
+  recoil(p,sk){
+    sfx('boom');S.shake=Math.max(S.shake,9);ftext(p.x,p.y-96,sk.n,'#ffe9a0',15,.9);
+    S.pshots.push({owner:p,x:p.x+p.face*22,y:p.y-24,vx:p.face*sk.spd,vy:0,w:30,h:30,dmg:atkOf(p)*sk.m,pierce:sk.pierce||0,life:1,kind:sk.ammo||'popcorn',grav:0,hit:new Set(),rot:0,delay:0,big:true});
+    if(typeof fxPush==='function')fxPush({k:'muzzle',x:p.x+p.face*26,y:p.y-24,col:'#ffd34a',max:.2,f:p.face});
+    spark(p.x+p.face*26,p.y-24,16,'#ffe9a0',300,.35,4,0,true);
+    p.dashT=.14;p.dashV=520;p.dashDir=-p.face;p.dashNoHit=1;p.dashHit=new Set();p.dashM=0;dust(p.x,p.y,8);
+  },
+};
+const _castSkillJ=castSkill;
+castSkill=function(p,i){
+  const sk=JOB[p.job].sk[i];
+  if(!sk||!SKX[sk.k])return _castSkillJ(p,i);
+  if(p.cds[i]>0||p.stun>0||p.dashT>0)return;
+  if(p.mp<sk.mp){if(p.mpWarn<=0){p.mpWarn=.8;ftext(p.x,p.y-76,'MP 부족','#6ab0ff',14)}return}
+  p.mp-=sk.mp;p.cds[i]=sk.cd*(p.tier>=3?.88:1);p.skillT=.38;
+  if(p.kind==='p1'||p.kind==='p2'){qev('flag','skill');qev('count',{key:'skill'})}
+  SKX[sk.k](p,sk);
+};
+/* ============================================================
+   REACH : 모든 맵 자동 점검 — 1차(일반 점프)로 못 가는 발판엔 밧줄을 내려준다
+   (보물상자가 놓인 '비밀 발판'만 예외 : 2차 슈퍼점프 전용)
+   ============================================================ */
+function reachInfo(L,H,G){
+  const P=[];
+  for(const p of L.plats){if(p.mv){const m=p.mv;for(const k of[-1,0,1])P.push({x:m.x0+m.ax*k,y:m.y0+m.ay*k,w:p.w,src:p})}else P.push({x:p.x,y:p.y,w:p.w,src:p})}
+  const gapX=(a,b)=>Math.max(0,Math.max(a.x,b.x)-Math.min(a.x+a.w,b.x+b.w));
+  const can=(a,b)=>{const dy=a.y-b.y,gx=gapX(a,b);return dy>0?dy<=H&&gx<=G:gx<=Math.min(320,G+(-dy)*.7)};
+  const ropeOK=(a,r)=>r.x>=a.x-24&&r.x<=a.x+a.w+24&&r.y2>=a.y-H&&r.y1<=a.y+4;
+  const fromRope=(r,b)=>{if(r.x>=b.x-24&&r.x<=b.x+b.w+24&&b.y>=r.y1-H&&b.y<=r.y2+40)return true;const gx=Math.max(0,b.x-r.x,r.x-(b.x+b.w));return gx<=G&&b.y>=r.y1-H*.9};
+  const sp=L.spawn,start=P.filter(p=>sp.x>=p.x-4&&sp.x<=p.x+p.w+4&&p.y>=sp.y-6).sort((a,b)=>a.y-b.y)[0];
+  const seen=new Set(),q=[],rs=new Set();if(start){seen.add(start);q.push(start)}
+  while(q.length){const a=q.shift();
+    for(const b of P)if(!seen.has(b)&&can(a,b)){seen.add(b);q.push(b)}
+    for(const r of L.ropes)if(!rs.has(r)&&ropeOK(a,r)){rs.add(r);for(const b of P)if(!seen.has(b)&&fromRope(r,b)){seen.add(b);q.push(b)}}}
+  return{P,seen,srcSeen:new Set([...seen].map(p=>p.src))};
+}
+function isSecretPlat(L,p){return(L.npcs||[]).some(n=>n.id==='chest'&&n.x>=p.x-10&&n.x<=p.x+p.w+10&&Math.abs(n.gy-p.y)<6)}
+function fixReach(L){
+  if(!L||!L.plats||L.pvpNoFix)return L;
+  for(let it=0;it<12;it++){
+    const{seen,srcSeen}=reachInfo(L,96,140);
+    const bad=L.plats.filter(p=>!p.mv&&!srcSeen.has(p)&&!isSecretPlat(L,p)&&p.y<L.h-20).sort((a,b)=>b.y-a.y);
+    if(!bad.length)break;
+    const p=bad[0];
+    // 밧줄을 내릴 자리 : 발판 중 이미 갈 수 있는 바닥과 겹치는 x
+    const below=[...seen].filter(s=>s.y>p.y+20).sort((a,b)=>a.y-b.y);
+    let best=null;for(const s of below){const lo=Math.max(s.x+20,p.x+24),hi=Math.min(s.x+s.w-20,p.x+p.w-24);if(lo<=hi){best={x:Math.round((lo+hi)/2),y2:s.y};break}}
+    if(!best)best={x:Math.round(p.x+p.w/2),y2:L.spawn.y};
+    L.ropes.push({x:best.x,y1:p.y,y2:best.y2,auto:1});
+  }
+  return L;
+}
+for(const k of Object.keys(MAPS)){const f=MAPS[k];MAPS[k]=function(){return fixReach(f.apply(this,arguments))}}
 </script></body></html>

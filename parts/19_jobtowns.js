@@ -103,7 +103,7 @@ const JTOWNS=[
 JTOWNS.forEach((d,k)=>{d.id='jt_'+d.job;d.hunts.forEach((h,i)=>{h.id='jh_'+d.job+(i+1);h.town=d.id;h.idx=i;h.ms=Math.max(1.3,h.min*.15)})});
 const JT_OF=job=>JTOWNS.find(d=>d.job===job);
 // 교관 NPC 모습
-for(const d of JTOWNS){const j=JOB[d.job];NPC_LOOK_X['jt_'+d.job]={job:d.job,eq:{hat:'hat_helm',outfit:'out_dobok',cape:'cape_red'},n:j.veg+' '+j.role+' 교관',fid:3};NPC_LOOK_X['jl_'+d.job]={job:d.job,eq:{hat:'hat_flower',outfit:'out_vest'},n:d.local.n,fid:7}}
+for(const d of JTOWNS){const j=JOB[d.job];NPC_LOOK_X['jt_'+d.job]={job:d.job,eq:{hat:'hat_helm',outfit:'out_dobok',cape:'cape_red'},n:j.role+' 교관',fid:3};NPC_LOOK_X['jl_'+d.job]={job:d.job,eq:{hat:'hat_flower',outfit:'out_vest'},n:d.local.n,fid:7}}
 GIVER_NAME.coach='내 직업 마을의 전직 교관';
 QUESTS.j1.desc='수련생 시절은 끝! 내 직업 마을의 전직 교관이 내는 시험이다. 몬스터 20마리를 쓰러뜨리고 스킬을 10번 써서 실력을 증명하라. 통과하면 1차 전직!';
 // 야채마을 1차 교관 → 전직 안내원
@@ -113,7 +113,7 @@ ROLE.jguide='직업 마을 안내 · 전직';ROLE.jtm='다른 직업 교관';ROL
 /* ---------- 직업 마을 맵 ---------- */
 function buildJobTown(d){
   const gy=470,Wd=3200,mine=SAVE&&SAVE.job===d.job;
-  const L=newL({id:d.id,name:d.name,sub:JOB[d.job].veg+' '+JOB[d.job].role+'의 마을 · '+d.sub,theme:d.theme,music:'field',w:Wd,h:540,town:true,jt:d.job,spawn:{x:220,y:gy}});
+  const L=newL({id:d.id,name:d.name,sub:JOB[d.job].role+'의 마을 · '+d.sub,theme:d.theme,music:'field',w:Wd,h:540,town:true,jt:d.job,spawn:{x:220,y:gy}});
   L.plats.push(plat(-300,gy,Wd+600,300,'s'));
   const HX=[[420,240,140],[1080,220,120],[2050,280,160],[2620,230,130]];
   L.houses=HX.map(([x,w,h],i)=>({x,w,h,roof:d.houses[i][0],wall:d.houses[i][1]}));
@@ -122,13 +122,13 @@ function buildJobTown(d){
   const lx=1620;L.landmark={k:d.lm,x:lx,y:gy};
   L.plats.push(plat(lx-110,300,220,16,'o',{lm:1}),plat(lx-70,165,140,16,'o',{lm:1}));L.ropes.push({x:lx-80,y1:300,y2:gy});
   L.npcs=[
-    mine?{id:'coach',name:JOB[d.job].veg+' '+JOB[d.job].role+' 교관',x:820,gy,look:'jt_'+d.job,tag:'1차 전직 (Lv.10)'}:{id:'jtm',name:JOB[d.job].veg+' '+JOB[d.job].role+' 교관',x:820,gy,look:'jt_'+d.job,town:d.id},
+    mine?{id:'coach',name:JOB[d.job].role+' 교관',x:820,gy,look:'jt_'+d.job,tag:'1차 전직 (Lv.10)'}:{id:'jtm',name:JOB[d.job].role+' 교관',x:820,gy,look:'jt_'+d.job,town:d.id},
     {id:'shop',name:'마을 상점',x:1400,gy,look:'shop',tag:'상점'},
     {id:'jlocal',name:d.local.n,x:2400,gy,look:'jl_'+d.job,town:d.id},
     {id:'chest',name:'별빛 보물상자',x:lx,gy:165,look:'chest',town:d.id},
   ];
   L.portals=[{x:60,y:gy,to:'town',label:'← 야채마을'},{x:Wd-70,y:gy,to:d.hunts[0].id,label:d.hunts[0].name+' →',lockLv:Math.max(1,d.hunts[0].min-4)}];
-  L.sign={x:330,y:gy,t:d.name,s:JOB[d.job].veg+' · '+JOB[d.job].role+'의 마을'};
+  L.sign={x:330,y:gy,t:d.name,s:JOB[d.job].role+'의 마을'};
   return L;
 }
 function buildJobHunt(h){
@@ -250,16 +250,16 @@ function jobTownTaxi(d,free){const c=free?0:150;if(SAVE.coins<c){G.toast('코인
 function guideMenu(n){
   const mine=JT_OF(SAVE.job);
   const opts=[{t:'⭐ 내 직업 마을 「'+mine.name+'」 로 데려다줘 (무료)',fn:()=>jobTownTaxi(mine,true)}];
-  for(const d of JTOWNS)if(d!==mine)opts.push({t:JOB[d.job].veg+' '+JOB[d.job].role+'의 마을 「'+d.name+'」 — 150●',fn:()=>jobTownTaxi(d,false)});
+  for(const d of JTOWNS)if(d!==mine)opts.push({t:JOB[d.job].role+'의 마을 「'+d.name+'」 — 150●',fn:()=>jobTownTaxi(d,false)});
   opts.push({t:'닫기',fn:closeUI});
-  openDialog(n.name,'모험가는 Lv.10 이 되면 자기 직업 마을에서 1차 전직을 해!\n'+JOB[SAVE.job].veg+' '+JOB[SAVE.job].role+'인 너는 「'+mine.name+'」 의 교관을 찾아가.\n\n· 마을마다 분위기가 다른 사냥터가 2곳씩 있어.\n· 2차 전직을 하면 공중에서 한 번 더 뛰는 슈퍼점프를 배워. 높은 곳의 보물상자를 찾아봐!',opts);
+  openDialog(n.name,'모험가는 Lv.10 이 되면 자기 직업 마을에서 1차 전직을 해!\n'+JOB[SAVE.job].role+'인 너는 「'+mine.name+'」 의 교관을 찾아가.\n\n· 마을마다 분위기가 다른 사냥터가 2곳씩 있어.\n· 2차 전직을 하면 공중에서 한 번 더 뛰는 슈퍼점프를 배워. 높은 곳의 보물상자를 찾아봐!',opts);
 }
 const _talkNPCJ=talkNPC;
 talkNPC=function(n){
   if(n.id==='jguide'){if(!SAVE.talked[n.id]){SAVE.talked[n.id]=1;qev('talk',{})}return guideMenu(n)}
   if(n.id==='chest')return openChest(n);
   if(n.id==='jtm'){const d=JTOWNS.find(x=>x.id===n.town),mine=JT_OF(SAVE.job);
-    return openDialog(n.name,'어서 와! 여긴 '+JOB[d.job].veg+' '+JOB[d.job].role+'들의 마을 「'+d.name+'」이야.\n너는 '+JOB[SAVE.job].veg+' '+JOB[SAVE.job].role+'구나! 네 전직 교관은 「'+mine.name+'」 에 있어.\n\n구경은 얼마든지 해도 좋아. 사냥터도 마음껏 써!',[{t:'내 직업 마을로 데려다줘 (무료)',fn:()=>jobTownTaxi(mine,true)},{t:'닫기',fn:closeUI}])}
+    return openDialog(n.name,'어서 와! 여긴 '+JOB[d.job].role+'들의 마을 「'+d.name+'」이야.\n너는 '+JOB[SAVE.job].role+'구나! 네 전직 교관은 「'+mine.name+'」 에 있어.\n\n구경은 얼마든지 해도 좋아. 사냥터도 마음껏 써!',[{t:'내 직업 마을로 데려다줘 (무료)',fn:()=>jobTownTaxi(mine,true)},{t:'닫기',fn:closeUI}])}
   if(n.id==='jlocal'){if(!SAVE.talked['jl_'+n.town]){SAVE.talked['jl_'+n.town]=1;qev('talk',{})}const d=JTOWNS.find(x=>x.id===n.town);n.li=((n.li|0)+1)%d.local.lines.length;
     return openDialog(n.name,d.local.lines[n.li],[{t:'또 얘기해줘',fn:()=>talkNPC(n)},{t:'닫기',fn:closeUI}])}
   return _talkNPCJ(n);
@@ -273,7 +273,7 @@ advMenu=function(n){
   const a=ADV_INFO.coach,j=JOB[SAVE.job],opts=[],st=qst('j1').s;
   if(st!=='none'||qAvail('j1'))opts.push({t:({none:'[!] ',active:'[진행중] ',ready:'[완료!] ',done:'[끝] '})[st]+QUESTS.j1.name,fn:()=>questDetail(n,'coach','j1')});
   opts.push({t:'내 직업 · 스킬 보기',fn:()=>jobInfoDialog(n)});opts.push({t:'닫기',fn:closeUI});
-  let msg='현재: '+j.veg+' · '+jline(j,SAVE.tier)+' ('+SAVE.tier+'차)\n\n';
+  let msg='현재: '+jline(j,SAVE.tier)+' ('+SAVE.tier+'차)\n\n';
   if(SAVE.tier>=1)msg+='이미 1차 전직을 마쳤구나! 2차 전직은 Lv.30, 도깨비 숲 꼭대기의 스승에게 가라.\n2차가 되면 공중에서 한 번 더 뛰는 「슈퍼점프」를 쓸 수 있다!';
   else if(SAVE.lvl<ADV_LV[1])msg+='1차 전직은 Lv.'+ADV_LV[1]+' 부터다. (현재 Lv.'+SAVE.lvl+')\n옆 사냥터에서 조금 더 수련하고 와!';
   else msg+='준비가 됐군. '+j.role+'의 길에 들어설 시험을 받아보겠나?';

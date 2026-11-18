@@ -249,12 +249,12 @@ function updatePlayer(p,dt){
   if(I.fd)p.face=I.fd;
   // ----- dash skill -----
   if(p.dashT>0){
-    p.dashT-=dt;p.vx=p.face*720;p.vy=0;p.inv=Math.max(p.inv,.1);
+    p.dashT-=dt;p.vx=(p.dashDir||p.face)*(p.dashV||720);p.vy=0;p.inv=Math.max(p.inv,.1);
     moveBody(L,p,dt);
     const r=prect(p);r.x-=14;r.w+=28;
-    eachTarget(t=>{if(!p.dashHit.has(t)&&ov(r,rectOf(t))){p.dashHit.add(t);dealDamage(p,t,atkOf(p)*p.dashM,p.face)}},p);
+    if(!p.dashNoHit)eachTarget(t=>{if(!p.dashHit.has(t)&&ov(r,rectOf(t))){p.dashHit.add(t);dealDamage(p,t,atkOf(p)*p.dashM,p.face)}},p);
     if(Math.random()<.8)parts.push({x:p.x-p.face*10,y:p.y-rnd(8,44),vx:0,vy:0,life:.3,max:.3,size:rnd(4,8),col:JOB[p.job].col,grav:0,glow:true});
-    if(p.dashT<=0)p.vx*=.3;
+    if(p.dashT<=0){p.vx*=.3;p.dashV=0;p.dashDir=0;p.dashNoHit=0;if(p.dashEnd){const f=p.dashEnd;p.dashEnd=null;f()}}
     return finishPlayer(p,dt,I);
   }
   // ----- rope -----
@@ -482,7 +482,7 @@ function pvpAI(p,dt){
   if(!p.onGround&&p.y>S.L.h-20&&p.jT<=0){I.jT=1;I.jH=1;p.jT=.5}
   if(p.aiT<=0){p.aiT=.35;for(let i=4;i>=0;i--){
     if(!unlocked(p,i)||p.cds[i]>0||p.mp<j.sk[i].mp+4)continue;const sk=j.sk[i];let use=false;
-    if(sk.k==='burst')use=ed<sk.r*.8;else if(sk.k==='fan'||sk.k==='rain'||sk.k==='quake')use=ed<460;else if(sk.k==='dash')use=ed>90&&ed<300;
+    if(sk.k==='burst')use=ed<sk.r*.8;else if(sk.k==='fan'||sk.k==='rain'||sk.k==='quake')use=ed<460;else if(sk.k==='backshot'||sk.k==='recoil')use=ed<420;else if(sk.k==='dash'||sk.k==='lunge')use=ed>60&&ed<300;
     else if(sk.k==='buff')use=!p.buff&&ed<420;else if(sk.k==='shield')use=p.hp<p.maxhp*.5;else if(sk.k==='heal')use=p.hp<p.maxhp*.5;
     if(use&&Math.random()<.5){I.s[i]=1;break}}}
 }
@@ -516,7 +516,7 @@ function aiThink(p,dt){
           let use=false;
           if(sk.k==='burst')use=td<sk.r*.85;
           else if(sk.k==='fan'||sk.k==='rain'||sk.k==='quake')use=td<420&&(sk.mp>8||Math.random()<.4);
-          else if(sk.k==='dash')use=td>100&&td<300;
+          else if(sk.k==='dash'||sk.k==='lunge')use=td>60&&td<300;else if(sk.k==='backshot'||sk.k==='recoil')use=td<400;
           else if(sk.k==='buff')use=!p.buff&&td<400;
           else if(sk.k==='shield')use=p.hp<p.maxhp*.55;
           else if(sk.k==='heal')use=PARTY.some(q=>!q.dead&&q.hp<q.maxhp*.55);
