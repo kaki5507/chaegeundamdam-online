@@ -7,7 +7,7 @@ const W=960,H=540,GRAV=1900;
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
 let SC=1;
 function resize(){
-  const f=Math.min(innerWidth/W,innerHeight/H),d=window.devicePixelRatio||1;
+  const f=Math.min(innerWidth/W,innerHeight/H),d=Math.min(window.devicePixelRatio||1,window.DPR_CAP||2);
   cv.style.width=Math.floor(W*f)+'px';cv.style.height=Math.floor(H*f)+'px';
   cv.width=Math.round(W*f*d);cv.height=Math.round(H*f*d);SC=f*d;
 }

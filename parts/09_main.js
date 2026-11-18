@@ -301,6 +301,7 @@ function drawWorld(g){
   else{ // town decor: signboards & lanterns
     for(let x=140;x<L.w;x+=260){const y=470;g.fillStyle='#5a3a1c';g.fillRect(x,y-110,5,110);circ(g,x+2,y-118,13,'#ff6a4a',O_,2);const gl=g.createRadialGradient(x+2,y-118,2,x+2,y-118,60);gl.addColorStop(0,'rgba(255,170,90,.55)');gl.addColorStop(1,'rgba(255,170,90,0)');g.fillStyle=gl;g.fillRect(x-60,y-180,124,124)}
   }
+  drawPlatTiles(g,L,T,bg,t);
   for(const pl of L.plats)if(vis(pl.x,pl.y-20,pl.w,(pl.t==='s'?Math.min(pl.h,600):60)))drawPlat(g,pl,T,bg,t);
   for(const r of L.ropes)if(vis(r.x-10,r.y1,20,r.y2-r.y1))drawRope(g,r,T,t);
   for(const s of L.spikes)if(vis(s.x,s.y-30,s.w,40))drawSpikes(g,s,T);
@@ -333,8 +334,9 @@ function drawWorld(g){
     else if(ETC_NAME[it.kind]){const col=it.kind==='essence'?'#ff8a3a':it.kind==='gtooth'?'#ffd34a':'#c8a8ff',gl=g.createRadialGradient(0,-10,2,0,-10,18);gl.addColorStop(0,col+'cc');gl.addColorStop(1,col+'00');g.fillStyle=gl;g.fillRect(-20,-30,40,40);poly(g,[0,-20,7,-10,0,0,-7,-10],col,O_,1.6)}
     else if(it.kind==='key'){const gl=g.createRadialGradient(0,-12,2,0,-12,22);gl.addColorStop(0,'rgba(255,230,100,.8)');gl.addColorStop(1,'rgba(255,230,100,0)');g.fillStyle=gl;g.fillRect(-24,-36,48,48);circ(g,-4,-14,5,'#ffd34a',O_,1.6);g.fillStyle='#ffd34a';g.fillRect(-1,-14,12,3.5);g.fillRect(7,-14,3,8)}
     g.restore()}}
-  for(const m of S.mobs){if(m.type==='arm'||!vis(m.x-40,m.y-60,80,80))continue;const _fl=m.flash>0;if(m.hue||_fl){g.save();g.filter=(m.hue?'hue-rotate('+m.hue+'deg) ':'')+(_fl?'brightness(2.1) saturate(.4)':'')}if(MOB_DRAW[m.type])MOB_DRAW[m.type](g,m,t);else if(m.type==='wisp')drawWisp(g,m,t);else{g.save();if(m.type==='baby'){g.translate(m.x,m.y);g.scale(.72,.72);g.translate(-m.x,-m.y)}
-    if(m.type==='baby'){g.translate(m.x*(1-1/.72)*0,0)}drawEgg(g,m,t);g.restore()}if(m.hue||_fl)g.restore();
+  for(const m of S.mobs){if(m.type==='arm'||!vis(m.x-40,m.y-60,80,80))continue;const _fl=m.flash>0;
+    if(m.hue)drawHueMob(g,m,t);else mobArt(g,m,t);
+    if(_fl){g.save();g.globalCompositeOperation='lighter';g.globalAlpha=.55;if(m.hue)drawHueMob(g,m,t,1);else mobArt(g,m,t);g.restore()}
     if(m.hp<m.max){g.fillStyle='rgba(0,0,0,.6)';g.fillRect(m.x-16,(m.type==='wisp'?m.y-36:m.y-46),32,5);g.fillStyle='#ff5a5a';g.fillRect(m.x-15,(m.type==='wisp'?m.y-35:m.y-45),30*m.hp/m.max,3)}}
   if(S.boss)drawBoss(g,S.boss,t);
   for(const m of S.mobs)if(m.type==='arm'&&!m.dead)drawArm(g,m,t);
@@ -406,3 +408,6 @@ requestAnimationFrame(frame);
 autoLogin();
 socialInit();
 window.__game={press:c=>{pressed[c]=true},hold:(c,v)=>{keys[c]=v},G,get S(){return S},get PARTY(){return PARTY},get SAVE(){return SAVE},newGame,continueGame,goMap,loadMap,addMember,qAccept,qTurnIn,checkDaily,dailyMenu,need,expMul,pvpHit,gainExp,advanceJob,startPQ,step,render,JOBS,QUESTS};
+
+function mobArt(g,m,t){if(MOB_DRAW[m.type])MOB_DRAW[m.type](g,m,t);else if(m.type==='wisp')drawWisp(g,m,t);else{g.save();if(m.type==='baby'){g.translate(m.x,m.y);g.scale(.72,.72);g.translate(-m.x,-m.y)}
+    if(m.type==='baby'){g.translate(m.x*(1-1/.72)*0,0)}drawEgg(g,m,t);g.restore()}}
