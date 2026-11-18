@@ -52,6 +52,7 @@ app.post('/api/register', limit('auth', 20), async (req, res) => {
     const { name, password } = req.body || {};
     if (typeof name !== 'string' || !NAME_RE.test(name)) return res.status(400).json({ error: '이름은 한글/영문/숫자/_ 2~12자입니다.' });
     if (typeof password !== 'string' || password.length < 4 || password.length > 64) return res.status(400).json({ error: '비밀번호는 4~64자입니다.' });
+    if (/운영|관리자|gm|admin|운엉/i.test(name) && !isAdmin(name)) return res.status(400).json({ error: '운영자를 사칭하는 이름은 쓸 수 없습니다.' });
     const salt = crypto.randomBytes(16).toString('hex');
     const ok = await db.createUser(keyOf(name), name, salt, await hashPw(password, salt));
     if (!ok) return res.status(409).json({ error: '이미 사용 중인 이름입니다.' });
@@ -68,7 +69,7 @@ app.post('/api/login', limit('auth', 20), async (req, res) => {
     res.json({ token: sign(u.name), name: u.display });
   } catch (e) { console.error(e); res.status(500).json({ error: '서버 오류' }); }
 });
-const ADMINS = (process.env.ADMIN_NAMES || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+const ADMINS = (process.env.ADMIN_NAMES || '운영자').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 const isAdmin = n => ADMINS.includes(String(n).toLowerCase());
 app.get('/api/me', auth, async (req, res) => {
   const u = await db.getUser(req.user); if (!u) return res.status(401).json({ error: '계정이 없습니다.' });
@@ -145,6 +146,11 @@ app.post('/api/admin/live', auth, (req, res) => {
   LIVE.force[kind] = Date.now() + minutes * 60000; LIVE.forceAt[kind] = Date.now();
   if (kind === 'raid') LIVE.raid = null; else LIVE.arena = null;
   res.json({ ok: true, until: LIVE.force[kind] });
+});
+app.post('/api/admin/notice', auth, (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: '운영자만 공지할 수 있습니다.' });
+  const text = clean(req.body && req.body.text); if (!text) return res.status(400).json({ error: '빈 공지' });
+  res.json({ ok: true, msg: pushMsg({ kind: 'notice', name: '운영자', text, ch: 'all' }) });
 });
 app.get('/api/save', auth, async (req, res) => {
   try { const s = await db.getSave(req.user); res.json(s ? { save: s.data, updated: s.updated } : { save: null }); }

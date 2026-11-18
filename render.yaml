@@ -12,7 +12,7 @@ services:
         sync: false
       - key: SECRET            # 로그인 토큰 서명 키 (자동 생성)
         generateValue: true
-      - key: ADMIN_NAMES       # 운영자 게임 이름 (쉼표로 여러 명) — 이 계정으로 채팅에 /운영 입력 시 이벤트 패널
+      - key: ADMIN_NAMES       # 운영자 게임 이름 (쉼표로 여러 명, 비워두면 기본값 "운영자") — 상단 [🛠 운영] 버튼 · /운영
         sync: false
       - key: NODE_VERSION
         value: "20"

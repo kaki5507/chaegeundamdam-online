@@ -32,6 +32,10 @@ const srv = app.listen(0, async () => {
     [s] = await j('POST', '/api/admin/event', { exp: 2, minutes: 10 }, tok); assert.equal(s, 403);
     [s, o] = await j('POST', '/api/register', { name: 'admin1', password: 'pass1234' }); const at = o.token;
     [s, o] = await j('GET', '/api/me', null, at); assert.equal(o.admin, true);
+    [s] = await j('POST', '/api/register', { name: '운영자1', password: 'pass1234' }); assert.equal(s, 400);
+    [s] = await j('POST', '/api/admin/notice', { text: '공지' }, tok); assert.equal(s, 403);
+    [s] = await j('POST', '/api/admin/notice', { text: '점검 안내' }, at); assert.equal(s, 200);
+    [s, o] = await j('GET', '/api/poll?since=0&map=x'); assert.ok(o.msgs.some(m => m.kind === 'notice' && m.text === '점검 안내'));
     [s, o] = await j('POST', '/api/admin/event', { exp: 2, drop: 1, minutes: 10, msg: '테스트' }, at); assert.equal(s, 200);
     [s, o] = await j('GET', '/api/poll?since=0&map=x'); assert.equal(o.event.exp, 2);
     [s] = await j('POST', '/api/admin/event', { off: true }, at); assert.equal(s, 200);
