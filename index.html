@@ -2843,6 +2843,7 @@ function invRows(){
   r.push({kind:'misc',n:'귀안(鬼眼)',v:SAVE.inv.gwi||0,d:'귀목의 제단에 바쳐 천년 귀목을 소환한다. 귀문 수문장 퀘스트로만 얻을 수 있다.'});
   r.push({kind:'misc',n:'도깨비 금이빨',v:SAVE.inv.gtooth||0,d:'귀문 동굴 몬스터가 20% 확률로 떨어뜨린다. 8개로 귀안 1개.'});
   r.push({kind:'misc',n:'귀목의 정수',v:SAVE.inv.essence||0,d:'천년 귀목이 40% 확률로 남긴다. 최고급 투구 퀘스트 재료.'});
+  for(const k of BOSS_MATS)r.push({kind:'misc',n:ETC_NAME[k],v:SAVE.inv[k]||0,d:BOSS_MAT_DESC[k]});
   r.push({kind:'misc',n:'야채코인 ●',v:SAVE.coins,d:'상점 · 주문서 구매에 쓰는 기본 화폐.'});
   r.push({kind:'misc',n:'이벤트 코인 ◆',v:SAVE.ec,d:'출석 · 일일 올클리어 · PvP 승리로 획득. 이벤트 상점(캐시 치장)에서 사용.'});
   r.push({kind:'misc',n:'보유 치장템',v:Object.keys(ITEMS).filter(k=>SAVE.inv[k]).length+' / '+Object.keys(ITEMS).length,d:'착용은 장비 탭에서 슬롯을 선택(Enter).'});
@@ -3443,7 +3444,7 @@ function render(){
     else if(G.ui==='pause'){g.fillStyle='rgba(8,4,16,.6)';g.fillRect(0,0,W,H);txt(g,'메뉴 (게임은 계속 진행 중)',W/2,200,30,'#ffe9a0','center');['계속하기','저장하고 타이틀로'].forEach((s,i)=>{const y=240+i*50,sel=(G.psel||0)===i;g.fillStyle=sel?'rgba(255,220,120,.3)':'rgba(255,255,255,.08)';g.beginPath();g.roundRect(W/2-140,y,280,40,10);g.fill();txt(g,s,W/2,y+27,19,sel?'#ffe9a0':'#fff','center')})}
     if(S.pvp&&S.pvp.over){g.fillStyle='rgba(8,4,16,.55)';g.fillRect(0,0,W,H);const win=S.pvp.winner===0;txt(g,win?'승리!':'패배…',W/2,230,56,win?'#ffe04a':'#ff8a8a','center');txt(g,S.pvp.score[0]+' : '+S.pvp.score[1]+'   (전적 '+SAVE.duel.w+'승 '+SAVE.duel.l+'패)',W/2,276,22,'#fff','center');if(S.pvp.t>1.2)txt(g,'Enter : 마을로',W/2,320,20,'#cfd4e2','center',2)}
     if(G.state==='over'){g.fillStyle='rgba(20,0,10,.7)';g.fillRect(0,0,W,H);txt(g,'기절했다…',W/2,230,48,'#ff8a8a','center');txt(g,'Enter : 다시 도전      Esc : 마을로',W/2,290,20,'#fff','center')}
-    if(G.state==='clear'&&G.clear){g.fillStyle='rgba(8,4,16,.6)';g.fillRect(0,0,W,H);panel(g,W/2-250,120,500,300,.94);txt(g,G.clear.title,W/2,184,36,'#ffe04a','center');G.clear.lines.forEach((l,i)=>txt(g,l,W/2,236+i*34,20,'#fff','center'));txt(g,'Enter : 돌아가기',W/2,392,17,'#cfd4e2','center',2)}
+    if(G.state==='clear'&&G.clear){g.fillStyle='rgba(8,4,16,.6)';g.fillRect(0,0,W,H);panel(g,W/2-250,120,500,300,.94);txt(g,G.clear.title,W/2,184,36,'#ffe04a','center');G.clear.lines.forEach((l,i)=>{const n=G.clear.lines.length;txt(g,l,W/2,(n>4?226:236)+i*(n>4?24:34),n>4?16:20,l.startsWith('★')||l.startsWith('🎁')?'#ffe9a0':'#fff','center')});txt(g,'Enter : 돌아가기',W/2,392,17,'#cfd4e2','center',2)}
   }
   if(S&&G.state!=='title')drawBigBanner(g,G.t);
   if(G.fade){const a=G.fade.phase==='out'?Math.min(1,G.fade.t/.35):1-Math.min(1,G.fade.t/.4);g.fillStyle=`rgba(0,0,0,${a})`;g.fillRect(0,0,W,H)}
@@ -5565,7 +5566,7 @@ loadMap=function(id,end){if(!/^ev_/.test(id)){EVLOCAL=null;if(EVLIVE&&EVLIVE.are
 // 상단 버튼 터치/클릭
 cv.addEventListener('pointerdown',e=>{
   if(G.state!=='play'||G.ui||!S)return;const rc=cv.getBoundingClientRect(),x=(e.clientX-rc.left)*W/rc.width,y=(e.clientY-rc.top)*H/rc.height;
-  for(const b of HUDB){if(b.admin&&!ISADMIN)continue;if(x>=b.x-6&&x<=b.x+b.w+6&&y>=b.y-8&&y<=b.y+b.h+12){e.preventDefault();initAudio();b.id==='adm'?adminMenu():b.id==='pq'?pqMenu():eventMenu();return}}
+  for(const b of HUDB){if(b.admin&&!ISADMIN)continue;if(x>=b.x-6&&x<=b.x+b.w+6&&y>=b.y-8&&y<=b.y+b.h+12){e.preventDefault();initAudio();b.id==='adm'?adminMenu():b.id==='guide'?guideMenu2():b.id==='pq'?pqMenu():eventMenu();return}}
 });
 /* ============================================================
    ADMIN : 운영자(닉네임 '운영자') 전용 버튼 · 운영 패널 · 전체 공지
@@ -6171,4 +6172,137 @@ drawRoleTag=function(g,n){const r=roleOf(n);if(!r)return;const c=tagSprite(r,10,
 /* ---------- 캔버스 필터 완전 차단 : 안드로이드(갤럭시)에서 필터를 처음 쓸 때 몇 초씩 멈추는 문제 ---------- */
 {const P=CanvasRenderingContext2D.prototype,d=Object.getOwnPropertyDescriptor(P,'filter');
   if(d)Object.defineProperty(P,'filter',{configurable:true,get(){return'none'},set(){}});}
+/* ============================================================
+   BOSSLOOT : 보스 → 전용 재료(확정) → 보스 연구가의 토벌 의뢰/제작으로 이어지는 보상
+   밸런스 : 재료는 확정이라 꾸준히 잡으면 반드시 얻는다. 장비는 보스 레벨대에 맞춘 등급.
+   ============================================================ */
+Object.assign(ETC_NAME,{dhorn:'도깨비 뿔',foxtail:'구미호 꼬리털',yolk:'황금 노른자',stele:'비석 조각',fang:'거대 송곳니',festm:'축제 훈장'});
+const BOSS_MATS=['dhorn','foxtail','yolk','stele','fang','festm'];
+const BOSS_MAT_DESC={dhorn:'도깨비 대왕이 확정으로 2~3개 남긴다. 보스 연구가에게 가져가자.',foxtail:'구미호가 확정으로 2개 남긴다.',yolk:'킹 달걀 슬라임(파티퀘스트)이 확정으로 2개 남긴다.',
+  stele:'비석의 길 보스들이 2~3개 남긴다.',fang:'사냥터 필드 보스가 1~2개 남긴다.',festm:'축제 보스 레이드 참가 보상으로 2개.'};
+// 제작 장비
+Object.assign(GEAR,{
+  g_bl_horn:{slot:'acc',n:'도깨비 뿔 귀걸이',gr:2,atk:7,hp:6,req:{lv:15}},
+  g_bl_tail:{slot:'acc',n:'구미호 꼬리 목도리',gr:3,atk:10,spd:5,req:{lv:30}},
+  g_bl_yolk:{slot:'acc',n:'황금 노른자 펜던트',gr:3,atk:9,hp:12,req:{lv:25}},
+  g_bl_stele:{slot:'armor',n:'비석 수호 갑옷',gr:3,atk:8,hp:30,req:{lv:25}},
+  g_bl_fang:{slot:'acc',n:'거대 송곳니 부적',gr:3,atk:11,hp:8,req:{lv:35}},
+});
+// 보스별 확정 재료 · 의뢰(반복) · 제작
+const BOSS_LOOT={
+  dokkaebi:{mat:'dhorn',n:[2,3]},fox:{mat:'foxtail',n:[2,2]},eggking:{mat:'yolk',n:[2,2]},guimok:{mat:'essence',n:[1,1]},
+  sb1:{mat:'stele',n:[2,2]},sb2:{mat:'stele',n:[2,2]},sb3:{mat:'stele',n:[2,3]},sb4:{mat:'stele',n:[2,3]},sb5:{mat:'stele',n:[3,3]},sb6:{mat:'stele',n:[3,4]},
+};
+const BL_JOBS=[ // 반복 의뢰 : 재료 몇 개 → 경험치(현재 레벨 필요치의 %) + 코인 + ◆
+  {mat:'dhorn',n:3,pct:.05,coin:600,ec:1,t:'도깨비 뿔 3개 납품'},
+  {mat:'foxtail',n:3,pct:.06,coin:1200,ec:1,t:'구미호 꼬리털 3개 납품'},
+  {mat:'yolk',n:2,pct:.05,coin:1000,ec:1,t:'황금 노른자 2개 납품'},
+  {mat:'stele',n:4,pct:.06,coin:900,ec:1,t:'비석 조각 4개 납품'},
+  {mat:'fang',n:2,pct:.04,coin:800,ec:1,t:'거대 송곳니 2개 납품'},
+];
+const BL_CRAFT=[
+  {id:'g_bl_horn',need:{dhorn:5,vegbit:20}},
+  {id:'g_bl_yolk',need:{yolk:4,vegbit:30}},
+  {id:'g_bl_stele',need:{stele:10,vegbit:30}},
+  {id:'g_bl_tail',need:{foxtail:6,dhorn:3}},
+  {id:'g_bl_fang',need:{fang:6,vegbit:40}},
+  {id:'g_gm_ring',need:{essence:3,dhorn:5}},
+  {id:'g_rd_star',need:{festm:8}},
+];
+function addMat(k,n){SAVE.inv[k]=(SAVE.inv[k]||0)+n;qev('collect',{item:k})}
+const _bossFinishL=bossFinish;
+bossFinish=function(b){
+  _bossFinishL(b);
+  const bid=b.sid||b.id,L=BOSS_LOOT[bid];if(!L||b.raid)return;
+  const n=L.n[0]+((Math.random()*(L.n[1]-L.n[0]+1))|0);addMat(L.mat,n);
+  const first=!SAVE.flags['bfirst_'+bid];let fl=null;
+  if(first){SAVE.flags['bfirst_'+bid]=1;SAVE.apFree=(SAVE.apFree||0)+3;SAVE.ec=(SAVE.ec||0)+3;fl='★ 첫 토벌 보너스 : AP +3 · ◆ +3'}
+  saveGame();
+  if(G.clear){G.clear.lines=G.clear.lines.slice(0,4).concat(['🎁 '+ETC_NAME[L.mat]+' +'+n+'  (보유 '+SAVE.inv[L.mat]+')'],fl?[fl]:[],['→ 야채마을 「보스 연구가」에게 가져가요'])}
+};
+// 필드 보스 · 레이드
+{const _km=killMob;killMob=function(m){const fb=m.fb&&!m.dead;_km(m);if(fb&&m.dead){const n=1+(Math.random()<.4?1:0);addMat('fang',n);ftext(m.x,m.y-120,ETC_NAME.fang+' +'+n,'#ffd34a',16,1.4)}}}
+{const _bf=bossFinish;bossFinish=function(b){const raid=b.raid;_bf(b);if(raid){addMat('festm',2);saveGame();if(G.dlg)G.dlg.text=G.dlg.text.replace('참가 보상:','참가 보상: 축제 훈장 ×2 ·')}}}
+
+/* ---------- 보스 연구가 (야채마을) ---------- */
+NPC_LOOK_X.bossdoc={job:'mage',eq:{hat:'hat_gat',outfit:'out_vest'},n:'보스 연구가',fid:9};
+ROLE.bossdoc='보스 재료 · 제작';
+{const _tw=MAPS.town;MAPS.town=()=>{const L=_tw();L.npcs.push({id:'bossdoc',name:'보스 연구가 우엉',x:3560,gy:470,look:'bossdoc'});return L}}
+const matTxt=need=>Object.entries(need).map(([k,v])=>(ETC_NAME[k]||k)+' '+(SAVE.inv[k]||0)+'/'+v).join(' · ');
+const hasNeed=need=>Object.entries(need).every(([k,v])=>(SAVE.inv[k]||0)>=v);
+function bossDoc(n){
+  const opts=[];
+  opts.push({t:'📜 토벌 의뢰 (반복 납품)',fn:()=>{
+    openDialog(n.name,'보스 재료를 가져오면 연구비를 줄게! 몇 번이든 좋아.',BL_JOBS.map(j=>({t:(SAVE.inv[j.mat]>=j.n?'[완료 가능] ':'')+j.t+'  ('+(SAVE.inv[j.mat]||0)+'/'+j.n+') → 경험치 '+Math.round(j.pct*100)+'% · '+j.coin+'● · ◆'+j.ec,
+      fn:()=>{if((SAVE.inv[j.mat]||0)<j.n){G.toast('재료가 부족해요');return}SAVE.inv[j.mat]-=j.n;const ex=Math.round(need(SAVE.lvl)*j.pct);gainExp(ex);addCoins(j.coin);SAVE.ec=(SAVE.ec||0)+j.ec;saveGame();sfx('levelup');
+        openDialog(n.name,'고마워! 연구에 큰 도움이 됐어.\n경험치 +'+ex+' · '+j.coin+'● · ◆'+j.ec,[{t:'더 납품하기',fn:()=>bossDoc(n)},{t:'닫기',fn:closeUI}])}})).concat([{t:'뒤로',fn:()=>bossDoc(n)}]))}});
+  opts.push({t:'⚒ 보스 장비 제작',fn:()=>{
+    openDialog(n.name,'재료를 모아오면 보스의 힘이 깃든 장비를 만들어 줄게.',BL_CRAFT.map(c=>{const d=GEAR[c.id],own=SAVE.ginv[c.id];return{t:(own?'[보유] ':hasNeed(c.need)?'[제작 가능] ':'')+'['+GRADE[d.gr]+'] '+d.n+' — '+matTxt(c.need),
+      fn:()=>{if(own){G.toast('이미 가지고 있어요');return}if(!hasNeed(c.need)){G.toast('재료가 부족해요');return}for(const[k,v]of Object.entries(c.need))SAVE.inv[k]-=v;SAVE.ginv[c.id]=1;saveGame();sfx('levelup');
+        openDialog(n.name,'완성! ['+GRADE[d.gr]+'] '+d.n+'\n'+gearDesc(c.id)+'\n\n인벤토리(I) → 장비에서 착용해요.',[{t:'뒤로',fn:()=>bossDoc(n)},{t:'닫기',fn:closeUI}])}}}).concat([{t:'뒤로',fn:()=>bossDoc(n)}]))}});
+  opts.push({t:'어떤 보스가 무엇을 주나요?',fn:()=>openDialog(n.name,'· 도깨비 대왕 → 도깨비 뿔 2~3\n· 구미호 → 구미호 꼬리털 2\n· 킹 달걀 슬라임(파티퀘스트) → 황금 노른자 2\n· 천년 귀목 → 귀목의 정수 1 (+기존 40%)\n· 비석의 길 보스 → 비석 조각 2~4\n· 사냥터 필드 보스 → 거대 송곳니 1~2\n· 축제 보스 레이드 → 축제 훈장 2\n\n보스마다 처음 잡으면 AP +3 · ◆3 보너스!',[{t:'뒤로',fn:()=>bossDoc(n)}])});
+  opts.push({t:'닫기',fn:closeUI});
+  openDialog(n.name,'보스들이 남긴 재료를 연구하는 우엉이야.\n재료는 보스를 잡으면 반드시 떨어지니, 꾸준히 모아오면 좋은 장비를 만들어 줄게!',opts);
+}
+{const _t=talkNPC;talkNPC=function(n){if(n.id==='bossdoc'){if(!SAVE.talked.bossdoc){SAVE.talked.bossdoc=1;qev('talk',{})}return bossDoc(n)}return _t(n)}}
+/* ============================================================
+   GUIDE : 레벨별 가이드(추천 사냥터 바로 이동 · 다음 목표 · 오늘 할 일) · 접속자 수 표시
+   ============================================================ */
+function allHunts(){
+  const a=HUNTS.map(h=>({id:h.id,n:h.name,min:h.min,where:'야채마을 사냥터'}));
+  for(const d of JTOWNS)for(const h of d.hunts)a.push({id:h.id,n:h.name,min:h.min,where:d.name+(d.job===SAVE.job?' ⭐':'')});
+  for(const t of TEMPLES)a.push({id:t.id,n:t.name,min:t.min,where:'별의 신전'});
+  return a;
+}
+function recHunts(){
+  const lv=SAVE.lvl,mine=JT_OF(SAVE.job);
+  return allHunts().filter(h=>h.min<=lv&&lv<=h.min+20)
+    .sort((a,b)=>(b.min-a.min)+((b.where.includes('⭐')?6:0)-(a.where.includes('⭐')?6:0))).slice(0,5);
+}
+const guideCost=h=>SAVE.lvl<20?0:Math.round(60+h.min*5);
+function nextGoals(){
+  const lv=SAVE.lvl,t=SAVE.tier,g=[],mine=JT_OF(SAVE.job);
+  if(t<1)g.push(lv>=10?'✅ 지금 1차 전직 가능! → 「'+mine.name+'」 교관':'Lv.10 : 1차 전직 (「'+mine.name+'」)');
+  else if(t<2)g.push(lv>=30?'✅ 지금 2차 전직 가능! → 도깨비 숲 꼭대기 스승 (슈퍼점프 습득)':'Lv.30 : 2차 전직 (도깨비 숲 꼭대기) · 슈퍼점프');
+  else if(t<3)g.push(lv>=70?'✅ 지금 3차 전직 가능! → 하늘길 끝 스승':'Lv.70 : 3차 전직 (하늘길 끝)');
+  if(lv>=6&&!SAVE.cleared.eggking)g.push('👥 파티퀘스트 「달걀 슬라임 소굴」 (Lv.6+) — 황금 노른자');
+  if(lv>=12&&!SAVE.cleared.dokkaebi)g.push('👹 보스 「도깨비 대왕」 — 도깨비 숲 끝 · 첫 토벌 AP+3');
+  if(lv>=28&&!SAVE.cleared.fox)g.push('🦊 보스 「구미호」 — 하늘길 끝 달빛 신당');
+  if(lv>=15)g.push('🪨 비석의 길 스토리 던전 — 비석 조각 · 보스 장비 제작');
+  if(lv>=40&&!SAVE.cleared.guimok)g.push('🌋 귀문 동굴 → 천년 귀목 (파티 추천)');
+  if(lv>=80)g.push('🏛 별의 신전 (Lv.80~90) — 최고 레벨 사냥터');
+  return g.slice(0,3);
+}
+function todayList(){
+  const r=[];const dq=Object.keys(QUESTS).filter(k=>/^d\d/.test(k));
+  const done=dq.filter(k=>qst(k).s==='done').length;r.push('📅 일일 퀘스트 '+done+'/'+dq.length);
+  r.push(SAVE.att&&SAVE.att.last===dayNum()?'✅ 출석 체크 완료':'❗ 출석 체크 안 함 (야채마을 출석부 요정)');
+  r.push('🐉 20:00 보스 레이드 · 🏛 20:30 쟁탈전');
+  const ready=BL_JOBS.filter(j=>(SAVE.inv[j.mat]||0)>=j.n).length;if(ready)r.push('🎁 보스 연구가에게 납품 가능 '+ready+'건');
+  if(SAVE.apFree>0)r.push('💪 남은 AP '+SAVE.apFree+' (AP 버튼 / O키)');
+  return r;
+}
+function guideMenu2(){
+  sfx('sel');const j=JOB[SAVE.job],rec=recHunts(),opts=[];
+  for(const h of rec){const c=guideCost(h);opts.push({t:'🚕 '+(h.where.includes('⭐')?'⭐':'')+h.n+'  Lv.'+h.min+'~  '+(c?c+'●':'무료'),fn:()=>{
+    if(S.L.pq||(S.boss&&!S.boss.dead)||S.dg||S.L.raid||S.L.arenaEv){G.toast('던전 안에서는 이동할 수 없어요');return}
+    if(SAVE.coins<c){G.toast('코인이 부족해요 ('+c+'●)');return}SAVE.coins-=c;closeUI();sfx('portal');goMap(h.id);G.toast(h.n+'(으)로 이동!')}})}
+  opts.push({t:'⭐ 내 직업 마을 「'+JT_OF(SAVE.job).name+'」 (무료)',fn:()=>{closeUI();sfx('portal');goMap(JT_OF(SAVE.job).id)}});
+  opts.push({t:'닫기',fn:closeUI});
+  openDialog('📖 Lv.'+SAVE.lvl+' '+jline(j,SAVE.tier)+' 가이드',
+    '▶ 다음 목표\n'+nextGoals().map(s=>'  '+s).join('\n')+'\n\n▶ 오늘 할 일\n  '+todayList().slice(0,2).join('   ')+'\n  '+todayList().slice(2).join('   ')+'\n\n▶ 오른쪽에서 추천 사냥터로 바로 이동'+(SAVE.lvl<20?' (Lv.20까지 무료)':''),opts);
+}
+// 상단 버튼 : 가이드 추가 (운영 버튼은 왼쪽으로)
+{const a=HUDB.find(b=>b.id==='adm');if(a)a.x=W-394;HUDB.push({id:'guide',x:W-306,y:8,w:82,h:32,l:'📖 가이드',k:'7'})}
+{const _rs=respawnStep;respawnStep=function(dt){_rs(dt);if(G.state==='play'&&!G.ui&&!G.chatOpen&&pressed.Digit7)guideMenu2()}}
+// 레벨업 할 때 중요한 레벨이면 안내
+{const _ge=gainExp;gainExp=function(n,mob){const lv=SAVE.lvl;const r=_ge(n,mob);if(SAVE.lvl>lv&&[6,10,12,15,20,30,40,70,80].some(v=>lv<v&&SAVE.lvl>=v))setTimeout(()=>G.toast('📖 새 목표가 생겼어요! 오른쪽 위 [가이드] (7)'),1200);return r}}
+// 접속자 수 (미니맵 아래)
+function drawOnline(g,t){
+  if(!S||!PARTY[0])return;const on=typeof wsOK==='function'&&wsOK(),s=on?'접속 '+Math.max(1,ONLINE_N)+'명':'오프라인';
+  g.save();g.beginPath();g.roundRect(14,88,on?96:80,22,11);g.fillStyle='rgba(40,24,70,.62)';g.fill();
+  circ(g,27,99,4.5,on?'#5ae07a':'#999');if(on){g.globalAlpha=.4+.3*Math.sin(t*3);circ(g,27,99,8,'rgba(90,224,122,.5)');g.globalAlpha=1}
+  txt(g,s,36,104,12,'#fff','left',0);g.restore();
+}
+{const _dh=drawHUD;drawHUD=function(g,t){_dh(g,t);drawOnline(g,t)}}
 </script></body></html>

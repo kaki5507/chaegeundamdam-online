@@ -312,5 +312,5 @@ loadMap=function(id,end){if(!/^ev_/.test(id)){EVLOCAL=null;if(EVLIVE&&EVLIVE.are
 // 상단 버튼 터치/클릭
 cv.addEventListener('pointerdown',e=>{
   if(G.state!=='play'||G.ui||!S)return;const rc=cv.getBoundingClientRect(),x=(e.clientX-rc.left)*W/rc.width,y=(e.clientY-rc.top)*H/rc.height;
-  for(const b of HUDB){if(b.admin&&!ISADMIN)continue;if(x>=b.x-6&&x<=b.x+b.w+6&&y>=b.y-8&&y<=b.y+b.h+12){e.preventDefault();initAudio();b.id==='adm'?adminMenu():b.id==='pq'?pqMenu():eventMenu();return}}
+  for(const b of HUDB){if(b.admin&&!ISADMIN)continue;if(x>=b.x-6&&x<=b.x+b.w+6&&y>=b.y-8&&y<=b.y+b.h+12){e.preventDefault();initAudio();b.id==='adm'?adminMenu():b.id==='guide'?guideMenu2():b.id==='pq'?pqMenu():eventMenu();return}}
 });

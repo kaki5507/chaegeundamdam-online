@@ -379,6 +379,7 @@ function invRows(){
   r.push({kind:'misc',n:'귀안(鬼眼)',v:SAVE.inv.gwi||0,d:'귀목의 제단에 바쳐 천년 귀목을 소환한다. 귀문 수문장 퀘스트로만 얻을 수 있다.'});
   r.push({kind:'misc',n:'도깨비 금이빨',v:SAVE.inv.gtooth||0,d:'귀문 동굴 몬스터가 20% 확률로 떨어뜨린다. 8개로 귀안 1개.'});
   r.push({kind:'misc',n:'귀목의 정수',v:SAVE.inv.essence||0,d:'천년 귀목이 40% 확률로 남긴다. 최고급 투구 퀘스트 재료.'});
+  for(const k of BOSS_MATS)r.push({kind:'misc',n:ETC_NAME[k],v:SAVE.inv[k]||0,d:BOSS_MAT_DESC[k]});
   r.push({kind:'misc',n:'야채코인 ●',v:SAVE.coins,d:'상점 · 주문서 구매에 쓰는 기본 화폐.'});
   r.push({kind:'misc',n:'이벤트 코인 ◆',v:SAVE.ec,d:'출석 · 일일 올클리어 · PvP 승리로 획득. 이벤트 상점(캐시 치장)에서 사용.'});
   r.push({kind:'misc',n:'보유 치장템',v:Object.keys(ITEMS).filter(k=>SAVE.inv[k]).length+' / '+Object.keys(ITEMS).length,d:'착용은 장비 탭에서 슬롯을 선택(Enter).'});
