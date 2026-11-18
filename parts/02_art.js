@@ -332,7 +332,9 @@ function drawVegWeapon(g,c,t,st){ // 야채 무기 (손 기준 좌표)
       g.strokeStyle='rgba(60,140,50,.6)';g.lineWidth=1;g.beginPath();g.moveTo(0,-8);g.lineTo(0,-36);g.stroke();break}
     case'archer':{ // 당근 활
       g.strokeStyle=O_;g.lineWidth=6;g.beginPath();g.arc(-8,0,22,-1.1,1.1);g.stroke();g.strokeStyle='#ff8c1f';g.lineWidth=3.6;g.stroke();
-      g.strokeStyle='#fff';g.lineWidth=1;g.beginPath();g.moveTo(-8+22*Math.cos(-1.1),22*Math.sin(-1.1));g.lineTo(-8+22*Math.cos(1.1),22*Math.sin(1.1));g.stroke();
+      {const pull=g.bowPull||0;g.bowPull=0;const ax=-8+22*Math.cos(-1.1),ay=22*Math.sin(-1.1),bx=-8+22*Math.cos(1.1),by=22*Math.sin(1.1),mx=ax-pull*16;
+       g.strokeStyle='#fff';g.lineWidth=1.2;g.beginPath();g.moveTo(ax,ay);g.lineTo(mx,0);g.lineTo(bx,by);g.stroke();
+       if(pull>.15){poly(g,[mx,-2,mx+30,0,mx,2],'#ff8c1f',O_,1);ell(g,mx-2,0,4,2,'#3fae49',O_,.8)}}
       for(const s of[-1,1])ell(g,-8+22*Math.cos(1.1*s)+1,22*Math.sin(1.1*s)+s*3,2,4,'#3fae49',O_,1);break}
     case'guardian':{ // 무 망치
       g.fillStyle='#8a5a2a';g.fillRect(-2,-26,4,32);g.strokeStyle=O_;g.lineWidth=1.6;g.strokeRect(-2,-26,4,32);
@@ -385,7 +387,10 @@ function drawVeggie(g,c,o){
   else if(st==='climb'){const s=Math.sin(t*10)*6;hf=[7,-50+s];hb=[-7,-50-s]}
   else if(st==='hurt'){hf=[16,-30];hb=[-16,-32];wa=.6}
   else{hf=[12,-23+bob];hb=[-12,-23+bob]}
-  if(st==='atk'){const e=Math.sin(clamp(ap*1.25,0,1)*Math.PI*.5);hf=[4+e*16,-42+e*16];hb=[-12,-26];wa=-2.3+e*3.1;if(c.basic&&c.basic.k==='shoot'){hf=[16,-34];wa=c.id==='archer'?0:-.1}}
+  let pz=null;
+  if(st==='atk'){pz=atkPose(c,ap,o.combo|0);hf=pz.hf;hb=pz.hb;wa=pz.wa}
+  else if(st==='skill'){const k=clamp(o.sk||0,0,1);pz={lean:-.1+Math.sin(k*Math.PI)*.04,lx:0,crouch:Math.sin(k*Math.PI)*3}}
+  if(pz){g.translate(pz.lx||0,hip+(pz.crouch||0));g.rotate(pz.lean||0);g.translate(0,-hip)}
   // 망토 (옛 몸통 좌표 → 새 몸통)
   const oldT=f=>{g.save();g.translate(0,sy+12-(-50)*.6+bob*0);g.scale(.55,.6);f();g.restore()};
   if(o.eq&&o.eq.cape)oldT(()=>drawCape(g,o.eq.cape,t,st,-50));
@@ -402,7 +407,8 @@ function drawVeggie(g,c,o){
   if(o.eq&&o.eq.outfit)oldT(()=>drawOutfit(g,o.eq.outfit,-50));
   // 앞팔 + 무기
   limb(g,8,sy+2,hf[0],hf[1],7,shirt);
-  if(st!=='climb'){g.save();g.translate(hf[0],hf[1]);g.rotate(wa);drawVegWeapon(g,c,t,st);g.restore()}
+  if(pz&&pz.smear)drawSmear(g,c,pz,sy);
+  if(st!=='climb'){g.save();g.translate(hf[0],hf[1]);g.rotate(wa);if(pz&&pz.bow!=null)g.bowPull=pz.bow;drawVegWeapon(g,c,t,st);g.restore()}
   circ(g,hf[0],hf[1],4.6,SKINC,O_,1.8);
   if(c.id==='fighter'&&st!=='climb'){g.save();g.translate(hb[0],hb[1]);drawVegWeapon(g,c,t,st);g.restore()}
   // 머리 (2등신)
@@ -431,7 +437,7 @@ function drawVegProj(g,kind,x,y,rot,s=1){
 /* ---------------- monsters ---------------- */
 function drawEgg(g,e,t){ // 달걀 슬라임 (메이플풍)
   g.save();g.translate(e.x,e.y);
-  if(e.flash>0)g.globalAlpha=.6;
+
   const sq=e.vy<-50?1.15:e.vy>50?.88:1+Math.sin(t*6+e.x)*.05;
   g.scale(e.dir>0?1:-1,1);
   ell(g,0,-1,14,3.2,'rgba(0,0,0,.2)');
@@ -449,7 +455,7 @@ function drawEgg(g,e,t){ // 달걀 슬라임 (메이플풍)
 }
 function drawWisp(g,e,t){ // 불꽃 요정
   g.save();g.translate(e.x,e.y);
-  if(e.flash>0)g.globalAlpha=.65;
+
   const gl=g.createRadialGradient(0,0,4,0,0,36);gl.addColorStop(0,e.col+'.55)');gl.addColorStop(1,e.col+'0)');g.fillStyle=gl;g.fillRect(-40,-40,80,80);
   const w=Math.sin(t*9+e.ph)*2.5;
   g.beginPath();g.moveTo(0,-26+w);g.bezierCurveTo(14,-10,17,2,0,13);g.bezierCurveTo(-17,2,-14,-10,0,-26+w);

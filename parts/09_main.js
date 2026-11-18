@@ -333,8 +333,8 @@ function drawWorld(g){
     else if(ETC_NAME[it.kind]){const col=it.kind==='essence'?'#ff8a3a':it.kind==='gtooth'?'#ffd34a':'#c8a8ff',gl=g.createRadialGradient(0,-10,2,0,-10,18);gl.addColorStop(0,col+'cc');gl.addColorStop(1,col+'00');g.fillStyle=gl;g.fillRect(-20,-30,40,40);poly(g,[0,-20,7,-10,0,0,-7,-10],col,O_,1.6)}
     else if(it.kind==='key'){const gl=g.createRadialGradient(0,-12,2,0,-12,22);gl.addColorStop(0,'rgba(255,230,100,.8)');gl.addColorStop(1,'rgba(255,230,100,0)');g.fillStyle=gl;g.fillRect(-24,-36,48,48);circ(g,-4,-14,5,'#ffd34a',O_,1.6);g.fillStyle='#ffd34a';g.fillRect(-1,-14,12,3.5);g.fillRect(7,-14,3,8)}
     g.restore()}}
-  for(const m of S.mobs){if(m.type==='arm'||!vis(m.x-40,m.y-60,80,80))continue;if(m.hue){g.save();g.filter='hue-rotate('+m.hue+'deg)'}if(MOB_DRAW[m.type])MOB_DRAW[m.type](g,m,t);else if(m.type==='wisp')drawWisp(g,m,t);else{g.save();if(m.type==='baby'){g.translate(m.x,m.y);g.scale(.72,.72);g.translate(-m.x,-m.y)}
-    if(m.type==='baby'){g.translate(m.x*(1-1/.72)*0,0)}drawEgg(g,m,t);g.restore()}if(m.hue)g.restore();
+  for(const m of S.mobs){if(m.type==='arm'||!vis(m.x-40,m.y-60,80,80))continue;const _fl=m.flash>0;if(m.hue||_fl){g.save();g.filter=(m.hue?'hue-rotate('+m.hue+'deg) ':'')+(_fl?'brightness(2.1) saturate(.4)':'')}if(MOB_DRAW[m.type])MOB_DRAW[m.type](g,m,t);else if(m.type==='wisp')drawWisp(g,m,t);else{g.save();if(m.type==='baby'){g.translate(m.x,m.y);g.scale(.72,.72);g.translate(-m.x,-m.y)}
+    if(m.type==='baby'){g.translate(m.x*(1-1/.72)*0,0)}drawEgg(g,m,t);g.restore()}if(m.hue||_fl)g.restore();
     if(m.hp<m.max){g.fillStyle='rgba(0,0,0,.6)';g.fillRect(m.x-16,(m.type==='wisp'?m.y-36:m.y-46),32,5);g.fillStyle='#ff5a5a';g.fillRect(m.x-15,(m.type==='wisp'?m.y-35:m.y-45),30*m.hp/m.max,3)}}
   if(S.boss)drawBoss(g,S.boss,t);
   for(const m of S.mobs)if(m.type==='arm'&&!m.dead)drawArm(g,m,t);
@@ -345,7 +345,7 @@ function drawWorld(g){
     if(p.dead){g.save();g.globalAlpha=.45;drawVeggie(g,JOB[p.job],{sc:WSC,fid:p.fid,x:p.x,y:p.y-30+Math.sin(t*3)*6,face:p.face,t:p.t,st:'idle',eq:p.eq,tier:p.tier,alpha:.45});g.restore();continue}
     const st=p.stun>0?'hurt':p.skillT>0&&p.atkT<=0?'skill':p.atkT>0?'atk':p.rope?'climb':!p.onGround?'air':Math.abs(p.vx)>30?'run':'idle';
     const blink=p.inv>0&&Math.floor(p.inv*14)%2===0&&p.stun<=0;
-    drawVeggie(g,JOB[p.job],{sc:WSC,fid:p.fid,x:p.x,y:p.y-(p.skillT>0?Math.sin(clamp(1-p.skillT/.38,0,1)*Math.PI)*9:0),face:p.face,t:p.t,st,ap:p.atkDur?1-p.atkT/p.atkDur:0,combo:p.combo,buff:!!p.buff,eq:p.eq,tier:p.tier,alpha:blink?.45:1});
+    drawVeggie(g,JOB[p.job],{sc:WSC,fid:p.fid,x:p.x,y:p.y-(p.skillT>0?Math.sin(clamp(1-p.skillT/.38,0,1)*Math.PI)*9:0),face:p.face,t:p.t,st,ap:p.atkDur?1-p.atkT/p.atkDur:0,sk:p.skillT>0?1-p.skillT/.38:0,combo:p.combo,buff:!!p.buff,eq:p.eq,tier:p.tier,alpha:blink?.45:1});
     if(p.shieldT>0){g.strokeStyle=`rgba(150,230,255,${.5+.3*Math.sin(t*10)})`;g.lineWidth=3;g.beginPath();g.arc(p.x,p.y-18,24,0,6.28);g.stroke();g.fillStyle='rgba(150,230,255,.12)';g.fill()}
     if(L.pvp){txt(g,(p===lead?'1P':p.kind==='p2'?'2P':p.team===lead.team?'아군':'상대'),p.x,p.y-50,12,p.team===lead.team?'#7aff9a':'#ff8a8a','center',3);bar(g,p.x-18,p.y-46,36,5,p.hp/p.maxhp,'#e8484f')}
     else if(p!==lead){txt(g,(p.kind==='p2'?'2P':'AI')+(p.hold?' ■':''),p.x,p.y-50,12,p.kind==='p2'?'#ffb84a':'#9be8ff','center',3);bar(g,p.x-18,p.y-46,36,5,p.hp/p.maxhp,'#e8484f')}
