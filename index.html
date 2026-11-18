@@ -5849,9 +5849,13 @@ openChat=function(mode){
   const sel=d.querySelector('#cb_m'),inp=d.querySelector('#cb_t');if(mode)sel.value=mode;
   let done=false;
   const close=()=>{if(done)return;done=true;inp.blur();d.remove();document.removeEventListener('pointerdown',padH,true);G.chatOpen=false;G.chatCD=G.t+.45;pressed={};for(const k in keys)keys[k]=false};
-  const send=()=>{if(done)return;const v=inp.value.trim();close();if(v)sendChat(v,sel.value)};
+  const send=()=>{if(done)return;const v=inp.value.trim();inp.value='';close();if(v)sendChat(v,sel.value)};
   // 한글 입력 중(조합 중) Enter 는 무시하고, 조합이 끝난 Enter 에서 보냄
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){if(e.isComposing||e.keyCode===229)return;e.preventDefault();send()}else if(e.key==='Escape'){e.preventDefault();close()}});
+  let pend=false;
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'||e.keyCode===13){if(e.isComposing||e.keyCode===229){pend=true;return}e.preventDefault();send()}else if(e.key==='Escape'){e.preventDefault();close()}});
+  // 한글 조합 중 Enter (아이폰 등) : 조합이 끝나면 보냄
+  inp.addEventListener('compositionend',()=>{if(pend){pend=false;setTimeout(send,0)}});
+  inp.addEventListener('keyup',e=>{if((e.key==='Enter'||e.keyCode===13)&&pend){pend=false;send()}});
   // 화면의 OK / 취소 버튼으로도 보내기 · 닫기
   const padH=e=>{const b=e.target.closest&&e.target.closest('[data-k]');if(!b)return;const k=b.dataset.k;
     if(k==='Enter'){e.preventDefault();e.stopPropagation();send()}else if(k==='Escape'){e.preventDefault();e.stopPropagation();close()}};
