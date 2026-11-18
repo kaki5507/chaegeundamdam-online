@@ -116,7 +116,7 @@ function spawnMob(type,x,y,o){
   const d=MOBS[type],sc=S.L.mscale;
   const m=Object.assign({kind:'mob',type,x,y,w:d.w,h:d.h,hp:Math.round(d.hp*sc),max:Math.round(d.hp*sc),vx:0,vy:0,kbx:0,dir:Math.random()<.5?-1:1,flash:0,dead:false,
     dmg:Math.round(d.dmg*(sc>1?1+(sc-1)*.5:1)),exp:Math.round(d.exp*(sc>1?Math.min(3,sc*.8):1)),ph:Math.random()*6,t:0,hopT:rnd(.4,2),col:'rgba(255,190,90,',col2:'#ffb040',col3:'#ff6a30'},o||{});
-  if(type==='wisp'){m.rect=e=>({x:e.x-e.w/2,y:e.y-e.h/2,w:e.w,h:e.h});m.ox=x;m.by=y;m.range=m.range||70}
+  if(d.fly){m.rect=e=>({x:e.x-e.w/2,y:e.y-e.h/2,w:e.w,h:e.h});m.ox=x;m.by=y;m.range=m.range||70}
   S.mobs.push(m);return m;
 }
 function nearestAlive(x,y,maxd=9999){let b=null,bd=maxd;for(const p of PARTY){if(p.dead)continue;const d=Math.hypot(p.x-x,p.y-20-y);if(d<bd){bd=d;b=p}}return b}
@@ -126,7 +126,7 @@ function updateMobs(dt){
     if(m.dead)continue;
     if(m.type==='arm'){m.t+=dt;m.flash-=dt;m.slam=Math.max(0,(m.slam||0)-dt);m.x=m.bx+Math.sin(m.t*1.3+m.ph)*7;m.y=m.by+Math.cos(m.t*1.1+m.ph)*6-(m.slam>0?Math.sin(m.slam/.9*Math.PI)*40:0);continue}
     m.t+=dt;m.flash-=dt;m.kbx=approach(m.kbx,0,700*dt);
-    if(m.type==='wisp'){
+    if(MOBS[m.type].fly){
       const tg=nearestAlive(m.x,m.y,m.chase?900:260);
       if(tg){m.ox+=sgn(tg.x-m.x)*(m.chase?120:50)*dt;m.by+=(tg.y-44-m.by)*(m.chase?1.1:.35)*dt}
       m.ox=clamp(m.ox,30,L.w-30);

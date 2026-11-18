@@ -112,7 +112,7 @@ function openChat(mode){
   for(const k in keys)keys[k]=false;
   const rc=document.getElementById('c').getBoundingClientRect();
   const d=document.createElement('div');d.id='chatbar';
-  d.style.cssText=`position:fixed;left:${rc.left+8}px;top:${rc.bottom-46}px;width:${Math.min(560,rc.width-16)}px;display:flex;gap:6px;z-index:40`;
+  d.style.cssText=`position:fixed;left:${rc.left+8}px;top:${rc.top+(H-98)*rc.height/H}px;width:${Math.min(560,rc.width-16)}px;display:flex;gap:6px;z-index:40`;
   d.innerHTML=`<select id="cb_m"><option value="map">일반 (이 맵)</option><option value="mega">확성기 (${SAVE.mega.m})</option><option value="hmega">고확성기 (${SAVE.mega.h})</option></select><input id="cb_t" maxlength="80" placeholder="${ONLINE?(ACCT?'메시지 입력 · Enter 보내기 · Esc 닫기':'로그인해야 채팅할 수 있어요'):'오프라인 (서버 없음)'}"><button id="cb_s">전송</button>`;
   document.body.appendChild(d);G.chatOpen=true;
   const sel=d.querySelector('#cb_m'),inp=d.querySelector('#cb_t');if(mode)sel.value=mode;
@@ -150,7 +150,7 @@ function drawSocial(g,t){
   // 채팅 로그 (왼쪽 아래)
   const open=G.chatOpen,list=CHAT.filter(m=>open||G.t-m.at<14).slice(open?-10:-6);
   if(list.length){
-    const lh=17,y0=H-(open?62:22)-list.length*lh;
+    const lh=17,y0=H-(open?108:78)-list.length*lh;
     if(open||list.length){g.save();g.fillStyle=open?'rgba(255,245,252,.88)':'rgba(255,245,252,.55)';g.beginPath();g.roundRect(6,y0-17,open?566:318,list.length*lh+10,14);g.fill();g.strokeStyle='rgba(240,180,230,.9)';g.lineWidth=2;g.stroke();g.restore()}
     list.forEach((m,i)=>{
       const a=open?1:clamp((14-(G.t-m.at))/2,0,1);g.globalAlpha=a;
@@ -170,5 +170,5 @@ function drawSocial(g,t){
   if(evOn()&&S&&!S.L.pq&&!S.L.pvp){const left=Math.ceil((EVENT.until-Date.now()-SRVOFF)/60000),s='🎉 '+evText(EVENT)+' · '+left+'분';g.font=F(13);const w=g.measureText(s).width+24;
     g.fillStyle='rgba(60,10,50,.8)';g.beginPath();g.roundRect(W/2-w/2,8,w,24,12);g.fill();g.strokeStyle='#ff8ae0';g.lineWidth=1.5;g.stroke();txt(g,s,W/2,25,13,'#ffd0f0','center',2)}
   // AP 알림
-  if(SAVE&&SAVE.apFree>0&&S&&!G.ui){txt(g,'AP +'+SAVE.apFree+' (O)',128,48,12,'#7aff9a','left',2)}
+
 }

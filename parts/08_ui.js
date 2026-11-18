@@ -488,42 +488,14 @@ function drawWardrobe(g,t){
 function drawHUD(g,t){
   const p=PARTY[0];if(!p)return;
   const j=JOB[p.job];
-  // main panel
-  panel(g,10,8,300,84,.72);
-  g.save();g.beginPath();g.roundRect(18,16,58,58,10);g.clip();g.fillStyle='rgba(80,60,120,.5)';g.fillRect(18,16,58,58);drawVeggie(g,j,{x:47,y:80,face:1,t,st:'idle',eq:p.eq,tier:p.tier,fid:p.fid});g.restore();
-  txt(g,jline(j,p.tier),86,30,15,'#ffe9a0');txt(g,'Lv.'+p.lvl,86,48,14,'#9be8ff','left',2);
-  txt(g,p.hp+'/'+p.maxhp,300,48,12,'#fff','right',2);
-  bar(g,86,54,214,12,p.hp/p.maxhp,p.hp<p.maxhp*.3?'#ff4a4a':'#e8484f');
-  bar(g,86,70,214,10,p.mp/p.maxmp,'#4a8aff');
+  drawStatusBar(g,t);const mmB=drawMinimap(g,t);
   // party
-  let py=98;
+  let py=mmB;
   for(const q of PARTY){if(q===p)continue;
     panel(g,10,py,200,38,.6);txt(g,(S.L.pvp?(q.team===p.team?'아군 ':'상대 '):q.kind==='p2'?'2P ':'AI ')+JOB[q.job].veg+' Lv.'+q.lvl,18,py+16,12,q.dead?'#999':'#fff','left',2);
     bar(g,18,py+21,184,8,q.dead?0:q.hp/q.maxhp,'#e8484f');if(q.dead)txt(g,'기절…'+Math.max(0,(q.kind==='ai'?7:6)-q.deadT).toFixed(0),200,py+16,11,'#cfe0ff','right',2);py+=42}
-  // exp
-  const ex=SAVE.lvl>=MAXLV?1:SAVE.exp/need(SAVE.lvl);
-  bar(g,0,H-11,W,11,ex,'#ffd34a','rgba(0,0,0,.7)');txt(g,'EXP '+(SAVE.lvl>=MAXLV?'MAX':(ex*100).toFixed(2)+'%'),W/2,H-2,10,'#fff','center',2);
-  // skills
-  const n=5,sw=52,x0=W/2-n*sw/2-30;
-  for(let i=0;i<n;i++){
-    const x=x0+i*(sw+4),y=H-76,sk=j.sk[i],ul=unlocked(p,i),cd=p.cds[i];
-    panel(g,x,y,sw,sw,.7);
-    g.save();g.beginPath();g.roundRect(x+3,y+3,sw-6,sw-6,8);g.clip();
-    g.fillStyle=ul?'rgba(255,255,255,.06)':'rgba(0,0,0,.5)';g.fillRect(x,y,sw,sw);
-    if(ul){const c=sk.col||j.col;circ(g,x+sw/2,y+sw/2-4,15,c);g.fillStyle='#1c1018';g.font=F(10);g.textAlign='center';g.fillText(sk.k==='burst'?'爆':sk.k==='heal'?'癒':sk.k==='buff'?'强':sk.k==='shield'?'防':sk.k==='dash'?'突':sk.k==='rain'?'雨':sk.k==='quake'?'震':'射',x+sw/2,y+sw/2)}
-    if(ul&&cd>0){g.fillStyle='rgba(0,0,0,.6)';g.fillRect(x,y+sw*(1-cd/(sk.cd||1)),sw,sw);txt(g,cd.toFixed(1),x+sw/2,y+sw/2+5,14,'#fff','center',3)}
-    if(!ul)txt(g,SK_TIER[i]+'차',x+sw/2,y+sw/2+5,14,'#888','center',2);
-    g.restore();
-    if(ul&&p.mp<sk.mp){g.fillStyle='rgba(30,60,160,.45)';g.beginPath();g.roundRect(x+3,y+3,sw-6,sw-6,8);g.fill()}
-    txt(g,SK_LABEL[i],x+8,y+sw-5,12,'#ffe9a0','left',3);
-  }
-  const px=x0+n*(sw+4)+8;
-  for(const[i,k,c]of[[0,'hp','#ff4a5a'],[1,'mp','#4a8aff']]){const y=H-76+i*27;panel(g,px,y,62,24,.7);circ(g,px+14,y+12,7,c,O_,1.5);txt(g,(i+1)+' ×'+SAVE.potions[k],px+26,y+17,13,'#fff','left',2)}
-  // top right
-  txt(g,S.L.name,W-14,28,17,'#ffe9a0','right');txt(g,'● '+SAVE.coins,W-14,50,15,'#ffd34a','right');txt(g,'◆ '+SAVE.ec,W-14,67,13,'#ff8ae0','right',2);if(ONLINE_N)txt(g,'🟢 접속 '+ONLINE_N+'명',W-60,67,12,'#9cffb0','right',2);
-  txt(g,'H 도움말 · Q 퀘스트 · I 인벤토리 · P 메뉴 · M 음소거',W-14,H-20,11,'rgba(255,255,255,.55)','right',2);
   // quest tracker
-  let qy=78;const act=Object.keys(SAVE.q).filter(k=>SAVE.q[k].s==='active'||SAVE.q[k].s==='ready').slice(0,3);
+  let qy=10;const act=Object.keys(SAVE.q).filter(k=>SAVE.q[k].s==='active'||SAVE.q[k].s==='ready').slice(0,3);
   for(const k of act){
     const q=QUESTS[k],st=SAVE.q[k];
     const lines=q.objs.map((o,i)=>(st.p[i]>=(o.n||1)?'✔ ':'· ')+o.label+(o.n>1?' '+Math.min(st.p[i],o.n)+'/'+o.n:''));
@@ -543,7 +515,7 @@ function drawHUD(g,t){
   if(qst('tut1').s==='active'&&S.L.town){
     const st=qst('tut1'),hints=['← → 방향키로 좌우 이동','Space(또는 Alt) 로 점프','허수아비에게 가서 Z(또는 Ctrl) 로 공격','C 키로 스킬 사용 (수련생은 C 하나만!)','밧줄 아래에서 ↑ 를 눌러 끝까지 오르기','허수아비를 쓰러뜨려라 (HP를 0으로)'];
     const i=st.p.findIndex((v,k)=>v<(QUESTS.tut1.objs[k].n||1));
-    if(i>=0){panel(g,W/2-250,H-132,500,40,.75);txt(g,'TIP  '+hints[i],W/2,H-105,16,'#ffe04a','center')}
+    if(i>=0){panel(g,W/2-250,H-120,500,40,.75);txt(g,'TIP  '+hints[i],W/2,H-93,16,'#ffe04a','center')}
   }
 }
 function drawBossBar(g){

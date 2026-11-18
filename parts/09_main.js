@@ -316,7 +316,7 @@ function drawWorld(g){
     if(!vis(n.x-70,n.gy-160,140,170))continue;
     n.alpha=al;g.save();if(n.look!=='miko')g.globalAlpha=al;drawNPC(g,n,t,null,sgn(lead.x-n.x));g.restore();
     if(al>.5){const mk=npcMark(n.id),top=n.look==='board'?128:n.look==='closet'?126:n.look==='miko'?128:n.look==='fame'?156:60,ny=n.labelY?n.labelY:n.gy-top-8;
-      txt(g,n.name,n.x,ny,13,'#fff','center',3);drawMark(g,n.x,ny-22,mk==='ready'?'ready':mk==='new'?'new':mk==='act'?'act':null,t);}
+      if(n.labelY||top>100)txt(g,n.name,n.x,ny,13,'#fff','center',3);else nameTag(g,n.x,n.gy+3,n.name,'#ffe9a0','rgba(70,40,120,.82)');drawMark(g,n.x,ny-(n.labelY||top>100?22:0),mk==='ready'?'ready':mk==='new'?'new':mk==='act'?'act':null,t);}
   }
   if(L.harbor)drawHarborDecor(g,L,t,cam);
   if(L.houses)drawTownDecor(g,L,t,cam);
@@ -333,7 +333,7 @@ function drawWorld(g){
     else if(ETC_NAME[it.kind]){const col=it.kind==='essence'?'#ff8a3a':it.kind==='gtooth'?'#ffd34a':'#c8a8ff',gl=g.createRadialGradient(0,-10,2,0,-10,18);gl.addColorStop(0,col+'cc');gl.addColorStop(1,col+'00');g.fillStyle=gl;g.fillRect(-20,-30,40,40);poly(g,[0,-20,7,-10,0,0,-7,-10],col,O_,1.6)}
     else if(it.kind==='key'){const gl=g.createRadialGradient(0,-12,2,0,-12,22);gl.addColorStop(0,'rgba(255,230,100,.8)');gl.addColorStop(1,'rgba(255,230,100,0)');g.fillStyle=gl;g.fillRect(-24,-36,48,48);circ(g,-4,-14,5,'#ffd34a',O_,1.6);g.fillStyle='#ffd34a';g.fillRect(-1,-14,12,3.5);g.fillRect(7,-14,3,8)}
     g.restore()}}
-  for(const m of S.mobs){if(m.type==='arm'||!vis(m.x-40,m.y-60,80,80))continue;if(m.hue){g.save();g.filter='hue-rotate('+m.hue+'deg)'}if(m.type==='wisp')drawWisp(g,m,t);else{g.save();if(m.type==='baby'){g.translate(m.x,m.y);g.scale(.72,.72);g.translate(-m.x,-m.y)}
+  for(const m of S.mobs){if(m.type==='arm'||!vis(m.x-40,m.y-60,80,80))continue;if(m.hue){g.save();g.filter='hue-rotate('+m.hue+'deg)'}if(MOB_DRAW[m.type])MOB_DRAW[m.type](g,m,t);else if(m.type==='wisp')drawWisp(g,m,t);else{g.save();if(m.type==='baby'){g.translate(m.x,m.y);g.scale(.72,.72);g.translate(-m.x,-m.y)}
     if(m.type==='baby'){g.translate(m.x*(1-1/.72)*0,0)}drawEgg(g,m,t);g.restore()}if(m.hue)g.restore();
     if(m.hp<m.max){g.fillStyle='rgba(0,0,0,.6)';g.fillRect(m.x-16,(m.type==='wisp'?m.y-36:m.y-46),32,5);g.fillStyle='#ff5a5a';g.fillRect(m.x-15,(m.type==='wisp'?m.y-35:m.y-45),30*m.hp/m.max,3)}}
   if(S.boss)drawBoss(g,S.boss,t);
@@ -370,7 +370,7 @@ function drawWorld(g){
     g.globalCompositeOperation='source-over';
   }
   g.globalAlpha=1;
-  for(const tx of texts){const a=clamp(tx.life/tx.max*1.6,0,1);g.globalAlpha=a;txt(g,String(tx.txt),tx.x,tx.y,tx.size,tx.col,'center',4)}
+  for(const tx of texts)drawDmgText(g,tx);
   g.globalAlpha=1;
   // interact hint
   if(S.near&&S.near.k!=='stele'&&G.state==='play'&&!G.ui){const n=S.near;const x=n.k==='npc'?n.n.x:n.k==='altar'?L.altar.x:n.po.x,y=(n.k==='npc'?n.n.gy:n.k==='altar'?L.altar.y:n.po.y)+44;txt(g,'↑ '+(n.k==='npc'?'대화':n.k==='altar'?'귀안 바치기 (보유 '+(SAVE.inv.gwi||0)+')':'입장'),x,y,15,'#ffe04a','center',4)}
