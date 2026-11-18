@@ -84,8 +84,9 @@ function drawHueMob(g,m,t,reuse){
   let c=m._spr;if(!c||c.width!==px||c.height!==py){c=m._spr=document.createElement('canvas');c.width=px;c.height=py;m._sprF=-99}
   const every=G.lowFx?3:2;
   if(!reuse&&(_frameNo-m._sprF>=every||m._sprD!==m.dir)){m._sprF=_frameNo;m._sprD=m.dir;
-    const x=c.getContext('2d');x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,px,py);x.filter='hue-rotate('+m.hue+'deg)';
-    x.setTransform(SC,0,0,SC,(ox-m.x)*SC,(oy-m.y)*SC);mobArt(x,m,t);x.filter='none';m._sprX=m.x;m._sprY=m.y}
+    const x=c.getContext('2d');x.setTransform(1,0,0,1,0,0);x.globalCompositeOperation='source-over';x.clearRect(0,0,px,py);
+    x.setTransform(SC,0,0,SC,(ox-m.x)*SC,(oy-m.y)*SC);mobArt(x,m,t);
+    x.setTransform(1,0,0,1,0,0);x.globalCompositeOperation='source-atop';x.fillStyle='hsla('+((m.hue+200)%360)+',85%,62%,.38)';x.fillRect(0,0,px,py);x.globalCompositeOperation='source-over';m._sprX=m.x;m._sprY=m.y}
   g.drawImage(c,m.x-ox,m.y-oy,bw,bh);
 }
 
@@ -119,3 +120,7 @@ function tagSprite(s,size,col,bg,h,rad){
 }
 nameTag=function(g,x,y,s,col,bg){const c=tagSprite(String(s),11,col||'#fff',bg||'rgba(90,60,150,.75)',15,7);g.drawImage(c,x-c.w/2,y,c.w,c.h)};
 drawRoleTag=function(g,n){const r=roleOf(n);if(!r)return;const c=tagSprite(r,10,'#8a4ac0','rgba(255,240,252,.9)',13,6);g.drawImage(c,n.x-c.w/2,n.gy+20,c.w,c.h)};
+
+/* ---------- 캔버스 필터 완전 차단 : 안드로이드(갤럭시)에서 필터를 처음 쓸 때 몇 초씩 멈추는 문제 ---------- */
+{const P=CanvasRenderingContext2D.prototype,d=Object.getOwnPropertyDescriptor(P,'filter');
+  if(d)Object.defineProperty(P,'filter',{configurable:true,get(){return'none'},set(){}});}
