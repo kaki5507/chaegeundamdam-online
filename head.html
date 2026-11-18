@@ -25,6 +25,7 @@ canvas{display:block;background:#2a1f6a;box-shadow:0 0 60px rgba(255,170,230,.35
 #touch{display:none;position:fixed;inset:0;pointer-events:none;font-family:sans-serif}
 #touch .b{position:absolute;pointer-events:auto;width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.5);color:#fff;font:bold 15px sans-serif;display:flex;align-items:center;justify-content:center;touch-action:none}
 #touch .b.on{background:rgba(255,220,120,.5)}
+@media (pointer:coarse) and (orientation:portrait){body{display:block!important}canvas#c{margin:70px auto 0!important;position:relative!important;top:0!important;transform:none!important}}
 </style></head><body>
 <canvas id="c" width="960" height="540"></canvas>
 <div id="touch">

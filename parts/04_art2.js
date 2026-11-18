@@ -79,6 +79,7 @@ function drawNPC(g,n,t,mark,faceDir){
   g.save();
   if(n.look==='fame'){drawFameSign(g,x,y,t);g.restore();return}
   if(n.swing){drawSwingNPC(g,n,t,faceDir);g.restore();return}
+  if(n.look==='taxi')drawTaxiCar(g,x,y,t);
   if(n.look==='board'){
     g.fillStyle='#5a3a1c';g.fillRect(x-40,y-92,6,92);g.fillRect(x+34,y-92,6,92);
     g.beginPath();g.roundRect(x-52,y-120,104,70,6);g.fillStyle='#8a5a30';g.fill();g.lineWidth=3;g.strokeStyle=O_;g.stroke();

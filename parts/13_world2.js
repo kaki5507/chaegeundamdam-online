@@ -79,11 +79,11 @@ function buildTown2(){
   // 지붕 산책로 (집 지붕 위를 걸을 수 있다)
   const HS=HOUSES.map(h=>Object.assign({},h,{x:h.x+OFF}));
   for(const h of HS)L.plats.push(plat(h.x+10,gy-h.h-26,h.w-20,14,'o',{roof:1}));
-  L.ropes.push({x:HS[0].x+HS[0].w-30,y1:gy-HS[0].h-26,y2:gy},{x:HS[2].x+30,y1:gy-HS[2].h-26,y2:gy});
+  for(const h of HS)L.ropes.push({x:h.x+h.w-30,y1:gy-h.h-26,y2:gy});
   // 큰 나무 가지 (그네가 매달린 곳)
   L.plats.push(plat(200,240,240,16,'o',{branch:1}),plat(80,350,110,14,'o'));L.ropes.push({x:430,y1:240,y2:gy});
   // 열기구로 가는 구름 계단
-  const bx=2265+OFF+300;L.plats.push(plat(bx+155,300,110,14,'o',{cloud:1}),plat(bx+295,220,110,14,'o',{cloud:1}),plat(bx+135,150,120,14,'o',{cloud:1}),plat(bx-75,120,150,14,'o',{basket:1}));
+  const bx=2265+OFF+300;L.ropes.push({x:bx+215,y1:300,y2:gy});L.plats.push(plat(bx+155,300,110,14,'o',{cloud:1}),plat(bx+295,220,110,14,'o',{cloud:1}),plat(bx+135,150,120,14,'o',{cloud:1}),plat(bx-75,120,150,14,'o',{basket:1}));
   const roof=HS[0];
   L.npcs.push(Object.assign({},NPCS.find(n=>n.id==='roofcat'),{x:roof.x+roof.w/2,gy:gy-roof.h-26}));
   L.npcs.push(Object.assign({},NPCS.find(n=>n.id==='swingkid'),{x:320,gy}));

@@ -26,7 +26,7 @@ function goMap(id,instant,end){
 }
 function loadMap(id,end){
   PARTY=PARTY.filter(p=>!p.foe);
-  const L=MAPS[id]();addExitPortal(L);
+  const L=MAPS[id]();addExitPortal(L);addTaxi(L);
   if(end&&L.endSpawn)L.spawn=L.endSpawn;
   S={L,id,t:0,time:0,mobs:[],dummies:[],boxes:[],items:[],pshots:[],eproj:[],zones:[],fx:[],clones:[],boss:null,cam:{x:0,y:0},shake:0,hitstop:0,slow:0,
      cp:{x:L.spawn.x,y:L.spawn.y},flagsOn:L.flags.map(f=>Object.assign({on:false},f)),drops:L.drops.map(d=>({x:d.x,y:d.y,period:d.period,t:d.ph,warn:0})),
@@ -49,7 +49,7 @@ function loadMap(id,end){
   if(L.dg)dgInit();
   if(L.hub&&!SAVE.flags.hubIntro){SAVE.flags.hubIntro=1;setTimeout(()=>{if(S&&S.id==='stele')playScene('hub')},900)}
   if(L.boss)S.boss=mkBoss(L.boss);
-  const lead=PARTY[0];S.cam.x=clamp(lead.x-W/2,0,Math.max(0,L.w-W));S.cam.y=clamp(lead.y-H*.62,0,Math.max(0,L.h-H));
+  const lead=PARTY[0];S.cam.x=clamp(lead.x-W/2,0,Math.max(0,L.w-W));S.cam.y=clamp(lead.y-H*.62,0,Math.max(0,L.h-H)+70);
   G.state='play';G.ui=null;G.dlg=null;G.banner={t:0,name:L.name,sub:L.sub};
   startMusic(L.music);
   if(L.town)saveGame();
@@ -210,7 +210,7 @@ function playStep(dt){
   if(near&&pressed.ArrowUp&&!lead.rope){if(near.k==='stele')steleMenu(near.st.c);else if(near.k==='altar')summonGuimok();else if(near.k==='npc')talkNPC(near.n);else if(near.k==='portal'){if(near.po.pqNext){sfx('portal');goMap(near.po.to)}else usePortal(near.po)}}
   // camera
   const cl=alive()[0]||lead;
-  const tx=clamp(cl.x-W/2+cl.face*50,0,Math.max(0,L.w-W)),ty=clamp(cl.y-H*.6,0,Math.max(0,L.h-H));
+  const tx=clamp(cl.x-W/2+cl.face*50,0,Math.max(0,L.w-W)),ty=clamp(cl.y-H*.6,0,Math.max(0,L.h-H)+70);
   const k=1-Math.pow(.0005,dt);S.cam.x=lerp(S.cam.x,tx,k);S.cam.y=lerp(S.cam.y,ty,k);
   // game over
   if(PARTY.every(p=>p.dead)&&(L.arena||L.pq)&&G.state==='play'){S.overT=(S.overT||0)+dt;if(S.overT>1.4){G.state='over'}}
@@ -316,7 +316,7 @@ function drawWorld(g){
     if(!vis(n.x-70,n.gy-160,140,170))continue;
     n.alpha=al;g.save();if(n.look!=='miko')g.globalAlpha=al;drawNPC(g,n,t,null,sgn(lead.x-n.x));g.restore();
     if(al>.5){const mk=npcMark(n.id),top=n.look==='board'?128:n.look==='closet'?126:n.look==='miko'?128:n.look==='fame'?156:60,ny=n.labelY?n.labelY:n.gy-top-8;
-      if(n.labelY||top>100)txt(g,n.name,n.x,ny,13,'#fff','center',3);else nameTag(g,n.x,n.gy+3,n.name,'#ffe9a0','rgba(70,40,120,.82)');drawMark(g,n.x,ny-(n.labelY||top>100?22:0),mk==='ready'?'ready':mk==='new'?'new':mk==='act'?'act':null,t);}
+      if(n.labelY||top>100)txt(g,n.name,n.x,ny,13,'#fff','center',3);else{nameTag(g,n.x,n.gy+3,n.name,'#ffe9a0','rgba(70,40,120,.82)');drawRoleTag(g,n)}drawMark(g,n.x,ny-(n.labelY||top>100?22:0),mk==='ready'?'ready':mk==='new'?'new':mk==='act'?'act':null,t);}
   }
   if(L.harbor)drawHarborDecor(g,L,t,cam);
   if(L.houses)drawTownDecor(g,L,t,cam);

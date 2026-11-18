@@ -3,18 +3,24 @@
    ============================================================ */
 /* ---------- 사냥터 ---------- */
 const HUNTS=[
- {id:'h1',name:'꽃잎 언덕',lv:'Lv.5~15',min:5,theme:'forest',ms:1,hue:0,sub:'벚꽃잎이 흩날리는 첫 사냥터'},
- {id:'h2',name:'반딧불 숲',lv:'Lv.15~30',min:15,theme:'bamboo',ms:2.4,hue:80,sub:'밤마다 반딧불이 춤추는 대나무 숲'},
- {id:'h3',name:'솜사탕 구름 목장',lv:'Lv.30~50',min:30,theme:'sky',ms:4.5,hue:300,sub:'구름 양떼가 뛰노는 하늘 목장'},
- {id:'h4',name:'별빛 호수',lv:'Lv.50~70',min:50,theme:'night',ms:7,hue:200,sub:'별이 내려앉은 고요한 호숫가'},
- {id:'h5',name:'달그림자 계곡',lv:'Lv.70~',min:70,theme:'origin',ms:10,hue:260,sub:'꿈과 현실의 경계, 가장 깊은 계곡'},
+ {id:'h1',name:'꽃잎 언덕',lv:'Lv.5~15',min:5,theme:'forest',ms:1,hue:0,sub:'벚꽃잎이 흩날리는 첫 사냥터',mobs:['bunny','egg']},
+ {id:'h2',name:'반딧불 숲',lv:'Lv.12~25',min:12,theme:'bamboo',ms:2,hue:80,sub:'밤마다 반딧불이 춤추는 대나무 숲',mobs:['bunny','egg','wisp']},
+ {id:'h6',name:'무지개 폭포',lv:'Lv.20~35',min:20,theme:'sea',ms:3,hue:170,sub:'물보라에 무지개가 걸리는 폭포 아래',mobs:['egg','bunny','jelly']},
+ {id:'h3',name:'솜사탕 구름 목장',lv:'Lv.30~45',min:30,theme:'sky',ms:4.5,hue:300,sub:'구름 양떼가 뛰노는 하늘 목장',mobs:['sheep','jelly']},
+ {id:'h7',name:'사탕 동굴',lv:'Lv.40~55',min:40,theme:'mask',ms:6,hue:330,sub:'달콤한 사탕 종유석이 반짝이는 동굴',mobs:['sheep','egg','owl']},
+ {id:'h4',name:'별빛 호수',lv:'Lv.50~65',min:50,theme:'night',ms:7.5,hue:200,sub:'별이 내려앉은 고요한 호숫가',mobs:['jelly','owl','sheep']},
+ {id:'h8',name:'오로라 설원',lv:'Lv.60~75',min:60,theme:'snow',ms:9,hue:180,sub:'오로라가 춤추는 하얀 눈밭',mobs:['sheep','owl']},
+ {id:'h5',name:'달그림자 계곡',lv:'Lv.70~',min:70,theme:'origin',ms:11,hue:260,sub:'꿈과 현실의 경계, 가장 깊은 계곡',mobs:['owl','jelly','sheep']},
 ];
 function buildHunt(i){
   const H=HUNTS[i],gy=470,Wd=2800,r=mulberry(4000+i*17);
   const L=newL({id:H.id,name:H.name,sub:H.lv+' · '+H.sub,theme:H.theme,music:i>=3?'sky':'field',w:Wd,h:540,mscale:H.ms,mhue:H.hue,hunt:i+1,spawn:{x:140,y:gy}});
   L.plats.push(plat(-300,gy,Wd+600,300,'s'));
   // 메이플식 층 구조 : 긴 발판 + 밧줄
-  const tiers=[[360,[[260,520],[960,560],[1700,620]]],[250,[[560,520],[1300,560],[2020,520]]],[140,[[880,460],[1640,480]]]];
+  const LAYOUTS=[[[360,[[260,520],[960,560],[1700,620]]],[250,[[560,520],[1300,560],[2020,520]]],[140,[[880,460],[1640,480]]]],
+    [[370,[[160,700],[1100,700],[2000,600]]],[270,[[420,500],[1250,420],[1900,520]]],[170,[[700,600],[1500,640]]],[90,[[1100,420]]]],
+    [[360,[[120,420],[700,480],[1300,480],[1900,520]]],[260,[[380,560],[1100,600],[1850,560]]],[150,[[640,520],[1420,600]]]]];
+  const tiers=LAYOUTS[i%3];
   for(const[y,list]of tiers)for(const[x,w]of list){
     L.plats.push(plat(x,y,w,16,'o'));
     L.ropes.push({x:x+40+Math.round(r()*(w-80)),y1:y,y2:gy});

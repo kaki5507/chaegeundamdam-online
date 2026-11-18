@@ -233,6 +233,7 @@ function duelMenu(n){
 function talkNPC(n){
   if(!SAVE.talked[n.id]){SAVE.talked[n.id]=1;qev('talk',{})}
   const p=PARTY[0];
+  if(n.id==='taxi')return taxiMenu(n);
   if(['swingkid','roofcat','balloon','lookout'].includes(n.id))return talkExtra(n);
   if(n.id==='chief'){
     const intro=qst('h4').s!=='done'?'오, 항구에서 온 모험가로구나! 야채마을에 온 걸 환영하네.':'야채 용사여, 오늘도 근육은 잘 있는가?\n소문에 마을 어딘가 높은 곳에 수상한 보따리 장수가 숨어 있다더군. 반짝이는 빛을 찾아보게나.';

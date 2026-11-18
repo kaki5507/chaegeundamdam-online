@@ -218,9 +218,8 @@ const MOB_DRAW={
     for(const s of[-1,1]){circ(g,s*5.5,-11,5,'#fff',O_,1.4);circ(g,s*5.5,-11,2.6,'#ffd34a');circ(g,s*5.5,-11,1.3,'#2a1a30');poly(g,[s*3,-20,s*10,-23,s*8,-17],'#a898d8',O_,1.2)}
     poly(g,[-2,-7,2,-7,0,-4],'#ffb040',O_,1);circ(g,9,-24,2,'#fff6c8');g.restore()},
 };
-const HUNT_MOBS=[['bunny','egg'],['bunny','egg','wisp'],['sheep','sheep','jelly'],['jelly','owl','sheep'],['owl','jelly','sheep']];
 const _buildHunt=buildHunt;
-buildHunt=function(i){const L=_buildHunt(i),ty=HUNT_MOBS[i];let gi=0,fi=0;const gr=ty.filter(k=>!MOBS[k].fly),fl=ty.filter(k=>MOBS[k].fly).concat(['wisp']);
+buildHunt=function(i){const L=_buildHunt(i),ty=HUNTS[i].mobs;let gi=0,fi=0;const gr=ty.filter(k=>!MOBS[k].fly),fl=ty.filter(k=>MOBS[k].fly).concat(['wisp']);
   for(const m of L.mobs){if(m[0]==='egg')m[0]=gr[(gi++)%gr.length];else m[0]=fl[(fi++)%fl.length]}return L};
 HUNTS.forEach((h,i)=>{MAPS[h.id]=()=>buildHunt(i)});
 function spawnTpl(i){

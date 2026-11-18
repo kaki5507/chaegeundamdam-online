@@ -19,7 +19,7 @@ function buildTown(){
 
 function buildForest(){
   const r=mulberry(11),Wd=1280,kinds=[],dys=[];
-  for(let i=0;i<26;i++){let k='n';if(i>3&&i%7===4)k='r';else if(i>8&&i%8===2)k='m';kinds.push(k);dys.push(k==='r'?188:k==='m'?18:Math.round(58+r()*14))}
+  for(let i=0;i<26;i++){let k='n';if(i>3&&i%7===4)k='r';else if(i>8&&i%8===2)k='m';kinds.push(k);dys.push(k==='r'?170:k==='m'?18:Math.round(50+r()*12))}
   const climb=dys.reduce((a,b)=>a+b,0)+80,Hh=climb+700,gy=Hh-70;
   const L=newL({id:'forest',name:'도깨비 숲 오르기',sub:'점프맵 · 꼭대기의 홍살문까지 올라라',theme:'forest',music:'field',w:Wd,h:Hh,spawn:{x:Wd/2,y:gy},killY:Hh+400,mscale:1});
   L.plats.push(plat(-300,gy,Wd+600,300,'s'));
@@ -38,11 +38,11 @@ function buildForest(){
       nx=bx;L.plats.push(plat(nx,y,w,14,'o'));
     }else{
       w=Math.round(110+r()*90);let dir=r()<.5?-1:1;if(cur.x<120)dir=1;if(cur.x+cur.w>Wd-120)dir=-1;
-      const gap=26+r()*50;nx=dir>0?cur.x+cur.w+gap:cur.x-gap-w;nx=clamp(nx,60,Wd-60-w);
+      const gap=18+r()*36;nx=dir>0?cur.x+cur.w+gap:cur.x-gap-w;nx=clamp(nx,60,Wd-60-w);
       L.plats.push(plat(nx,y,w,14,'o'));
-      if(w>=170&&i%3===2)L.spikes.push({x:nx+w/2-22,y,w:44});
+      if(w>=180&&i%6===2)L.spikes.push({x:nx+w/2-22,y,w:44});
       else if(w>=150&&r()<.5)L.mobs.push(['egg',nx+w/2,y,nx+14,nx+w-14]);
-      if(i%4===3)L.drops.push({x:nx+w/2+(r()-.5)*60,y:y-330,period:3.2+r(),ph:r()*3});
+      if(i%8===3)L.drops.push({x:nx+w/2+(r()-.5)*60,y:y-330,period:3.2+r(),ph:r()*3});
       if(i%4===1)L.mobs.push(['wisp',nx+w/2,y-100,70]);
     }
     if(i%6===5)L.flags.push({x:nx+w/2,y});
