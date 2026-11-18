@@ -108,7 +108,7 @@ GIVER_NAME.coach='내 직업 마을의 전직 교관';
 QUESTS.j1.desc='수련생 시절은 끝! 내 직업 마을의 전직 교관이 내는 시험이다. 몬스터 20마리를 쓰러뜨리고 스킬을 10번 써서 실력을 증명하라. 통과하면 1차 전직!';
 // 야채마을 1차 교관 → 전직 안내원
 {const c=NPCS.find(n=>n.id==='coach');if(c){c.id='jguide';c.name='전직 안내원 고추';c.tag='직업 마을 안내'}}
-ROLE.jguide='직업 마을 안내 · 전직';ROLE.jtm='다른 직업 교관';ROLE.jlocal='대화';ROLE.chest='슈퍼점프 보물상자';ROLE.coach='1차 전직';
+ROLE.jguide='직업 마을 안내 · 전직';ROLE.jtm='다른 직업 교관';ROLE.jlocal='대화';ROLE.chest='보물상자 · 하루 1번';ROLE.coach='1차 전직';
 
 /* ---------- 직업 마을 맵 ---------- */
 function buildJobTown(d){

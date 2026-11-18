@@ -50,7 +50,7 @@ const BGO=document.createElement('canvas'),BGX=BGO.getContext('2d');let _bgKey='
   if(G.state!=='play'&&G.state!=='over'){return _dbg(g,bg,cx,cy,mx)}
   const q=G.lowFx?.42:.6,w=Math.ceil(W*SC*q),h=Math.ceil(H*SC*q);
   if(BGO.width!==w||BGO.height!==h){BGO.width=w;BGO.height=h;_bgKey=''}
-  const anim=S&&S.L&&S.L.landmark&&/tower|windmill|bell|volcano|alley/.test(S.L.landmark.k||''),
+  const anim=S&&S.L&&S.L.landmark&&/tower|windmill|bell|volcano|alley/.test(S.L.landmark.k||'')||/gears|lavafall|crystal|garden|stars|sea/.test(S&&S.L&&S.L.landmark&&S.L.landmark.k||''),
     key=(S&&S.id)+'|'+Math.round(cx)+'|'+Math.round(cy)+'|'+mx+'|'+(anim?Math.floor(G.t*15):0);
   if(key!==_bgKey){_bgKey=key;BGX.setTransform(SC*q,0,0,SC*q,0,0);BGX.clearRect(0,0,W,H);_dbg(BGX,bg,cx,cy,mx)}
   g.drawImage(BGO,0,0,W,H);
