@@ -17,14 +17,14 @@ cv.addEventListener('pointerdown',e=>{
     if(inR(P,196,380,260,30)){e.preventDefault();G.stat.sel=4;if(SAVE.apFree>0){autoAP();sfx('lvl');const p=PARTY[0],r=p.hp/p.maxhp;recalc(p);p.hp=Math.round(p.maxhp*r);saveGame()}}
     else if(inR(P,196,416,260,30)||!inR(P,170,50,620,440)){e.preventDefault();closeUI()}
     return}
-  if(!G.ui&&SAVE.apFree>0&&inR(P,112,84,128,30)){e.preventDefault();openStat()}
+  if(!G.ui&&SAVE.apFree>0&&inR(P,112,badgeY()-4,128,30)){e.preventDefault();openStat()}
 });
 // 능력치 창 : +5 버튼 표시
 {const _ds=drawStat;drawStat=function(g,t){_ds(g,t);STATS.forEach(([k],i)=>{const y=142+i*58;g.fillStyle=SAVE.apFree>=1?'#ffe9a0':'#555';g.beginPath();g.roundRect(576,y+12,48,28,8);g.fill();txt(g,'+5',600,y+32,15,'#2a1a00','center',0)});
   txt(g,'폰: +1 · +5 버튼을 직접 눌러요',480,92,13,'#ffe9a0','center',2)}}
 // 남은 AP 알림 칩 (눌러서 능력치 창)
 {const _dh=drawHUD;drawHUD=function(g,t){_dh(g,t);if(!PARTY[0]||!SAVE.apFree||G.ui)return;const a=.75+.25*Math.sin(t*5);
-  g.save();g.globalAlpha=a;g.beginPath();g.roundRect(116,88,124,22,11);g.fillStyle='#ffcf3a';g.fill();g.restore();txt(g,'💪 AP '+SAVE.apFree+' 찍기 (O)',178,104,12,'#3a2400','center',0)}}
+  const by=badgeY();g.save();g.globalAlpha=a;g.beginPath();g.roundRect(116,by,124,22,11);g.fillStyle='#ffcf3a';g.fill();g.restore();txt(g,'💪 AP '+SAVE.apFree+' 찍기 (O)',178,by+16,12,'#3a2400','center',0)}}
 
 /* ---------- 직업 선택 : 터치하면 그 직업 선택, [이 직업으로 시작] 버튼으로 시작 ---------- */
 // (전에는 화면 어디를 눌러도 Enter 로 처리돼 항상 첫 번째 직업(전사)으로 시작됐다)

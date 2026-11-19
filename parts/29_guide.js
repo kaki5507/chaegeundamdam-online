@@ -51,9 +51,10 @@ function guideMenu2(){
 // 레벨업 할 때 중요한 레벨이면 안내
 {const _ge=gainExp;gainExp=function(n,mob){const lv=SAVE.lvl;const r=_ge(n,mob);if(SAVE.lvl>lv&&[6,10,12,15,20,30,40,70,80].some(v=>lv<v&&SAVE.lvl>=v))setTimeout(()=>G.toast('📖 새 목표가 생겼어요! 오른쪽 위 [가이드] (7)'),1200);return r}}
 // 접속자 수 (미니맵 아래)
+const badgeY=()=>88+Math.max(0,(PARTY.length-1))*42;
 function drawOnline(g,t){
   if(!S||!PARTY[0])return;const on=typeof wsOK==='function'&&wsOK(),s=on?'접속 '+Math.max(1,ONLINE_N)+'명':'오프라인';
-  g.save();g.beginPath();g.roundRect(14,88,on?96:80,22,11);g.fillStyle='rgba(40,24,70,.62)';g.fill();
+  const by=badgeY();g.save();g.translate(0,by-88);g.beginPath();g.roundRect(14,88,on?96:80,22,11);g.fillStyle='rgba(40,24,70,.62)';g.fill();
   circ(g,27,99,4.5,on?'#5ae07a':'#999');if(on){g.globalAlpha=.4+.3*Math.sin(t*3);circ(g,27,99,8,'rgba(90,224,122,.5)');g.globalAlpha=1}
   txt(g,s,36,104,12,'#fff','left',0);g.restore();
 }

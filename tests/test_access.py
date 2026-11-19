@@ -8,7 +8,7 @@ async def main():
         pg=await b.new_page(viewport={'width':960,'height':540}); pg.on('pageerror',lambda e: errs.append(str(e)))
         await pg.goto('file://'+os.path.abspath('index.html')); await pg.wait_for_timeout(300)
         print('taxi',await pg.evaluate("""()=>{const g=__game;g.newGame('archer');SAVE.lvl=22;SAVE.coins=5000;SAVE.flags.leftHarbor=1;g.goMap('town',true);
-          const t=S.L.npcs.find(n=>n.id==='taxi');talkNPC(t);const o=G.dlg.opts.map(o=>o.t);const i=o.findIndex(x=>x.includes('무지개 폭포'));G.dlg.opts[i].fn();return [!!t,o.length,i,SAVE.coins]}"""))
+          const t=S.L.npcs.find(n=>n.id==='taxi');talkNPC(t);G.dlg.opts.find(o=>o.t.includes('Lv.1 ~ 29')).fn();const o=G.dlg.opts.map(o=>o.t);const i=o.findIndex(x=>x.includes('무지개 폭포'));G.dlg.opts[i].fn();return [!!t,o.length,i,SAVE.coins]}"""))
         await pg.wait_for_timeout(1200)
         print('arrived',await pg.evaluate("[S.id,S.L.npcs.some(n=>n.id==='taxi'),S.L.portals.map(p=>p.label).join('|')]"))
         # potion via key 1

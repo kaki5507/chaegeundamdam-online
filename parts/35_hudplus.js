@@ -12,7 +12,7 @@ function openAttFromHud(){attMenu({id:'att',name:'출석부 요정 콩콩'})}
 cv.addEventListener('pointerdown',e=>{
   if(G.state!=='play'||G.ui||!S)return;const P=cvPos(e);
   for(const b of HUDB)if((b.id==='rank'||b.id==='att')&&P.x>=b.x-6&&P.x<=b.x+b.w+6&&P.y>=b.y-8&&P.y<=b.y+b.h+12)G._lastHudBtn=b.id;
-  if(inR(P,10,84,104,30))openOnline();
+  if(inR(P,10,badgeY()-4,104,30))openOnline();
 },true);
 {const _rs=respawnStep;respawnStep=function(dt){_rs(dt);if(G.state==='play'&&!G.ui&&!G.chatOpen&&pressed.Digit6)openFame()}}
 
@@ -32,4 +32,4 @@ async function openOnline(){
   }catch(e){openDialog('🟢 접속자','목록을 불러오지 못했어요: '+e.message,[{t:'닫기',fn:closeUI}])}
 }
 // 배지에 '눌러서 보기' 힌트
-{const _do=drawOnline;drawOnline=function(g,t){_do(g,t);if(typeof wsOK==='function'&&wsOK())txt(g,'▾',104,104,10,'#cfd4e2','center',0)}}
+{const _do=drawOnline;drawOnline=function(g,t){_do(g,t);if(typeof wsOK==='function'&&wsOK())txt(g,'▾',104,badgeY()+16,10,'#cfd4e2','center',0)}}
