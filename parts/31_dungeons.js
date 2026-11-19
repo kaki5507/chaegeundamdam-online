@@ -53,14 +53,14 @@ for(const D of DUNS)for(let k=1;k<=3;k++)MAPS[D.id+'_'+k]=()=>dunRoom(D,k);
 function openDunChest(n){
   if(S.dunDone){openDialog('던전 보물상자','이미 열었어요.',[{t:'닫기',fn:closeUI}]);return}
   S.dunDone=true;const D=DUNS.find(d=>d.id===S.L.dun),lines=[];
-  const ex=Math.round(need(SAVE.lvl)*.12),cn=800+D.min*60;gainExp(ex);addCoins(cn);SAVE.ec=(SAVE.ec||0)+1;lines.push('경험치 +'+ex+' · '+cn+'● · ◆1');
+  const ex=Math.round(need(SAVE.lvl)*dunExpPct(D)),cn=800+D.min*60;gainExp(ex);addCoins(cn);SAVE.ec=(SAVE.ec||0)+1;lines.push('경험치 +'+ex+' · '+cn+'● · ◆1');
   const mat=D.min>=50?['essence','foxtail','stele']:['dhorn','stele','yolk'],mk=mat[(Math.random()*mat.length)|0],mn=1+(Math.random()<.5?1:0);SAVE.inv[mk]=(SAVE.inv[mk]||0)+mn;lines.push('🎁 '+ETC_NAME[mk]+' +'+mn);
   if(Math.random()<.3*EV().drop)lines.push(giveGear(D.gear,'던전 보상'));
   saveGame();sfx('levelup');spark(n.x,n.gy-20,40,'#ffe9a0',300,.8,4,0,true);
   openDialog('던전 보물상자 — '+D.name,lines.join('\n')+'\n\n오늘 남은 입장: '+Math.max(0,DUN_RUNS-(SAVE.flags['dun_'+D.id+'_'+dayNum()]||0))+'회',[{t:'마을로',fn:()=>{closeUI();goMap('town')}},{t:'닫기',fn:closeUI}]);
 }
 function dunMenu(n){
-  const opts=DUNS.map(D=>{const used=SAVE.flags['dun_'+D.id+'_'+dayNum()]||0,ok=SAVE.lvl>=D.min&&used<DUN_RUNS;
+  const opts=DUNS.filter(D=>!D.pq).map(D=>{const used=SAVE.flags['dun_'+D.id+'_'+dayNum()]||0,ok=SAVE.lvl>=D.min&&used<DUN_RUNS;
     return{t:(SAVE.lvl<D.min?'🔒 ':'🗝 ')+D.name+'  Lv.'+D.min+'~  ('+used+'/'+DUN_RUNS+')',fn:()=>{if(SAVE.lvl<D.min){G.toast('Lv.'+D.min+'부터 들어갈 수 있어요');return}if(used>=DUN_RUNS){G.toast('오늘은 더 들어갈 수 없어요 (매일 '+DUN_RUNS+'회)');return}
       closeUI();sfx('portal');goMap(D.id+'_1')}}});
   opts.push({t:'닫기',fn:closeUI});
