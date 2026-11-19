@@ -80,6 +80,13 @@ const srv = app.listen(0, async () => {
     const pbo = await pb; assert.equal(pbo.b.atk, 1.6); assert.equal(pbo.b.n, '전투 함성');
     const kx = wait(b, o => o.t === 'kx'); a.send(JSON.stringify({ t: 'kx', e: 40, x: 100 })); assert.equal((await kx).e, 40);
     [s, o] = await j('GET', '/api/online'); assert.equal(s, 200); assert.ok(o.n >= 1 && o.list[0].map);
+    // 용왕 보스 방
+    a.send(JSON.stringify({ t: 'st', map: 'df_boss', x: 100, y: 470, pt: 'DK' })); b.send(JSON.stringify({ t: 'st', map: 'df_boss', x: 200, y: 470, pt: 'DK' }));
+    await new Promise(r => setTimeout(r, 120));
+    const bs1 = wait(b, o => o.t === 'bst' && !o.none); a.send(JSON.stringify({ t: 'bsum' })); const st1 = await bs1; assert.equal(st1.pil, 9000);
+    a.send(JSON.stringify({ t: 'bd', d: 5000 })); await new Promise(r => setTimeout(r, 120));
+    a.send(JSON.stringify({ t: 'bp', d: 9000 })); const bs2 = await wait(b, o => o.t === 'bst' && o.pil === 0); assert.equal(bs2.hp, 40000);
+    a.send(JSON.stringify({ t: 'bd', d: 5000 })); const bs3 = await wait(b, o => o.t === 'bst' && o.hp < 40000); assert.equal(bs3.hp, 35000);
     a.close(); b.close();
     console.log('SERVER TESTS OK');
   } catch (e) { console.error('FAIL', e); process.exitCode = 1; } finally { srv.close(); setTimeout(() => process.exit(), 100); }

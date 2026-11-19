@@ -97,7 +97,7 @@ killMob=function(m){
 };
 const _drawBossBarE=drawBossBar;
 drawBossBar=function(g){_drawBossBarE(g);const m=S&&S.fb;if(!m||m.dead||(S.boss&&!S.boss.dead))return;
-  const x=W/2-170,y=50;panel(g,x-10,y-8,360,46,.7);txt(g,'⚠ 필드 보스 · '+m.fbName,x,y+10,16,'#ffb0e0');bar(g,x,y+16,340,14,m.hp/m.max,'#ff6ab0')};
+  const x=W/2-170,y=50;panel(g,x-10,y-8,360,46,.7);txt(g,(m.type==='dragonking'?'🐲 ':m.fbTitle||'⚠ 필드 보스 · ')+m.fbName,x,y+10,16,'#ffb0e0');bar(g,x,y+16,340,14,m.hp/m.max,'#ff6ab0')};
 
 /* ---------- 이벤트 상태 (서버 실시간) ---------- */
 let EVLIVE=null,MYWID=null,EVPT='',RAIDQ=0,RAIDDMG=0,RAIDKEY=null,RAIDWIN=null,_rdT=0,EVLOCAL=null;

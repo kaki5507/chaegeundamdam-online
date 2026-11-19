@@ -3,14 +3,14 @@
    ============================================================ */
 let S=null,PARTY=[];
 const CTRL=[
-  {l:['ArrowLeft'],r:['ArrowRight'],u:['ArrowUp'],d:['ArrowDown'],j:['Space','AltLeft','AltRight','KeyK'],a:['KeyZ','ControlLeft','ControlRight','KeyJ'],s:['KeyX','KeyC','KeyV','KeyB','KeyN']},
+  {l:['ArrowLeft'],r:['ArrowRight'],u:['ArrowUp'],d:['ArrowDown'],j:['Space','AltLeft','AltRight','KeyK'],a:['KeyZ','ControlLeft','ControlRight','KeyJ'],s:['KeyX','KeyC','KeyV','KeyB','KeyN','KeyR']},
   {l:['KeyA'],r:['KeyD'],u:['KeyW'],d:['KeyS'],j:['ShiftLeft','ShiftRight'],a:['KeyF'],s:['KeyG','KeyH','KeyT','KeyY','KeyU']},
 ];
 const NOIN={l:0,r:0,u:0,d:0,uT:0,jT:0,jH:0,a:0,aT:0,s:[0,0,0,0,0],fd:0};
 
 function mkPlayer(kind,jobId,lvl){
   const p={kind,job:jobId,x:0,y:0,w:20,h:36,vx:0,vy:0,face:1,onGround:false,ground:null,rope:null,rcool:0,drop:0,coyote:0,jbuf:0,
-    inv:0,stun:0,atkT:0,atkCd:0,hitQ:-1,combo:0,comboT:0,cds:[0,0,0,0,0],buff:null,shieldT:0,dashT:0,dashHit:null,skillT:0,
+    inv:0,stun:0,atkT:0,atkCd:0,hitQ:-1,combo:0,comboT:0,cds:[0,0,0,0,0,0],buff:null,shieldT:0,dashT:0,dashHit:null,skillT:0,
     hp:1,mp:1,dead:false,deadT:0,t:Math.random()*5,eq:{},lvl:lvl||1,tier:0,team:0,fid:Math.random()*20|0,lastAtk:null,hold:false,ai:null,aiT:0,far:0,mpWarn:0,vyPrev:0};
   recalc(p);p.hp=p.maxhp;p.mp=p.maxmp;return p;
 }
@@ -30,7 +30,7 @@ const atkOf=p=>p.atkBase*(p.buff?p.buff.atk:1);
 const spdOf=p=>JOB[p.job].spd*(p.spdMul||1)*(p.buff?p.buff.spd:1);
 const prect=p=>({x:p.x-p.w/2+2,y:p.y-p.h,w:p.w-4,h:p.h});
 const alive=()=>PARTY.filter(p=>!p.dead);
-const unlocked=(p,i)=>p.tier>=SK_TIER[i];
+const ULT_LV=120,unlocked=(p,i)=>i===5?(p.kind==='p1'?SAVE.lvl:p.lvl)>=ULT_LV&&!!JOB[p.job].sk[5]:p.tier>=SK_TIER[i];
 function inputOf(p){
   if(p.kind==='ai')return p.ai||NOIN;
   if(G.ui||G.state!=='play')return NOIN;
@@ -308,7 +308,7 @@ function finishPlayer(p,dt,I,onRope){
   // attack input
   if(!onRope&&p.stun<=0){
     if(I.a&&p.atkCd<=0)doBasic(p,I);
-    for(let i=0;i<5;i++)if(I.s[i]&&unlocked(p,i))castSkill(p,i);
+    for(let i=0;i<6;i++)if(I.s[i]&&unlocked(p,i))castSkill(p,i);
   }
   p.atkT=Math.max(0,p.atkT-dt);
   if(p.hitQ>=0){p.hitQ-=dt;if(p.hitQ<0){p.hitQ=-1;meleeHit(p)}}

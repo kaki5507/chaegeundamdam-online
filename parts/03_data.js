@@ -2,12 +2,12 @@
    DATA : jobs, cosmetics, monsters, quests
    ============================================================ */
 const ADV_LV=[0,10,30,70];          // 수련생 → 1차 Lv10 / 2차 Lv30 / 3차 Lv70
-const MAXLV=100;
+const MAXLV=200;
 // 레벨업에 필요한 경험치: 앵커 사이를 로그 보간 (10까지 빠름 · 30까지 완만 · 50부터 힘듦 · 70부터 거의 안 오름)
-const NEED_A=[[1,28],[9,92],[10,160],[29,2400],[30,3200],[49,26000],[50,36000],[69,150000],[70,420000],[99,6000000]];
+const NEED_A=[[1,28],[9,92],[10,160],[29,2400],[30,3200],[49,26000],[50,36000],[69,150000],[70,420000],[99,6000000],[100,8000000],[150,30000000],[199,100000000]];
 // 몬스터 한 마리가 레벨당 필요량의 1/K 를 채운다 (K = 레벨업에 필요한 사냥 횟수)
-const KILL_A=[[1,8],[9,10],[10,22],[29,60],[30,80],[49,170],[50,240],[69,450],[70,1800],[99,5000]];
-function interpA(A,l){l=Math.max(1,Math.min(99,l));for(let i=1;i<A.length;i++){if(l<=A[i][0]){const a=A[i-1],b=A[i],k=(l-a[0])/Math.max(1,b[0]-a[0]);return Math.exp(Math.log(a[1])+(Math.log(b[1])-Math.log(a[1]))*k)}}return A[A.length-1][1]}
+const KILL_A=[[1,8],[9,10],[10,22],[29,60],[30,80],[49,170],[50,240],[69,450],[70,1800],[99,5000],[100,19000],[150,24000],[199,30000]];   // 100부터: 10분 사냥 ≈ 1%
+function interpA(A,l){l=Math.max(1,Math.min(199,l));for(let i=1;i<A.length;i++){if(l<=A[i][0]){const a=A[i-1],b=A[i],k=(l-a[0])/Math.max(1,b[0]-a[0]);return Math.exp(Math.log(a[1])+(Math.log(b[1])-Math.log(a[1]))*k)}}return A[A.length-1][1]}
 const need=l=>Math.round(interpA(NEED_A,l));
 const expMul=l=>need(l)/(14*interpA(KILL_A,l));      // 달걀 슬라임(기본 14exp) 기준
 const dailyPct=l=>l<10?.08:l<30?.05:l<50?.03:l<70?.02:.005;
@@ -15,9 +15,9 @@ const tierOfLv=l=>l>=ADV_LV[3]?3:l>=ADV_LV[2]?2:l>=ADV_LV[1]?1:0;
 const bossPct=l=>l<50?1:l<70?.6:.2;
 const GIVER_NAME={zgate:'귀문 수문장',chief:'촌장님',board:'게시판',coach:'전직 교관',miko:'숨은 무녀',adv2:'숲의 스승',adv3:'달빛 대현자',daily:'일일 의뢰인'};
 const jline=(j,t)=>t<=0?'초보자':j.line[t-1];
-const SK_KEYS=['sk1','sk2','sk3','sk4','sk5'];   // X C V B N
-const SK_LABEL=['X','C','V','B','N'];
-const SK_TIER=[1,0,1,2,3];                         // 해당 스킬이 열리는 전직 단계 (C 는 수련생부터)
+const SK_KEYS=['sk1','sk2','sk3','sk4','sk5','sk6'];   // X C V B N
+const SK_LABEL=['X','C','V','B','N','R'];
+const SK_TIER=[1,0,1,2,3,3];                         // 해당 스킬이 열리는 전직 단계 (C 는 수련생부터)
 const SKIN='#eaa571',SKIN2='#c17e4e';
 const JOBS=[
  {id:'warrior',veg:'브로콜리',role:'전사',head:'broc',line:['전사','용사','검성'],hp:130,mp:60,atk:14,spd:232,jump:640,short:'#d8344a',band:'#ffdd33',col:'#3fae49',proj:'broc',

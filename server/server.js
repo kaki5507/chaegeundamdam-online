@@ -221,6 +221,7 @@ function attachPresence(server) {
       }
       if (m.t === 'whoami') { try { ws.send(JSON.stringify({ t: 'you', id: ws.id })); } catch {} return; }
       if (m.t === 'rd') { raidDamage(ws, m); return; }
+      if (m.t === 'bsum' || m.t === 'bjoin' || m.t === 'bd' || m.t === 'bp') { dragonMsg(ws, m); return; }
       if (m.t === 'pb' || m.t === 'kx') {
         if (!ws.st || !ws.st.pt) return;
         const now = Date.now(); if (now - ws.hb.t > 1000) ws.hb = { t: now, n: 0 }; if (++ws.hb.n > 20) return;
@@ -266,6 +267,34 @@ function attachPresence(server) {
       pushMsg({ kind: 'event', name: '축제 보스', text: '거대 보스 격파! 참가 ' + R.att.size + '명 · 전리품은 ' + w.name + ' 님에게!', ch: 'all' });
     }
   }
+  /* ---------- 용왕 보스 방 : 파티 코드별 공유 체력 · 결정(기믹) · 랜덤 전리품 ---------- */
+  const DK = new Map();
+  const dkKey = ws => 'dk:' + (ws.st && ws.st.pt ? 'p:' + ws.st.pt : 's:' + ws.id);
+  const dkSend = (key, o) => { const s2 = JSON.stringify(o); for (const c of wss.clients) if (c.readyState === 1 && c.st && c.st.map === 'df_boss' && dkKey(c) === key) c.send(s2); };
+  const dkState = R => ({ t: 'bst', hp: Math.max(0, Math.round(R.hp)), max: R.max, pil: Math.max(0, Math.round(R.pil)), pilMax: R.pilMax, phase: R.phase, t0: R.t0, dead: R.dead, fail: R.fail, n: R.att.size, winner: R.winner || '', wid: R.wid || '', key: R.key });
+  function dragonMsg(ws, m) {
+    if (!ws.st || ws.st.map !== 'df_boss') return;
+    const key = dkKey(ws); let R = DK.get(key);
+    if (m.t === 'bsum') { if (!R || R.dead || R.fail) { R = { key: key + ':' + Date.now(), max: 40000, hp: 40000, pilMax: 9000, pil: 9000, phase: 1, t0: Date.now(), att: new Map(), dead: false, fail: false }; DK.set(key, R); } dkSend(key, dkState(R)); return; }
+    if (m.t === 'bjoin') { try { ws.send(JSON.stringify(R ? dkState(R) : { t: 'bst', none: 1 })); } catch {} return; }
+    if (!R || R.dead || R.fail) return;
+    const now = Date.now(); if (now - ws.rb.t > 1000) ws.rb = { t: now, n: 0 };
+    const d = Math.min(num(m.d, 0, 50000), Math.max(0, 80000 - ws.rb.n)); if (d <= 0) return; ws.rb.n += d;
+    if (!R.att.has(ws.id)) { if (R.att.size > 0 && R.att.size < 6) { R.max += 30000; R.hp += 30000; R.pilMax += 4000; R.pil += 4000; } R.att.set(ws.id, { d: 0, name: ws.name }); }
+    R.att.get(ws.id).d += d;
+    if (m.t === 'bp') { R.pil = Math.max(0, R.pil - d); }
+    else if (R.pil <= 0) {
+      R.hp -= d; const ph = R.hp > R.max * .7 ? 1 : R.hp > R.max * .35 ? 2 : 3;
+      if (ph !== R.phase) { R.phase = ph; R.pil = R.pilMax; }
+      if (R.hp <= 0) {
+        R.hp = 0; R.dead = true;
+        const alive = [...wss.clients].filter(c => c.readyState === 1 && R.att.has(c.id)), pool = alive.length ? alive.map(c => c.id) : [...R.att.keys()];
+        R.wid = pool[Math.floor(Math.random() * pool.length)]; R.winner = R.att.get(R.wid).name;
+        pushMsg({ kind: 'event', name: '용의 요새', text: '🐲 불멸의 용왕 토벌! (' + R.att.size + '명) 전리품은 ' + R.winner + ' 님에게!', ch: 'all' });
+      }
+    }
+  }
+  setInterval(() => { for (const [key, R] of DK) { if (!R.dead && !R.fail && Date.now() - R.t0 > 600000) R.fail = true; dkSend(key, dkState(R)); if ((R.dead || R.fail) && Date.now() - R.t0 > 900000) DK.delete(key); } }, 250).unref();
   function liveTick(dt) {
     { const de = !!dailyEvent(); if (de && !LIVE.was.dexp && !(EVENT && EVENT.until > Date.now())) pushMsg({ kind: 'event', name: '이벤트', text: '⏰ 저녁 7시! 지금부터 9시까지 경험치 1.5배!', ch: 'all' }); LIVE.was.dexp = de; }
     for (const kind of ['raid', 'arena']) {
