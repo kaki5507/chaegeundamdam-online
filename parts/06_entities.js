@@ -282,7 +282,7 @@ function updatePlayer(p,dt){
     else if(p.coyote>0){p.vy=-JOB[p.job].jump;p.jbuf=0;p.coyote=0;p.onGround=false;sfx('jump');dust(p.x,p.y,4);if(p===PARTY[0])qev('flag','jump')}
     else if((p.tier|0)>=2&&!p.rope&&!p.sj&&!p.onGround&&p.drop<=0)superJump(p);
   }
-  if(!I.jH&&p.vy<-230&&!p.dashT&&!p.rope)p.vy=-230;
+  if(!I.jH&&p.vy<-230&&!p.dashT&&!p.rope&&!(p.kind==='p1'&&performance.now()<(window.JHOLD||0))&&!(performance.now()<(p.sjUntil||0)))p.vy=-230;
   p.drop-=dt;
   p.vy=Math.min(p.vy+GRAV*dt,980);
   p.vyPrev=p.vy;

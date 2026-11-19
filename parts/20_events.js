@@ -4,11 +4,11 @@
    ============================================================ */
 /* ---------- 슈퍼점프 (2차 전직부터 공중에서 한 번 더) ---------- */
 function superJump(p){
-  p.sj=1;p.jbuf=0;p.vy=-Math.max(780,JOB[p.job].jump*1.22);sfx('jump');
+  p.sj=1;p.jbuf=0;p.sjUntil=performance.now()+380;p.vy=-Math.max(780,JOB[p.job].jump*1.22);sfx('jump');
   spark(p.x,p.y-6,14,'#bff0ff',220,.45,3,120,true);
   if(typeof fxPush==='function')fxPush({k:'ring',x:p.x,y:p.y-4,r:46,col:'#bff0ff',max:.35});
   S.fx.push({k:'ring',x:p.x,y:p.y,r:40,col:'rgba(190,240,255,.9)',t:0,max:.3});
-  if(p===PARTY[0]&&!SAVE.flags.sjTip){SAVE.flags.sjTip=1;G.toast('슈퍼점프! 공중에서 점프를 한 번 더 — 높은 곳의 보물상자를 찾아봐요')}
+  if(p===PARTY[0]&&!SAVE.flags.sjTip){SAVE.flags.sjTip=1;G.toast('2단 점프! 공중에서 점프를 한 번 더 — 높은 곳의 보물상자를 찾아봐요')}
 }
 
 /* ---------- 신규 장비 : 명예 무기 · 축제 레이드 · 필드보스 · 신전 ---------- */

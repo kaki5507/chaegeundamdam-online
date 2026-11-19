@@ -50,7 +50,7 @@ addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
   if(coarse)box.style.display='block';
   box.querySelectorAll('[data-k]').forEach(b=>{
     const code=b.dataset.k;
-    const on=e=>{e.preventDefault();keys[code]=true;pressed[code]=true;b.classList.add('on');initAudio()};
+    const on=e=>{e.preventDefault();keys[code]=true;pressed[code]=true;b.classList.add('on');initAudio();if(code==='Space')window.JHOLD=performance.now()+220};
     const off=e=>{e.preventDefault();keys[code]=false;b.classList.remove('on')};
     b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);
     b.addEventListener('pointercancel',off);b.addEventListener('pointerleave',off);

@@ -25,3 +25,5 @@ function doJobChange(job){
 }
 {const _g=guideMenu2;guideMenu2=function(){_g();if(G.dlg&&SAVE.inv.jobticket>0)G.dlg.opts.splice(G.dlg.opts.length-1,0,{t:'🎫 직업 변경권 사용 ('+SAVE.inv.jobticket+'장)',fn:useJobTicket})}}
 {const _gm=guideMenu;guideMenu=function(n){_gm(n);if(G.dlg)G.dlg.opts.splice(G.dlg.opts.length-1,0,{t:'🎫 직업 변경권 사용 ('+(SAVE.inv.jobticket||0)+'장)',fn:useJobTicket})}}
+// 2차 전직하면 2단 점프 안내
+{const _a=advanceJob;advanceJob=function(t){_a(t);if(t===2)setTimeout(()=>{G.banner={t:0,name:'🦘 2단 점프 습득!',sub:'공중에서 점프를 한 번 더 누르면 더 높이 뛰어요 (폰: 점프 버튼 두 번)'};sfx('levelup')},2600)}}
