@@ -44,7 +44,7 @@ function drawHuntSign(g,L,t){
 }
 
 /* ---------- 몬스터 리젠 (빠르게) ---------- */
-const RESP_T=2.2;
+const RESP_T=3.6;
 function spawnTpl(i){
   const L=S.L,m=L.mobs[i];if(!m)return null;let mob;
   const fire=Object.assign(L.theme==='lava'?{col:'rgba(255,140,60,',col2:'#ff9a40',col3:'#c03010'}:{},L.mhue?{hue:L.mhue}:{});
