@@ -81,7 +81,13 @@ const CHAT = []; let lastTs = 0;
 const nextTs = () => (lastTs = Math.max(Date.now(), lastTs + 1));
 function pushMsg(m) { m.ts = nextTs(); CHAT.push(m); if (CHAT.length > 300) CHAT.shift(); return m; }
 let EVENT = null;
-const curEvent = () => (EVENT && EVENT.until > Date.now() ? EVENT : null);
+// 매일 저녁 19:00~21:00 (KST) 경험치 1.5배 — 운영자 이벤트가 있으면 그쪽이 우선
+function dailyEvent() {
+  const ms = Date.now() + 9 * 3600e3, min = Math.floor(ms / 60000) % 1440, day = Math.floor(ms / 864e5);
+  if (min < 1140 || min >= 1260) return null;
+  return { id: 'daily-exp-' + day, exp: 1.5, drop: 1, until: day * 864e5 - 9 * 3600e3 + 1260 * 60000, msg: '매일 저녁 7~9시 경험치 1.5배!', daily: 1 };
+}
+const curEvent = () => (EVENT && EVENT.until > Date.now() ? EVENT : dailyEvent());
 const clean = s => String(s || '').replace(/[\u0000-\u001f\u007f<>]/g, '').trim().slice(0, 80);
 const lastChat = new Map();
 /* ---------- 명예의 전당 · 랭커 접속 환영 ---------- */
@@ -248,6 +254,7 @@ function attachPresence(server) {
     }
   }
   function liveTick(dt) {
+    { const de = !!dailyEvent(); if (de && !LIVE.was.dexp && !(EVENT && EVENT.until > Date.now())) pushMsg({ kind: 'event', name: '이벤트', text: '⏰ 저녁 7시! 지금부터 9시까지 경험치 1.5배!', ch: 'all' }); LIVE.was.dexp = de; }
     for (const kind of ['raid', 'arena']) {
       const open = liveOpen(kind);
       if (open && !LIVE.was[kind]) pushMsg({ kind: 'event', name: '이벤트', text: kind === 'raid' ? '🐉 축제 보스 레이드가 열렸다! 오른쪽 위 [이벤트] 버튼으로 입장!' : '🏛 명예의 전당 쟁탈전이 열렸다! 30초 버티면 우승!', ch: 'all' });
