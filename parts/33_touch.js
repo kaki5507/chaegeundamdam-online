@@ -25,3 +25,19 @@ cv.addEventListener('pointerdown',e=>{
 // 남은 AP 알림 칩 (눌러서 능력치 창)
 {const _dh=drawHUD;drawHUD=function(g,t){_dh(g,t);if(!PARTY[0]||!SAVE.apFree||G.ui)return;const a=.75+.25*Math.sin(t*5);
   g.save();g.globalAlpha=a;g.beginPath();g.roundRect(116,88,124,22,11);g.fillStyle='#ffcf3a';g.fill();g.restore();txt(g,'💪 AP '+SAVE.apFree+' 찍기 (O)',178,104,12,'#3a2400','center',0)}}
+
+/* ---------- 직업 선택 : 터치하면 그 직업 선택, [이 직업으로 시작] 버튼으로 시작 ---------- */
+// (전에는 화면 어디를 눌러도 Enter 로 처리돼 항상 첫 번째 직업(전사)으로 시작됐다)
+const JSTART={x:W-230,y:458,w:190,h:62};
+cv.addEventListener('pointerdown',e=>{
+  if(G.state!=='select')return;const P=cvPos(e);delete pressed.Enter;
+  if(inR(P,JSTART.x,JSTART.y,JSTART.w,JSTART.h)){pressed.Enter=true;return}
+  for(let i=0;i<8;i++){const x=36+(i%4)*224,y=70+(i/4|0)*190;if(inR(P,x,y,208,178)){if(G.jsel!==i){G.jsel=i;sfx('sel')}return}}
+  if(inR(P,W-260,6,250,26)){G.fsel=((G.fsel|0)+1)%FACES.length;sfx('sel')}
+});
+{const _dsel=drawSelect;drawSelect=function(g,t){_dsel(g,t);const b=JSTART,j=JOBS[G.jsel],a=.8+.2*Math.sin(t*4);
+  g.save();g.shadowColor='rgba(255,210,90,.8)';g.shadowBlur=14*a;g.beginPath();g.roundRect(b.x,b.y,b.w,b.h,14);const gr=g.createLinearGradient(0,b.y,0,b.y+b.h);gr.addColorStop(0,'#ffe58a');gr.addColorStop(1,'#ffb84a');g.fillStyle=gr;g.fill();g.restore();
+  g.strokeStyle='#8a5a10';g.lineWidth=2;g.beginPath();g.roundRect(b.x,b.y,b.w,b.h,14);g.stroke();
+  txt(g,'▶ '+j.role+'(으)로 시작',b.x+b.w/2,b.y+30,18,'#4a2a00','center',0);txt(g,'(Enter)',b.x+b.w/2,b.y+50,11,'#7a4a10','center',0)}}
+// 게임 밖 화면(오프닝·직업 선택)에선 터치 버튼을 숨겨 화면을 바로 누를 수 있게
+{let _tv=null;const _r=render;render=function(){_r();const tc=document.getElementById('touch');if(!tc)return;const v=G.state==='play'||G.state==='over';if(v!==_tv){_tv=v;tc.style.visibility=v?'':'hidden'}}}

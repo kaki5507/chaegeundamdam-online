@@ -274,9 +274,9 @@ function drawSelect(g,t){
     txt(g,j.role,x+104,y+148,17,'#fff','center');txt(g,'초보자→'+j.line.join('→'),x+104,y+168,10,'#ffe9a0','center',2);
   });
   const j=JOBS[G.jsel];panel(g,36,448,888,82,.85);
-  txt(g,j.bio,54,478,16,'#fff');
-  txt(g,'수련생 C '+j.sk[1].n+' · 1차 X '+j.sk[0].n+' / V '+j.sk[2].n+' · 2차 B '+j.sk[3].n+' · 3차 N '+j.sk[4].n,54,506,13,'#9be8ff','left',2);
-  txt(g,'← → ↑ ↓ 선택 · F 표정 바꾸기 ['+FACES[G.fsel|0]+'] · Enter 시작 · Esc 뒤로',W-30,22,13,'rgba(255,255,255,.7)','right',2);
+  txt(g,j.bio,54,478,15,'#fff');
+  txt(g,'C '+j.sk[1].n+' · 1차 X '+j.sk[0].n+' / V '+j.sk[2].n+' · 2차 B '+j.sk[3].n+' · 3차 N '+j.sk[4].n,54,506,12,'#9be8ff','left',2);
+  txt(g,'카드를 눌러 선택 · 여기를 눌러(F) 표정 바꾸기 ['+FACES[G.fsel|0]+'] · Esc 뒤로',W-30,22,13,'rgba(255,255,255,.7)','right',2);
 }
 
 /* ---------- world render ---------- */

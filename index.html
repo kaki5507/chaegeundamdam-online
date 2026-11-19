@@ -3328,9 +3328,9 @@ function drawSelect(g,t){
     txt(g,j.role,x+104,y+148,17,'#fff','center');txt(g,'초보자→'+j.line.join('→'),x+104,y+168,10,'#ffe9a0','center',2);
   });
   const j=JOBS[G.jsel];panel(g,36,448,888,82,.85);
-  txt(g,j.bio,54,478,16,'#fff');
-  txt(g,'수련생 C '+j.sk[1].n+' · 1차 X '+j.sk[0].n+' / V '+j.sk[2].n+' · 2차 B '+j.sk[3].n+' · 3차 N '+j.sk[4].n,54,506,13,'#9be8ff','left',2);
-  txt(g,'← → ↑ ↓ 선택 · F 표정 바꾸기 ['+FACES[G.fsel|0]+'] · Enter 시작 · Esc 뒤로',W-30,22,13,'rgba(255,255,255,.7)','right',2);
+  txt(g,j.bio,54,478,15,'#fff');
+  txt(g,'C '+j.sk[1].n+' · 1차 X '+j.sk[0].n+' / V '+j.sk[2].n+' · 2차 B '+j.sk[3].n+' · 3차 N '+j.sk[4].n,54,506,12,'#9be8ff','left',2);
+  txt(g,'카드를 눌러 선택 · 여기를 눌러(F) 표정 바꾸기 ['+FACES[G.fsel|0]+'] · Esc 뒤로',W-30,22,13,'rgba(255,255,255,.7)','right',2);
 }
 
 /* ---------- world render ---------- */
@@ -6575,4 +6575,47 @@ cv.addEventListener('pointerdown',e=>{
 // 남은 AP 알림 칩 (눌러서 능력치 창)
 {const _dh=drawHUD;drawHUD=function(g,t){_dh(g,t);if(!PARTY[0]||!SAVE.apFree||G.ui)return;const a=.75+.25*Math.sin(t*5);
   g.save();g.globalAlpha=a;g.beginPath();g.roundRect(116,88,124,22,11);g.fillStyle='#ffcf3a';g.fill();g.restore();txt(g,'💪 AP '+SAVE.apFree+' 찍기 (O)',178,104,12,'#3a2400','center',0)}}
+
+/* ---------- 직업 선택 : 터치하면 그 직업 선택, [이 직업으로 시작] 버튼으로 시작 ---------- */
+// (전에는 화면 어디를 눌러도 Enter 로 처리돼 항상 첫 번째 직업(전사)으로 시작됐다)
+const JSTART={x:W-230,y:458,w:190,h:62};
+cv.addEventListener('pointerdown',e=>{
+  if(G.state!=='select')return;const P=cvPos(e);delete pressed.Enter;
+  if(inR(P,JSTART.x,JSTART.y,JSTART.w,JSTART.h)){pressed.Enter=true;return}
+  for(let i=0;i<8;i++){const x=36+(i%4)*224,y=70+(i/4|0)*190;if(inR(P,x,y,208,178)){if(G.jsel!==i){G.jsel=i;sfx('sel')}return}}
+  if(inR(P,W-260,6,250,26)){G.fsel=((G.fsel|0)+1)%FACES.length;sfx('sel')}
+});
+{const _dsel=drawSelect;drawSelect=function(g,t){_dsel(g,t);const b=JSTART,j=JOBS[G.jsel],a=.8+.2*Math.sin(t*4);
+  g.save();g.shadowColor='rgba(255,210,90,.8)';g.shadowBlur=14*a;g.beginPath();g.roundRect(b.x,b.y,b.w,b.h,14);const gr=g.createLinearGradient(0,b.y,0,b.y+b.h);gr.addColorStop(0,'#ffe58a');gr.addColorStop(1,'#ffb84a');g.fillStyle=gr;g.fill();g.restore();
+  g.strokeStyle='#8a5a10';g.lineWidth=2;g.beginPath();g.roundRect(b.x,b.y,b.w,b.h,14);g.stroke();
+  txt(g,'▶ '+j.role+'(으)로 시작',b.x+b.w/2,b.y+30,18,'#4a2a00','center',0);txt(g,'(Enter)',b.x+b.w/2,b.y+50,11,'#7a4a10','center',0)}}
+// 게임 밖 화면(오프닝·직업 선택)에선 터치 버튼을 숨겨 화면을 바로 누를 수 있게
+{let _tv=null;const _r=render;render=function(){_r();const tc=document.getElementById('touch');if(!tc)return;const v=G.state==='play'||G.state==='over';if(v!==_tv){_tv=v;tc.style.visibility=v?'':'hidden'}}}
+/* ============================================================
+   JOBCHANGE : 직업 변경권 — 모든 계정에 1장 지급 · 레벨/전직 단계 유지, AP 다시 분배
+   ============================================================ */
+ETC_NAME.jobticket='🎫 직업 변경권';BOSS_MATS.unshift('jobticket');BOSS_MAT_DESC.jobticket='레벨과 전직 단계는 그대로 두고 직업만 바꿔요. 가이드(7) 또는 야채마을 전직 안내원에게서 사용.';
+function giftJobTicket(){if(!SAVE||SAVE.flags.jcGift1)return;SAVE.flags.jcGift1=1;SAVE.inv.jobticket=(SAVE.inv.jobticket||0)+1;saveGame();
+  setTimeout(()=>{G.banner={t:0,name:'🎫 직업 변경권 1장 지급!',sub:'모든 모험가에게 선물 — 가이드(7) 또는 전직 안내원에게서 사용해요'};sfx('levelup')},1800)}
+{const _c=continueGame;continueGame=function(){_c();giftJobTicket()}}
+{const _n=newGame;newGame=function(j){_n(j);giftJobTicket()}}
+function useJobTicket(){
+  const n=SAVE.inv.jobticket||0;
+  if(!n){G.toast('직업 변경권이 없어요');return}
+  if(S.L.pq||S.L.dun||S.L.raid||S.L.arenaEv||(S.boss&&!S.boss.dead)){G.toast('던전 안에서는 쓸 수 없어요');return}
+  openDialog('🎫 직업 변경권 ('+n+'장)','지금: '+JOB[SAVE.job].role+' Lv.'+SAVE.lvl+' ('+SAVE.tier+'차)\n\n바꿀 직업을 고르세요. 레벨·전직 단계·장비·퀘스트는 그대로 유지되고,\n능력치(AP)는 새 직업에 맞게 다시 자동 분배돼요. 손에 든 무기는 장비창으로 돌아가요.',
+    JOBS.filter(j=>j.id!==SAVE.job).map(j=>({t:j.role+'  ('+jline(j,SAVE.tier)+')',fn:()=>openDialog('정말 바꿀까요?',JOB[SAVE.job].role+' → '+j.role+'\n직업 변경권 1장을 사용합니다.',[{t:'바꾼다!',fn:()=>doJobChange(j.id)},{t:'취소',fn:closeUI}])})).concat([{t:'닫기',fn:closeUI}]));
+}
+function doJobChange(job){
+  if(!(SAVE.inv.jobticket>0))return;SAVE.inv.jobticket--;
+  const total=Object.values(SAVE.ap||{}).reduce((a,b)=>a+b,0)-16+(SAVE.apFree||0);
+  SAVE.job=job;SAVE.ap={str:4,dex:4,int:4,luk:4};SAVE.apFree=Math.max(0,total);autoAP();
+  if(SAVE.gear){for(const s of['rh','lh']){const id=SAVE.gear[s];if(id&&GEAR[id]&&GEAR[id].wt)SAVE.gear[s]=null}}
+  saveGame();closeUI();SUMS=[];
+  const id=S.id;PARTY=[buildP1()];goMap(id,true);
+  const p=PARTY[0];spark(p.x,p.y-30,50,'#ffe9a0',360,1,5,0,true);sfx('levelup');
+  G.banner={t:0,name:'✨ '+JOB[job].role+'(으)로 변신!',sub:jline(JOB[job],SAVE.tier)+' · 새 직업 마을: 「'+JT_OF(job).name+'」'};
+}
+{const _g=guideMenu2;guideMenu2=function(){_g();if(G.dlg&&SAVE.inv.jobticket>0)G.dlg.opts.splice(G.dlg.opts.length-1,0,{t:'🎫 직업 변경권 사용 ('+SAVE.inv.jobticket+'장)',fn:useJobTicket})}}
+{const _gm=guideMenu;guideMenu=function(n){_gm(n);if(G.dlg)G.dlg.opts.splice(G.dlg.opts.length-1,0,{t:'🎫 직업 변경권 사용 ('+(SAVE.inv.jobticket||0)+'장)',fn:useJobTicket})}}
 </script></body></html>
