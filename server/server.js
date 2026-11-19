@@ -94,6 +94,18 @@ const lastChat = new Map();
 let RANK = { at: 0, list: [] };
 async function rankList() { if (Date.now() - RANK.at > 15000) RANK = { at: Date.now(), list: await db.ranking(200) }; return RANK.list; }
 const optUser = req => { const m = /^Bearer (.+)$/.exec(req.headers.authorization || ''); return m && verify(m[1]); };
+let WSS = null;
+// 지금 접속 중인 사람 : 이름 · 레벨 · 직업 · 있는 맵
+app.get('/api/online', (req, res) => {
+  const seen = new Set(), list = [];
+  if (WSS) for (const c of WSS.clients) {
+    if (c.readyState !== 1 || !c.st || Date.now() - c.st.at > 15000) continue;
+    const nm = c.st.name || c.name; if (seen.has(nm)) continue; seen.add(nm);
+    list.push({ name: nm, lv: c.st.lv | 0, job: c.st.j || '', map: c.st.map || '' });
+  }
+  list.sort((a, b) => b.lv - a.lv);
+  res.json({ n: list.length, list: list.slice(0, 100) });
+});
 app.get('/api/ranking', async (req, res) => {
   try {
     const list = await rankList(), me = optUser(req), i = me ? list.findIndex(r => r.key === me) : -1;
@@ -190,6 +202,7 @@ db.init().then(kind => {
 function attachPresence(server) {
   const { WebSocketServer } = require('ws');
   const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096 });
+  WSS = wss;
   let seq = 0;
   const num = (v, a, b) => Math.max(a, Math.min(b, Number(v) || 0));
   wss.on('connection', ws => {

@@ -4,7 +4,7 @@
 function onPlatAt(L,x,gy){return L.plats.some(p=>!p.mv&&Math.abs(p.y-gy)<6&&x>=p.x+16&&x<=p.x+p.w-16)}
 function separateNPCs(L){
   if(!L||!L.npcs||!L.portals)return;
-  const tooClose=(n,x)=>L.portals.some(po=>Math.abs(x-po.x)<96&&Math.abs(n.gy-po.y)<70)||L.npcs.some(o=>o!==n&&!o.hidden&&Math.abs(x-o.x)<64&&Math.abs(n.gy-o.gy)<40);
+  const tooClose=(n,x)=>L.portals.some(po=>Math.abs(x-po.x)<96&&Math.abs(n.gy-po.y)<70)||L.npcs.some(o=>o!==n&&!o.hidden&&Math.abs(x-o.x)<92&&Math.abs(n.gy-o.gy)<40);
   for(const n of L.npcs){
     if(n.hidden||n.fixed||!tooClose(n,n.x))continue;
     let best=null;

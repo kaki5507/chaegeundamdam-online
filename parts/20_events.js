@@ -289,7 +289,7 @@ function medalShop(n){
 }
 NPC_LOOK_X.medalnpc={job:'warrior',eq:{hat:'hat_gat',outfit:'out_gold',cape:'cape_red'},n:'명예 메달 교환원',fid:5};
 ROLE.medal='명예 메달 교환';
-{const _tw=MAPS.town;MAPS.town=()=>{const L=_tw();L.npcs.push({id:'medal',name:'명예 메달 교환원',x:3700,gy:470,look:'medalnpc'});return L}}
+{const _tw=MAPS.town;MAPS.town=()=>{const L=_tw();L.npcs.push({id:'medal',name:'명예 메달 교환원',x:3580,gy:470,look:'medalnpc'});return L}}
 const _talkNPCE=talkNPC;
 talkNPC=function(n){if(n.id==='medal')return medalShop(n);return _talkNPCE(n)};
 

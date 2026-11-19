@@ -68,7 +68,7 @@ function dunMenu(n){
 }
 NPC_LOOK_X.dunkeeper={job:'guardian',eq:{hat:'hat_helm',outfit:'out_dobok',cape:'cape_ghost'},n:'던전 문지기',fid:6};
 ROLE.dunkeeper='레벨별 던전';ROLE.riddle='수수께끼 퀘스트';ROLE.secnpc='???';
-{const _tw=MAPS.town;MAPS.town=()=>{const L=_tw();L.npcs.push({id:'dunkeeper',name:'던전 문지기 감자',x:3420,gy:470,look:'dunkeeper'},{id:'riddle',name:'수수께끼 노인 도토리',x:1180,gy:470,look:'riddle'});
+{const _tw=MAPS.town;MAPS.town=()=>{const L=_tw();L.npcs.push({id:'dunkeeper',name:'던전 문지기 감자',x:3300,gy:470,look:'dunkeeper'},{id:'riddle',name:'수수께끼 노인 도토리',x:1180,gy:470,look:'riddle'});
   L.secrets=[{x:L.w-50,y:470,to:'sec_garden'}];return L}}
 
 /* ---------- 던전 장식 ---------- */

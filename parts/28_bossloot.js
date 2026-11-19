@@ -53,7 +53,7 @@ bossFinish=function(b){
 /* ---------- 보스 연구가 (야채마을) ---------- */
 NPC_LOOK_X.bossdoc={job:'mage',eq:{hat:'hat_gat',outfit:'out_vest'},n:'보스 연구가',fid:9};
 ROLE.bossdoc='보스 재료 · 제작';
-{const _tw=MAPS.town;MAPS.town=()=>{const L=_tw();L.npcs.push({id:'bossdoc',name:'보스 연구가 우엉',x:3560,gy:470,look:'bossdoc'});return L}}
+{const _tw=MAPS.town;MAPS.town=()=>{const L=_tw();L.npcs.push({id:'bossdoc',name:'보스 연구가 우엉',x:3440,gy:470,look:'bossdoc'});return L}}
 const matTxt=need=>Object.entries(need).map(([k,v])=>(ETC_NAME[k]||k)+' '+(SAVE.inv[k]||0)+'/'+v).join(' · ');
 const hasNeed=need=>Object.entries(need).every(([k,v])=>(SAVE.inv[k]||0)>=v);
 function bossDoc(n){

@@ -5545,7 +5545,7 @@ function medalShop(n){
 }
 NPC_LOOK_X.medalnpc={job:'warrior',eq:{hat:'hat_gat',outfit:'out_gold',cape:'cape_red'},n:'명예 메달 교환원',fid:5};
 ROLE.medal='명예 메달 교환';
-{const _tw=MAPS.town;MAPS.town=()=>{const L=_tw();L.npcs.push({id:'medal',name:'명예 메달 교환원',x:3700,gy:470,look:'medalnpc'});return L}}
+{const _tw=MAPS.town;MAPS.town=()=>{const L=_tw();L.npcs.push({id:'medal',name:'명예 메달 교환원',x:3580,gy:470,look:'medalnpc'});return L}}
 const _talkNPCE=talkNPC;
 talkNPC=function(n){if(n.id==='medal')return medalShop(n);return _talkNPCE(n)};
 
@@ -6232,7 +6232,7 @@ bossFinish=function(b){
 /* ---------- 보스 연구가 (야채마을) ---------- */
 NPC_LOOK_X.bossdoc={job:'mage',eq:{hat:'hat_gat',outfit:'out_vest'},n:'보스 연구가',fid:9};
 ROLE.bossdoc='보스 재료 · 제작';
-{const _tw=MAPS.town;MAPS.town=()=>{const L=_tw();L.npcs.push({id:'bossdoc',name:'보스 연구가 우엉',x:3560,gy:470,look:'bossdoc'});return L}}
+{const _tw=MAPS.town;MAPS.town=()=>{const L=_tw();L.npcs.push({id:'bossdoc',name:'보스 연구가 우엉',x:3440,gy:470,look:'bossdoc'});return L}}
 const matTxt=need=>Object.entries(need).map(([k,v])=>(ETC_NAME[k]||k)+' '+(SAVE.inv[k]||0)+'/'+v).join(' · ');
 const hasNeed=need=>Object.entries(need).every(([k,v])=>(SAVE.inv[k]||0)>=v);
 function bossDoc(n){
@@ -6444,7 +6444,7 @@ function dunMenu(n){
 }
 NPC_LOOK_X.dunkeeper={job:'guardian',eq:{hat:'hat_helm',outfit:'out_dobok',cape:'cape_ghost'},n:'던전 문지기',fid:6};
 ROLE.dunkeeper='레벨별 던전';ROLE.riddle='수수께끼 퀘스트';ROLE.secnpc='???';
-{const _tw=MAPS.town;MAPS.town=()=>{const L=_tw();L.npcs.push({id:'dunkeeper',name:'던전 문지기 감자',x:3420,gy:470,look:'dunkeeper'},{id:'riddle',name:'수수께끼 노인 도토리',x:1180,gy:470,look:'riddle'});
+{const _tw=MAPS.town;MAPS.town=()=>{const L=_tw();L.npcs.push({id:'dunkeeper',name:'던전 문지기 감자',x:3300,gy:470,look:'dunkeeper'},{id:'riddle',name:'수수께끼 노인 도토리',x:1180,gy:470,look:'riddle'});
   L.secrets=[{x:L.w-50,y:470,to:'sec_garden'}];return L}}
 
 /* ---------- 던전 장식 ---------- */
@@ -6539,7 +6539,7 @@ NPC_LOOK_X.jl_priest=NPC_LOOK_X.jl_priest||{job:'priest',eq:{},n:'',fid:7};
 function onPlatAt(L,x,gy){return L.plats.some(p=>!p.mv&&Math.abs(p.y-gy)<6&&x>=p.x+16&&x<=p.x+p.w-16)}
 function separateNPCs(L){
   if(!L||!L.npcs||!L.portals)return;
-  const tooClose=(n,x)=>L.portals.some(po=>Math.abs(x-po.x)<96&&Math.abs(n.gy-po.y)<70)||L.npcs.some(o=>o!==n&&!o.hidden&&Math.abs(x-o.x)<64&&Math.abs(n.gy-o.gy)<40);
+  const tooClose=(n,x)=>L.portals.some(po=>Math.abs(x-po.x)<96&&Math.abs(n.gy-po.y)<70)||L.npcs.some(o=>o!==n&&!o.hidden&&Math.abs(x-o.x)<92&&Math.abs(n.gy-o.gy)<40);
   for(const n of L.npcs){
     if(n.hidden||n.fixed||!tooClose(n,n.x))continue;
     let best=null;
@@ -6632,4 +6632,39 @@ function doJobChange(job){
 {const _gm=guideMenu;guideMenu=function(n){_gm(n);if(G.dlg)G.dlg.opts.splice(G.dlg.opts.length-1,0,{t:'🎫 직업 변경권 사용 ('+(SAVE.inv.jobticket||0)+'장)',fn:useJobTicket})}}
 // 2차 전직하면 2단 점프 안내
 {const _a=advanceJob;advanceJob=function(t){_a(t);if(t===2)setTimeout(()=>{G.banner={t:0,name:'🦘 2단 점프 습득!',sub:'공중에서 점프를 한 번 더 누르면 더 높이 뛰어요 (폰: 점프 버튼 두 번)'};sfx('levelup')},2600)}}
+/* ============================================================
+   HUDPLUS : 상단에 🏆 랭킹 · 📅 출석 버튼 · 접속자 배지를 누르면 누가 어디 있는지
+   ============================================================ */
+HUDB.push({id:'rank',x:0,y:8,w:82,h:32,l:'🏆 랭킹',k:'6'},{id:'att',x:0,y:8,w:82,h:32,l:'📅 출석',k:''});
+{const order=['ev','pq','guide','rank','att','adm'];let x=W-10;for(const id of order){const b=HUDB.find(b=>b.id===id);if(!b)continue;x-=b.w;b.x=x;x-=6}}
+const attDone=()=>SAVE&&SAVE.att&&SAVE.att.last===dayNum();
+{const _dhb=drawHudButtons;drawHudButtons=function(g,t){const a=HUDB.find(b=>b.id==='att');if(a)a.l=attDone()?'📅 출석✓':'📅 출석!';_dhb(g,t);
+  if(a&&!attDone()){g.save();g.globalAlpha=.7+.3*Math.sin(t*5);circ(g,a.x+a.w-6,a.y+6,5,'#ff4a6a');g.restore()}}}
+function openAttFromHud(){attMenu({id:'att',name:'출석부 요정 콩콩'})}
+// 상단 버튼 처리 (기존 처리기는 rank/att 를 eventMenu 로 보내지 않게)
+{const _em=eventMenu;eventMenu=function(){const b=G._lastHudBtn;G._lastHudBtn=null;if(b==='rank')return openFame();if(b==='att')return openAttFromHud();return _em()}}
+cv.addEventListener('pointerdown',e=>{
+  if(G.state!=='play'||G.ui||!S)return;const P=cvPos(e);
+  for(const b of HUDB)if((b.id==='rank'||b.id==='att')&&P.x>=b.x-6&&P.x<=b.x+b.w+6&&P.y>=b.y-8&&P.y<=b.y+b.h+12)G._lastHudBtn=b.id;
+  if(inR(P,10,84,104,30))openOnline();
+},true);
+{const _rs=respawnStep;respawnStep=function(dt){_rs(dt);if(G.state==='play'&&!G.ui&&!G.chatOpen&&pressed.Digit6)openFame()}}
+
+/* ---------- 접속자 목록 ---------- */
+const MAPNAME={};
+function mapName(id){if(!id)return'?';if(MAPNAME[id])return MAPNAME[id];try{MAPNAME[id]=MAPS[id]?(MAPS[id]().name||id).replace('??? ','???'):id}catch(e){MAPNAME[id]=id}return MAPNAME[id]}
+async function openOnline(){
+  sfx('sel');
+  if(!(typeof wsOK==='function'&&wsOK())){openDialog('🟢 접속자','서버에 연결되어 있지 않아요 (오프라인).',[{t:'닫기',fn:closeUI}]);return}
+  openDialog('🟢 접속자','불러오는 중…',[{t:'닫기',fn:closeUI}]);
+  try{const o=await api('GET','/api/online');if(G.ui!=='dialog')return;
+    const lines=o.list.map((r,i)=>(i+1)+'. '+r.name+'  Lv.'+r.lv+' '+(JOB[r.job]?JOB[r.job].role:'')+'  —  📍 '+(r.map&&r.map.startsWith('sec_')?'??? (비밀 장소)':mapName(r.map)));
+    const per=9,pages=Math.max(1,Math.ceil(lines.length/per));
+    const show=pg=>openDialog('🟢 지금 접속 중 '+o.n+'명'+(pages>1?'  ('+(pg+1)+'/'+pages+')':''),lines.slice(pg*per,pg*per+per).join('\n')||'아무도 없어요',
+      (pages>1?[{t:'다음 쪽 ▶',fn:()=>show((pg+1)%pages)}]:[]).concat([{t:'새로고침',fn:openOnline},{t:'닫기',fn:closeUI}]));
+    show(0);
+  }catch(e){openDialog('🟢 접속자','목록을 불러오지 못했어요: '+e.message,[{t:'닫기',fn:closeUI}])}
+}
+// 배지에 '눌러서 보기' 힌트
+{const _do=drawOnline;drawOnline=function(g,t){_do(g,t);if(typeof wsOK==='function'&&wsOK())txt(g,'▾',104,104,10,'#cfd4e2','center',0)}}
 </script></body></html>

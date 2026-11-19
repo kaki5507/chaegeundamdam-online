@@ -79,6 +79,7 @@ const srv = app.listen(0, async () => {
     const pb = wait(b, o => o.t === 'pb'); a.send(JSON.stringify({ t: 'pb', k: 'warrior:함성', x: 100, y: 470, b: { atk: 9, dur: 12, n: '전투 함성' } }));
     const pbo = await pb; assert.equal(pbo.b.atk, 1.6); assert.equal(pbo.b.n, '전투 함성');
     const kx = wait(b, o => o.t === 'kx'); a.send(JSON.stringify({ t: 'kx', e: 40, x: 100 })); assert.equal((await kx).e, 40);
+    [s, o] = await j('GET', '/api/online'); assert.equal(s, 200); assert.ok(o.n >= 1 && o.list[0].map);
     a.close(); b.close();
     console.log('SERVER TESTS OK');
   } catch (e) { console.error('FAIL', e); process.exitCode = 1; } finally { srv.close(); setTimeout(() => process.exit(), 100); }
